@@ -105,6 +105,18 @@ export function MockAuthProvider({ children }: { children: React.ReactNode }) {
       setCurrentUser(user);
       if (typeof window !== "undefined") {
         localStorage.setItem("mockUserId", userId.toString());
+
+        // Redirect to appropriate route based on new role
+        const baseUrl =
+          user.role === "EMPLOYEE"
+            ? "/employee"
+            : user.role === "DEPARTMENT_MANAGER"
+              ? "/manager"
+              : user.role === "GENERAL_MANAGER"
+                ? "/general-manager"
+                : "/admin";
+
+        window.location.href = baseUrl;
       }
     }
   };

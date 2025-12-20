@@ -51,3 +51,7 @@ export function generateDateRange(startDate: Date, endDate: Date): Date[] {
   return dates;
 }
 
+export function isDateInRange(date: Date, start: Date, end: Date): boolean {
+  return date >= start && date <= end;
+}
+

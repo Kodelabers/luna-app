@@ -6,17 +6,19 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  mockApplications,
   mockEmployees,
   mockDepartments,
   mockUnavailabilityReasons,
 } from "@/lib/mock-data/generator";
+import { useMockApplications } from "@/lib/mock-data/api";
+import { ApplicationStatus } from "@/lib/types";
 import Link from "next/link";
 import { Users, FileText, Clock, Calendar } from "lucide-react";
 import { formatDateRange } from "@/lib/utils/dates";
 
 export default function ManagerDashboard() {
   const { currentUser } = useMockAuth();
+  const { applications } = useMockApplications();
 
   if (!currentUser || !currentUser.departmentId) return null;
 
@@ -25,18 +27,25 @@ export default function ManagerDashboard() {
     (e) => e.departmentId === currentUser.departmentId && e.active
   );
 
-  const pendingApplications = mockApplications.filter(
+  const pendingApplications = applications.filter(
     (app) =>
       app.departmentId === currentUser.departmentId &&
-      (app.status === "SUBMITTED" || app.status === "APPROVED_FIRST_LEVEL")
+      (app.status === ApplicationStatus.SUBMITTED ||
+        app.status === ApplicationStatus.APPROVED_FIRST_LEVEL)
   );
 
-  const approvedThisMonth = mockApplications.filter((app) => {
-    if (app.departmentId !== currentUser.departmentId || app.status !== "APPROVED")
+  const approvedThisMonth = applications.filter((app) => {
+    if (
+      app.departmentId !== currentUser.departmentId ||
+      app.status !== ApplicationStatus.APPROVED
+    )
       return false;
     const now = new Date();
     const start = new Date(app.startDate);
-    return start.getMonth() === now.getMonth() && start.getFullYear() === now.getFullYear();
+    return (
+      start.getMonth() === now.getMonth() &&
+      start.getFullYear() === now.getFullYear()
+    );
   });
 
   const getStatusBadge = (status: string) => {
