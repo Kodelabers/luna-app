@@ -2,14 +2,62 @@
 ## Analiza implementacije naspram specifikacije i User Stories
 
 **Datum:** 20.12.2024  
-**Verzija:** 4.0  
-**Status:** Full-Featured Mockup Analysis + User Stories Coverage  
-**Zadnje ažuriranje:** 20.12.2024 - Ažurirano s potpunim pokrivanjem User Stories
-**User Stories:** 76 User Stories analizirano (20% implementirano, 13% djelomično, 67% nije implementirano)
+**Verzija:** 4.1  
+**Status:** Full-Featured Mockup Analysis + User Stories Coverage + **⚠️ Pronađene greške**  
+**Zadnje ažuriranje:** 20.12.2024 - Pronađene greške u implementaciji - TREBA ISPRAVITI!
+**User Stories:** 76 User Stories analizirano (20% implementirano, 13% djelomično **s greškama**, 67% nije implementirano)
+
+**⚠️ VAŽNO:** Pronađene su greške u trenutnoj implementaciji validacija. Pogledaj sekciju "PRONAĐENE GREŠKE U IMPLEMENTACIJI" ispod za detalje.
 
 ---
 
 ## 🎯 NAJNOVIJE PROMJENE
+
+### ⚠️ PRONAĐENE GREŠKE U IMPLEMENTACIJI - **TREBA ISPRAVITI**
+
+**Faza 0: Ispravljanje trenutne implementacije (1 dan)** 🔴 **KRITIČNO - prije nego nastavimo dalje!**
+
+1. **BR-VAL-001: Validacija datuma - Parcijalno krivo implementirano**
+   - **Lokacija:** `lib/utils/validation.ts` (linija 26-31)
+   - **Problem:** Trenutno validacija **ne dopušta datum početka u prošlosti** za SVE zahtjeve
+   - **Ispravak:** Treba razlikovati:
+     - **Regularni zahtjevi** (godišnji odmor, slobodni dani): datum početka NE smije biti u prošlosti ✅ (trenutno OK)
+     - **Bolovanje**: datum početka **SMIJE biti u prošlosti** (evidencija naknadnih događaja) ❌ (treba ispraviti)
+   - **Rješenje:** Dodati parametar `unavailabilityReasonType` u `validateDateRange()` i prilagoditi logiku
+   - **Povezano:** US-VAL-004 (regularni), US-VAL-005 (bolovanje)
+   - **Prioritet:** 🔴 KRITIČNO - blokira evidenciju bolovanja
+
+2. **BR-VAL-002: Validacija preklapanja - Djelomično krivo**
+   - **Lokacija:** `lib/utils/overlap.ts` + `validation.ts`
+   - **Problem:** Trenutno se **ne provjerava preklapanje s DaySchedule-om** (stvarni plan)
+   - **Dokument kaže:** Treba provjeriti i aktivne zahtjeve (SUBMITTED, APPROVED_FIRST_LEVEL) **I** DaySchedule (APPROVED zahtjevi)
+   - **Trenutno:** Provjerava samo aktivne zahtjeve (Application), ne provjerava DaySchedule
+   - **Rješenje:** Dodati `validateDayScheduleOverlap()` funkciju
+   - **Povezano:** US-VAL-001, US-VAL-007
+   - **Prioritet:** 🔴 KRITIČNO - nedostaje validacija s odobrenim zahtjevima
+
+3. **BR-VAL-003: Validacija dostupnih dana - Nedostaje filtriranje po tipu**
+   - **Lokacija:** `lib/utils/ledger.ts`, `hooks/useBalance.ts`
+   - **Problem:** Implementacija je OK, ali treba provjeriti da se **uvijek filtrira po `unavailabilityReasonId`**
+   - **Dokument kaže:** "Stanje se računa PO unavailabilityReason-u (svaki tip odvojeno)"
+   - **Provjera:** Pregledati sve pozive `calculateBalance()` i osigurati da se uvijek prosleđuje `reasonId`
+   - **Prioritet:** 🟡 SREDNJI - provjera konzistentnosti
+
+4. **Nedostaje validacija statusa za uređivanje (US-VAL-006)**
+   - **Problem:** UI ne sprječava uređivanje zahtjeva u statusima koji se ne mogu uređivati
+   - **Treba:** Samo DRAFT zahtjevi mogu se uređivati, ostali ne
+   - **Prioritet:** 🟡 SREDNJI - UX poboljšanje
+
+**Plan ispravljanja (Dan 0 - prije Sprint 3):**
+1. ✅ Ispravi `validateDateRange()` da prima `unavailabilityReasonType` i dopusti prošlost za bolovanje (1-2h)
+2. ✅ Dodaj `validateDayScheduleOverlap()` za provjeru preklapanja s odobrenim zahtjevima (2-3h)
+3. ✅ Pregledaj sve pozive `calculateBalance()` i osiguraj filtriranje po reasonId (1h)
+4. ✅ Dodaj UI validaciju statusa za uređivanje (1h)
+5. ✅ Testiraj sve scenarije (1-2h)
+
+**Procjena:** 6-9 sati (1 radni dan)
+
+---
 
 ### ✅ Faza 2 - ZAVRŠENA (Tablični kalendar za planiranje)
 
@@ -2231,9 +2279,10 @@ lib/constants/
 
 | Faza | Funkcionalnost | Dani | Priority | Status | User Stories |
 |------|----------------|------|----------|---------|--------------|
-| 1 | Validacije + kalkulacije | 2-3 | 🔴 | ✅ ZAVRŠENO | US-VAL-002, 003, 004, US-EMP-006 |
+| **0** | **Ispravljanje grešaka** | **1** | **🔴** | **⏳ PRIORITET #1** | **BR-VAL-001, 002, 003, US-VAL-005, 006** |
+| 1 | Validacije + kalkulacije | 2-3 | 🔴 | ✅ ZAVRŠENO (s greškama) | US-VAL-002, 003, 004, US-EMP-006 |
 | 2 | Tablični kalendar | 5-7 | 🔴 | ✅ ZAVRŠENO | US-DM-002 |
-| 3 | Approval proces - Prvi nivo | 2-3 | 🔴 | ⏳ Sljedeći | US-DM-004, 005, BR-WF-003, 005 |
+| 3 | Approval proces - Prvi nivo | 2-3 | 🔴 | ⏳ Nakon Faze 0 | US-DM-004, 005, BR-WF-003, 005 |
 | 4 | Korekcija vraćanja dana | 3-4 | 🔴 | ⏳ | US-EMP-012B, US-VAL-007, US-MGR-008, BR-AUTO-001 |
 | 5 | DaySchedule management | 1-2 | 🔴 | ⏳ | BR-AUTO-002 (dio approval-a) |
 | 6 | Upravljanje alokacijama | 3-4 | 🔴 | ⏳ | US-MGR-001, 002, 003, 004 |
@@ -2247,27 +2296,33 @@ lib/constants/
 | 14 | Dodatne funkcionalnosti | 3-4 | 🟢 | ⏳ | US-DM-007, 008, US-MGR-010, US-CMN-007 |
 | 15 | UX polish | 2-3 | 🟢 | ⏳ | US-CMN-001, US-EMP-005, US-DM-003 |
 
-**Ukupno:** 37-51 radni dan (7.5-10 tjedana)  
-**Završeno:** ~7-10 dana (Faze 1 i 2)  
-**Preostalo kritično (🔴):** ~14-19 dana (Faze 3-7) → ~3-4 tjedna  
+**Ukupno:** 38-52 radna dana (7.5-10.5 tjedana)  
+**Završeno:** ~7-10 dana (Faze 1 i 2) - **ALI IMA GREŠAKA!**  
+**Faza 0 - Ispravljanje:** **1 dan** 🔴 **PRIORITET #1**  
+**Preostalo kritično (🔴):** ~15-20 dana (Faze 0+3-7) → ~3-4 tjedna  
 **Preostalo poželjno (🟡):** ~10-13 dana (Faze 8-12) → ~2-2.5 tjedna  
 **Nice-to-have (🟢):** ~9-12 dana (Faze 13-15) → ~2 tjedna
 
+**⚠️ VAŽNO:** Sprint 0 (Faza 0) se **MORA** napraviti prije nego nastavimo s drugim fazama!
+
 **Prioritet za sljedeće:**
-1. 🔴 **Approval proces - Prvi nivo** (2-3 dana) - Manager može odobriti/odbiti zahtjeve
-2. 🔴 **Korekcija vraćanja dana** (3-4 dana) - INOVATIVNA FUNKCIONALNOST!
-3. 🔴 **Upravljanje alokacijama** (3-4 dana) - Dodjela godišnjih dana
-4. 🔴 **Evidencija bolovanja** (2-3 dana) - Forma i popis bolovanja
+1. 🔴 **Sprint 0: Ispravljanje grešaka** (1 dan) - **MORA BITI PRVO!**
+2. 🔴 **Approval proces - Prvi nivo** (2-3 dana) - Manager može odobriti/odbiti zahtjeve
+3. 🔴 **Korekcija vraćanja dana** (3-4 dana) - INOVATIVNA FUNKCIONALNOST!
+4. 🔴 **Upravljanje alokacijama** (3-4 dana) - Dodjela godišnjih dana
+5. 🔴 **Evidencija bolovanja** (2-3 dana) - Forma i popis bolovanja
 
 **Za minimum viable mockup (samo kritično - 🔴):**
-- Faze 1-7: ~19-26 dana (4-5 tjedana)
-- Faze 1-2: ✅ Završeno (~7-10 dana)
-- **Preostalo: ~12-16 dana (2.5-3 tjedna)**
+- **Faze 0-7:** ~20-27 dana (4-5.5 tjedana)
+- **Faze 1-2:** ✅ Završeno (~7-10 dana) - **S GREŠKAMA!**
+- **Faza 0:** ⏳ **1 dan (PRIORITET #1)**
+- **Preostalo:** ~12-16 dana (2.5-3 tjedna)
 
 **Za impressive mockup (kritično + poželjno - 🔴🟡):**
-- Faze 1-12: ~29-39 dana (6-8 tjedana)
-- Faze 1-2: ✅ Završeno (~7-10 dana)
-- **Preostalo: ~22-29 dana (4.5-6 tjedana)**
+- Faze 0-12: ~30-40 dana (6-8 tjedana)
+- Faze 1-2: ✅ Završeno (~7-10 dana) - **S GREŠKAMA!**
+- **Faza 0:** ⏳ **1 dan (PRIORITET #1)**
+- **Preostalo:** ~22-29 dana (4.5-6 tjedana)
 
 ### 15.4 Preporuke
 
@@ -2421,7 +2476,42 @@ lib/constants/
 
 ### 16.1 Sljedeći koraci (Next Sprint)
 
-**Sprint 1: ~~Validacije i kalkulacije (2-3 dana)~~** ✅ **ZAVRŠENO**
+**Sprint 0: ~~ISPRAVLJANJE GREŠAKA (1 dan)~~** ⏳ **PRIORITET #1 - MORA SE NAPRAVITI PRVO!**
+
+Dan 1:
+- [ ] **KRITIČNO:** Ispravi `validateDateRange()` u `lib/utils/validation.ts`
+  - [ ] Dodaj parametar `allowPastDates` ili `unavailabilityReasonType`
+  - [ ] Za bolovanje: dopusti datum početka u prošlosti
+  - [ ] Za regularne zahtjeve: zadr ži trenutnu validaciju (ne dopusti prošlost)
+  - [ ] Ažuriraj sve pozive `validateDateRange()`
+  - [ ] Ažuriraj `validateApplication()` da prosleđuje tip
+- [ ] **KRITIČNO:** Dodaj validaciju preklapanja s DaySchedule-om
+  - [ ] Kreiraj `validateDayScheduleOverlap()` u `validation.ts`
+  - [ ] Provjera: preklapanje s APPROVED zahtjevima preko DaySchedule
+  - [ ] Upozorenje o budućoj korekciji ako je `hasPlanning=true`
+  - [ ] Integriraj u `validateApplication()`
+  - [ ] Dodaj mock DaySchedule podatke za testiranje
+- [ ] Provjeri `calculateBalance()` pozive - filtriranje po `reasonId`
+  - [ ] Pregledaj `useBalance()` hook
+  - [ ] Pregledaj sve pozive u komponentama
+  - [ ] Osiguraj da se uvijek prosleđuje `unavailabilityReasonId`
+- [ ] Dodaj UI validaciju statusa za uređivanje
+  - [ ] Provjeri status prije prikaza "Uredi" gumba
+  - [ ] Samo DRAFT zahtjevi mogu imati "Uredi" gumb
+  - [ ] Error poruka ako korisnik pokuša urediti ne-DRAFT zahtjev
+- [ ] Testiraj sve scenarije
+  - [ ] Bolovanje s prošlim datumom (mora proći)
+  - [ ] Godišnji odmor s prošlim datumom (mora failati)
+  - [ ] Preklapanje s DaySchedule-om (mora pokazati upozorenje)
+  - [ ] Balance kalkulacija (mora biti po reasonId)
+
+**Deliverable:** Ispravljene greške u validacijama - **BLOKIRA Sprint 3!**
+**Pokriva:** BR-VAL-001, BR-VAL-002, BR-VAL-003, US-VAL-004, US-VAL-005, US-VAL-006
+**Status:** ⏳ **MORA SE NAPRAVITI PRIJE NASTAVKA RAZVOJA**
+
+---
+
+**Sprint 1: ~~Validacije i kalkulacije (2-3 dana)~~** ✅ **ZAVRŠENO** (ali ima grešaka - vidi Sprint 0)
 
 ~~Dan 1:~~
 - [x] Fix calculateWorkingDays() sa holidays
@@ -2470,7 +2560,9 @@ lib/constants/
 
 ---
 
-**Sprint 3: Approval proces - Prvi nivo (2-3 dana)** ⏳ **SLJEDEĆI**
+**Sprint 3: Approval proces - Prvi nivo (2-3 dana)** ⏳ **NAKON Sprint 0!**
+
+**NAPOMENA:** ⚠️ **NE POČINJATI dok se ne završi Sprint 0 (ispravljanje grešaka)!**
 
 Dan 1:
 - [ ] Kreiraj approveApplication i rejectApplication u api.ts
@@ -2595,10 +2687,21 @@ Dan 3:
 
 **Pripremio:** AI Assistant  
 **Datum:** 20.12.2024  
-**Verzija:** 4.0  
-**Status:** Ažurirano s potpunim pokrivanjem User Stories (76 US)
+**Verzija:** 4.1  
+**Status:** Ažurirano s potpunim pokrivanjem User Stories + Pronađene greške u implementaciji
 
 **Changelog:**
+- **v4.1 (20.12.2024):** ⚠️ **PRONAĐENE GREŠKE U IMPLEMENTACIJI** - dodana Faza 0 za ispravljanje
+  - **KRITIČNO:** Dodana sekcija "Pronađene greške u implementaciji" na vrhu dokumenta
+  - **Sprint 0:** Ispravljanje grešaka u validacijama (1 dan) - **MORA SE NAPRAVITI PRVO!**
+  - **Greška #1:** `validateDateRange()` ne dopušta prošle datume za bolovanje (linija 26-31 u validation.ts)
+  - **Greška #2:** Validacija ne provjerava preklapanje s DaySchedule-om (samo aktivne zahtjeve)
+  - **Greška #3:** Provjera da se `calculateBalance()` uvijek poziva s `reasonId`
+  - **Greška #4:** UI ne sprječava uređivanje ne-DRAFT zahtjeva
+  - Ažurirane tablice prioriteta s Fazom 0 kao PRIORITET #1
+  - Ažuriran sprint plan s Sprint 0 prije Sprint 3
+  - Dodano upozorenje: Sprint 3 se NE SMIJE početi dok se ne završi Sprint 0
+  - **Procjena:** +1 dan (ukupno 38-52 dana umjesto 37-51)
 - **v4.0 (20.12.2024):** Ažurirano da u potpunosti pokriva sve User Stories iz user_stories.md
   - Dodana sekcija 0: Autentifikacija i session management
   - Dodana sekcija 2.5: Zajedničke funkcionalnosti (US-CMN-001 do US-CMN-007)
@@ -2620,10 +2723,15 @@ Dan 3:
 **Sažetak User Stories pokrivenosti:**
 - **76 User Stories ukupno**
 - ✅ Potpuno implementirano: ~15 US (20%)
-- ⚠️ Djelomično implementirano: ~10 US (13%)
+- ⚠️ Djelomično implementirano: ~10 US (13%) - **NEKI S GREŠKAMA!**
 - ❌ Nije implementirano: ~51 US (67%)
 
-**Kritični gap-ovi (Must-have):**
+**⚠️ KRITIČNI GAP-OVI (Must-have):**
+0. 🔴 **Sprint 0: Ispravljanje grešaka** (1 dan) - **PRIORITET #1 - MORA BITI PRVO!**
+   - BR-VAL-001: Ispravi validaciju datuma za bolovanje
+   - BR-VAL-002: Dodaj validaciju preklapanja s DaySchedule-om
+   - BR-VAL-003: Provjeri filtriranje po reasonId
+   - US-VAL-006: Dodaj UI validaciju statusa za uređivanje
 1. 🔴 Approval proces - Prvi nivo (US-DM-004, US-DM-005, BR-WF-003, BR-WF-005)
 2. 🔴 Korekcija vraćanja dana (US-EMP-012B, US-VAL-007, US-MGR-008, BR-AUTO-001) - **INOVACIJA!**
 3. 🔴 Upravljanje alokacijama (US-MGR-001, 002, 003, 004)
@@ -2631,7 +2739,8 @@ Dan 3:
 5. 🔴 DaySchedule management (BR-AUTO-002)
 
 **Prioritet za sljedeće:**
-1. Approval proces (2-3 dana)
-2. Korekcija vraćanja dana (3-4 dana) - **INOVACIJA!**
-3. Upravljanje alokacijama (3-4 dana)
-4. Evidencija bolovanja (2-3 dana)
+1. **Sprint 0: Ispravljanje grešaka (1 dan) - PRVO!**
+2. Approval proces (2-3 dana)
+3. Korekcija vraćanja dana (3-4 dana) - **INOVACIJA!**
+4. Upravljanje alokacijama (3-4 dana)
+5. Evidencija bolovanja (2-3 dana)
