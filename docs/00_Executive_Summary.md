@@ -160,7 +160,6 @@ Razviti potpuno funkcionalan, siguran i skalabilan sustav za upravljanje godišn
 - Upravljanje praznicima
 - Evidencija bolovanja
 - Automatska prilagodba godišnjih odmora
-- Vraćanje zahtjeva na doradu
 - Tablični prikaz planiranja
 
 **Outcome:** Potpuno funkcionalan sustav s naprednim features

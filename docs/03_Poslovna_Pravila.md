@@ -8,13 +8,14 @@
 ### BR-VAL-001: Validacija datuma zahtjeva
 **Pravilo:**
 - Datum početka mora biti prije ili jednak datumu završetka
-- Datum početka ne smije biti u prošlosti
+- Datum početka smije biti u prošlosti (za evidenciju naknadnih događaja)
 - Datum završetka ne smije biti više od 365 dana u budućnosti
 
 **Error poruke:**
 - "Datum početka mora biti prije datuma završetka"
-- "Ne možete kreirati zahtjev za prošle dane"
 - "Zahtjev ne može biti duži od 365 dana"
+
+**Napomena:** Za detalje o ograničenjima datuma u prošlosti vidi docs/otvorena_pitanja.md
 
 ---
 
@@ -110,6 +111,38 @@ VALID IF: 1 <= allocatedDays <= 50
 
 **Error poruka:**
 - "Broj dana mora biti između 1 i 50"
+
+---
+
+### BR-VAL-008: Razlikovanje needApproval i hasPlanning flagova
+
+**Pravilo:**
+- **needApproval** i **hasPlanning** su dva odvojena koncepta s različitim funkcijama
+
+**needApproval (proces odobrenja):**
+- Određuje treba li zahtjev proći kroz proces odobrenja
+- `needApproval = false`: Zahtjev ide direktno u APPROVED status (npr. bolovanje)
+- `needApproval = true`: Zahtjev ide u SUBMITTED status i čeka odobrenje
+
+**hasPlanning (potrošnja dana):**
+- Određuje troši li zahtjev alocirane dane
+- `hasPlanning = true`: Zahtjev kreira ledger entries, troši dane iz alokacije
+- `hasPlanning = false`: Zahtjev ne troši dane, samo evidencija (npr. bolovanje)
+
+**Korekcija dana:**
+- Korekcija se izvršava kada novi zahtjev prekriva DaySchedule zapis nastao iz zahtjeva s `hasPlanning=true`
+- Vraćaju se SVI preostali dani originalnog zahtjeva (od datuma početka novog zahtjeva do datuma završetka originalnog)
+- Kreira se CORRECTION ledger entry s pozitivnim changeDays (vraćanje)
+
+**Primjer kombinacija:**
+```
+| Tip             | needApproval | hasPlanning | Opis                              |
+|-----------------|--------------|-------------|-----------------------------------|
+| Godišnji odmor  | true         | true        | Treba odobrenje, troši dane       |
+| Slobodni dan    | true         | true        | Treba odobrenje, troši dane       |
+| Edukacija       | true         | true        | Treba odobrenje, troši dane       |
+| Bolovanje       | false        | false       | Ne treba odobrenje, ne troši dane |
+```
 
 ---
 
@@ -642,12 +675,27 @@ await prisma.$transaction(async (tx) => {
   2. **Djelomično preklapanje** → Skratiti GO, vratiti preklopljene dane
   3. **Preklapanje u sredini** → Skratiti GO na prvi dio, vratiti ostatak
 
+**DaySchedule kreiranje:**
+- **Otvoreno bolovanje (bez datuma završetka):**
+  - Kreira se DaySchedule zapis samo za datum početka bolovanja
+  - Ostali dani se ne popunjavaju u DaySchedule-u
+  - UI prikazuje sve dane od datuma početka do danas s oznakom "Aktivno bolovanje - u tijeku"
+  
+- **Zatvoreno bolovanje (s datumom završetka):**
+  - Pri spremanju ili zatvaranju bolovanja kreiraju se DaySchedule zapisi za sve dane
+  - Postojeći DaySchedule zapis za prvi dan se ažurira (update)
+
 **Logika:**
 ```typescript
 async function handleSickLeaveOverlap(sickLeave: Application) {
   return await prisma.$transaction(async (tx) => {
+    // Odredi koje dane provjeriti
+    const checkDates = sickLeave.endDate 
+      ? generateDateRange(sickLeave.startDate, sickLeave.endDate)  // Zatvoreno bolovanje
+      : [sickLeave.startDate];  // Otvoreno bolovanje - samo prvi dan
+    
     const overlappingVacations = await findOverlappingApprovedVacations(
-      tx, sickLeave.employeeId, sickLeave.startDate, sickLeave.endDate
+      tx, sickLeave.employeeId, checkDates
     );
 
     for (const vacation of overlappingVacations) {
@@ -696,13 +744,86 @@ async function handleSickLeaveOverlap(sickLeave: Application) {
         }
       });
     }
+    
+    // Kreiraj DaySchedule zapise za bolovanje
+    if (sickLeave.endDate) {
+      // Zatvoreno bolovanje - kreiraj sve zapise
+      await createDaySchedules(tx, sickLeave);
+    } else {
+      // Otvoreno bolovanje - kreiraj samo prvi dan
+      await createSingleDaySchedule(tx, sickLeave, sickLeave.startDate);
+    }
   });
 }
 ```
 
 ---
 
-### BR-AUTO-002: Kreiranje DaySchedule zapisa
+### BR-AUTO-002: Zatvaranje otvorenog bolovanja i kreiranje DaySchedule zapisa
+
+**Pravilo:**
+- Pri zatvaranju otvorenog bolovanja (dodavanje datuma završetka), kreiraju se DaySchedule zapisi za cijelo razdoblje
+- Manager ručno zatvara bolovanja, nema automatskog zatvaranja
+
+**Logika:**
+```typescript
+async function closeSickLeave(sickLeaveId: number, endDate: Date, userId: number) {
+  return await prisma.$transaction(async (tx) => {
+    const sickLeave = await tx.application.findUnique({
+      where: { id: sickLeaveId },
+      include: { unavailabilityReason: true }
+    });
+    
+    // Ažuriraj Application s datumom završetka
+    await tx.application.update({
+      where: { id: sickLeaveId },
+      data: { 
+        endDate: endDate,
+        lastUpdatedById: userId
+      }
+    });
+    
+    // Kreiraj DaySchedule zapise za sve dane između startDate i endDate
+    const allDays = generateDateRange(sickLeave.startDate, endDate);
+    
+    for (const day of allDays) {
+      await tx.daySchedule.upsert({
+        where: {
+          organisationId_employeeId_date: {
+            organisationId: sickLeave.organisationId,
+            employeeId: sickLeave.employeeId,
+            date: day
+          }
+        },
+        create: {
+          organisationId: sickLeave.organisationId,
+          employeeId: sickLeave.employeeId,
+          applicationId: sickLeave.id,
+          unavailabilityReasonId: sickLeave.unavailabilityReasonId,
+          date: day,
+          dayCode: getDayCode(day),
+          isWeekend: isWeekend(day),
+          isHoliday: await isHoliday(day),
+          status: 'NOT_AVAILABLE'
+        },
+        update: {
+          // Ažuriraj ako već postoji (npr. prvi dan)
+          applicationId: sickLeave.id,
+          unavailabilityReasonId: sickLeave.unavailabilityReasonId,
+          status: 'NOT_AVAILABLE'
+        }
+      });
+    }
+    
+    // Provjeri preklapanje i izvršava korekciju za cijelo razdoblje
+    await handleSickLeaveOverlap(tx, sickLeave);
+  });
+}
+```
+
+---
+
+### BR-AUTO-003: Kreiranje DaySchedule zapisa
 **Pravilo:**
 - Prilikom odobravanja zahtjeva, automatski kreiraj `DaySchedule` za svaki dan
 
@@ -743,7 +864,7 @@ async function createDaySchedules(tx: Transaction, application: Application) {
 
 ---
 
-### BR-AUTO-003: Godišnji transfer (carry-over) - Automatska obrada 1.1.
+### BR-AUTO-004: Godišnji transfer (carry-over) - Automatska obrada 1.1.
 
 **Pravilo:**
 - **Automatska obrada:** 1. siječnja u 00:00 (noćni job)
@@ -819,7 +940,7 @@ async function performYearEndTransfer(
 
 ---
 
-### BR-AUTO-004: Godišnja alokacija
+### BR-AUTO-005: Godišnja alokacija
 **Pravilo:**
 - Na početku godine (ili pri zapošljavanju), admin/manager dodjeljuje dane
 
