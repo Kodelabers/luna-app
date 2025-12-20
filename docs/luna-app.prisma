@@ -1,0 +1,355 @@
+// generator & datasource ostaju isti
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  //url      = env("DATABASE_URL")
+}
+
+enum DayCode {
+  MON
+  TUE
+  WED
+  THU
+  FRI
+  SAT
+  SUN
+}
+
+enum EmployeeStatus {
+  AVAILABLE
+  NOT_AVAILABLE
+  SELECTED_FOR_DUTY
+}
+
+enum UserRole {
+  ADMIN
+}
+
+enum ManagerType {
+  DEPARTMENT_MANAGER
+  GENERAL_MANAGER
+}
+
+enum ApplicationStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED_FIRST_LEVEL
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum ApplicationLogType {
+  CREATED
+  DELETED
+  REQUESTED
+  REJECTED
+  REJECTED_ON_FIRST_APPROVAL
+  APPROVED
+  POST_APPROVAL_IMPACT_CHANGED
+}
+
+enum LedgerEntryType {
+  ALLOCATION // dodjela za godinu
+  USAGE // potrošnja (-)
+  TRANSFER // prijenos u novu godinu (+)
+  CORRECTION // ručna korekcija (+/-)
+}
+
+model Organisation {
+  id         Int      @id @default(autoincrement())
+  name       String
+  alias      String   @unique
+  logoUrl    String?
+  themeColor String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  active     Boolean  @default(true)
+
+  organisationUsers     OrganisationUser[]
+  departments           Department[]
+  employees             Employee[]
+  unavailabilityReasons UnavailabilityReason[]
+  applications          Application[]
+  applicationLogs       ApplicationLog[]
+  daySchedules          DaySchedule[]
+  holidays              Holiday[]
+  ledgerEntries         UnavailabilityLedgerEntry[]
+
+  @@index([alias])
+  @@index([active])
+}
+
+model User {
+  id        Int      @id @default(autoincrement())
+  clerkId   String   @unique
+  firstName String
+  lastName  String
+  email     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  active    Boolean  @default(true)
+
+  organisationUsers OrganisationUser[]
+  employees         Employee[]
+
+  @@index([email])
+  @@index([active])
+}
+
+model OrganisationUser {
+  id             Int        @id @default(autoincrement())
+  organisationId Int
+  userId         Int
+  roles          UserRole[]
+  joinedAt       DateTime   @default(now())
+  active         Boolean    @default(true)
+
+  organisation Organisation @relation(fields: [organisationId], references: [id])
+  user         User         @relation(fields: [userId], references: [id])
+
+  applicationLogs ApplicationLog[]
+
+  createdApplications     Application[]               @relation("createdByApplications")
+  lastUpdatedApplications Application[]               @relation("lastUpdatedByApplications")
+  applicationComments     ApplicationComment[]
+  ledgerEntries           UnavailabilityLedgerEntry[]
+
+  @@index([organisationId])
+  @@index([userId])
+  @@index([active])
+}
+
+model Department {
+  id             Int      @id @default(autoincrement())
+  organisationId Int
+  name           String
+  alias          String
+  description    String?
+  colorCode      String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  active         Boolean  @default(true)
+
+  organisation Organisation  @relation(fields: [organisationId], references: [id])
+  employees    Employee[]
+  applications Application[]
+  managers     Manager[]
+
+  @@unique([organisationId, alias])
+  @@index([organisationId])
+  @@index([active])
+}
+
+model Employee {
+  id             Int          @id @default(autoincrement())
+  organisationId Int
+  organisation   Organisation @relation(fields: [organisationId], references: [id])
+  departmentId   Int
+  department     Department   @relation(fields: [departmentId], references: [id])
+
+  title     String?
+  firstName String
+  lastName  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  email     String
+  active    Boolean  @default(true)
+
+  userId Int?
+  user   User? @relation(fields: [userId], references: [id])
+
+  applications  Application[]
+  daySchedules  DaySchedule[]
+  managers      Manager[]
+  ledgerEntries UnavailabilityLedgerEntry[]
+
+  @@unique([organisationId, email])
+  @@index([organisationId])
+  @@index([departmentId])
+  @@index([email])
+  @@index([active])
+}
+
+model Manager {
+  id           Int         @id @default(autoincrement())
+  departmentId Int?
+  department   Department? @relation(fields: [departmentId], references: [id])
+  employeeId   Int
+  employee     Employee    @relation(fields: [employeeId], references: [id])
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  active       Boolean     @default(true)
+
+  @@index([departmentId])
+  @@index([employeeId])
+  @@index([active])
+}
+
+model UnavailabilityReason {
+  id                          Int                         @id @default(autoincrement())
+  organisationId              Int
+  organisation                Organisation                @relation(fields: [organisationId], references: [id])
+  name                        String
+  colorCode                   String?
+  needApproval                Boolean                     @default(false)
+  needSecondApproval          Boolean                     @default(false)
+  createdAt                   DateTime                    @default(now())
+  updatedAt                   DateTime                    @updatedAt
+  hasPlanning                 Boolean                     @default(false)
+  active                      Boolean                     @default(true)
+  applications                Application[]
+  daySchedules                DaySchedule[]
+  unavailabilityLedgerEntries UnavailabilityLedgerEntry[]
+
+  @@index([organisationId])
+  @@index([active])
+}
+
+model UnavailabilityLedgerEntry {
+  id             Int          @id @default(autoincrement())
+  organisationId Int
+  organisation   Organisation @relation(fields: [organisationId], references: [id])
+  employeeId     Int
+  employee       Employee     @relation(fields: [employeeId], references: [id])
+
+  // Tip izostanka (GO, SD...) koji ima hasPlanning = true
+  unavailabilityReasonId Int
+  unavailabilityReason   UnavailabilityReason @relation(fields: [unavailabilityReasonId], references: [id])
+
+  // Godina na koju se knjiži (ključ za brze upite i prijenos)
+  year Int
+
+  // + ili - broj dana
+  changeDays Int
+
+  // Vrsta knjiženja
+  type LedgerEntryType
+
+  // Veza na zahtjev (ako je nastalo iz Application-a)
+  applicationId Int?
+  application   Application? @relation(fields: [applicationId], references: [id])
+
+  note String?
+
+  createdAt   DateTime          @default(now())
+  createdById Int?
+  createdBy   OrganisationUser? @relation(fields: [createdById], references: [id])
+
+  @@index([organisationId])
+  @@index([employeeId, year])
+  @@index([unavailabilityReasonId, year])
+  @@index([employeeId, unavailabilityReasonId, year, changeDays])
+}
+
+model Holiday {
+  id             Int          @id @default(autoincrement())
+  organisationId Int
+  organisation   Organisation @relation(fields: [organisationId], references: [id])
+  name           String
+  date           DateTime
+  repeatYearly   Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  active         Boolean      @default(true)
+
+  @@index([organisationId])
+  @@index([active])
+}
+
+model Application {
+  id                     Int                  @id @default(autoincrement())
+  organisationId         Int
+  organisation           Organisation         @relation(fields: [organisationId], references: [id])
+  description            String?
+  startDate              DateTime
+  endDate                DateTime
+  requestedWorkdays      Int?
+  departmentId           Int
+  department             Department           @relation(fields: [departmentId], references: [id])
+  employeeId             Int
+  employee               Employee             @relation(fields: [employeeId], references: [id])
+  unavailabilityReasonId Int
+  unavailabilityReason   UnavailabilityReason @relation(fields: [unavailabilityReasonId], references: [id])
+  createdAt              DateTime             @default(now())
+  createdById            Int
+
+  createdBy       OrganisationUser  @relation("createdByApplications", fields: [createdById], references: [id])
+  updatedAt       DateTime          @updatedAt
+  lastUpdatedById Int?
+  lastUpdatedBy   OrganisationUser? @relation("lastUpdatedByApplications", fields: [lastUpdatedById], references: [id])
+
+  status                      ApplicationStatus           @default(DRAFT)
+  active                      Boolean                     @default(true)
+  applicationLogs             ApplicationLog[]
+  daySchedules                DaySchedule[]
+  comments                    ApplicationComment[]
+  unavailabilityLedgerEntries UnavailabilityLedgerEntry[]
+
+  @@index([organisationId])
+  @@index([departmentId])
+  @@index([employeeId])
+  @@index([unavailabilityReasonId])
+  @@index([status])
+  @@index([active])
+}
+
+model ApplicationLog {
+  id             Int                @id @default(autoincrement())
+  organisationId Int
+  organisation   Organisation       @relation(fields: [organisationId], references: [id])
+  applicationId  Int
+  application    Application        @relation(fields: [applicationId], references: [id])
+  type           ApplicationLogType
+  createdAt      DateTime           @default(now())
+  createdById    Int
+  createdBy      OrganisationUser   @relation(fields: [createdById], references: [id])
+
+  @@index([organisationId])
+  @@index([applicationId])
+  @@index([createdById])
+}
+
+model ApplicationComment {
+  id            Int              @id @default(autoincrement())
+  applicationId Int
+  application   Application      @relation(fields: [applicationId], references: [id])
+  comment       String
+  createdAt     DateTime         @default(now())
+  createdById   Int
+  createdBy     OrganisationUser @relation(fields: [createdById], references: [id])
+
+  @@index([applicationId])
+  @@index([createdById])
+}
+
+model DaySchedule {
+  id                     Int                   @id @default(autoincrement())
+  organisationId         Int
+  organisation           Organisation          @relation(fields: [organisationId], references: [id])
+  applicationId          Int?
+  application            Application?          @relation(fields: [applicationId], references: [id])
+  date                   DateTime
+  employeeId             Int
+  employee               Employee              @relation(fields: [employeeId], references: [id])
+  isWeekend              Boolean               @default(false)
+  isHoliday              Boolean               @default(false)
+  dayCode                DayCode
+  unavailabilityReasonId Int?
+  unavailabilityReason   UnavailabilityReason? @relation(fields: [unavailabilityReasonId], references: [id])
+  status                 EmployeeStatus        @default(AVAILABLE)
+  createdAt              DateTime              @default(now())
+  updatedAt              DateTime              @updatedAt
+  active                 Boolean               @default(true)
+
+  @@unique([organisationId, employeeId, date])
+  @@index([organisationId])
+  @@index([applicationId])
+  @@index([employeeId])
+  @@index([unavailabilityReasonId])
+  @@index([status])
+  @@index([active])
+}
