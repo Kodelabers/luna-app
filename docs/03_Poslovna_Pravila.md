@@ -39,14 +39,15 @@ PREKLAPANJE: (StartNew <= EndExist) AND (EndNew >= StartExist)
 ### BR-VAL-003: Validacija dostupnih dana
 **Pravilo:**
 - Broj traženih radnih dana ne smije prelaziti dostupne dane
-- Dostupni dani = SUM(changeDays) iz ledger entry-ja
+- **Dostupni dani se računaju PO unavailabilityReason-u (svaki tip odvojeno)**
+- Stanje dostupnih dana = SUM(changeDays) iz evidencija promjena (ledger entries)
 
 **Formula:**
 ```typescript
 const result = await prisma.unavailabilityLedgerEntry.aggregate({
   where: { 
     employeeId, 
-    unavailabilityReasonId,  // Npr. "Godišnji odmor"
+    unavailabilityReasonId,  // OBAVEZNO - npr. "Godišnji odmor"
     year 
   },
   _sum: { changeDays: true }
@@ -58,8 +59,44 @@ const requestedWorkingDays = calculateWorkingDays(startDate, endDate);
 VALID IF: requestedWorkingDays <= balance
 ```
 
+**Napomena:** Godišnji odmor i Slobodni dani imaju odvojena stanja koja se ne zbrajaju.
+
 **Error poruka:**
 - "Nemate dovoljno preostalih dana. Preostalo: {X} dana, traženo: {Y} dana"
+
+---
+
+### BR-VAL-008: Razlikovanje needApproval i hasPlanning flagova
+
+**Pravilo:**
+- **needApproval** i **hasPlanning** su dva odvojena koncepta s različitim funkcijama
+
+**needApproval (proces odobrenja):**
+- Određuje treba li zahtjev proći kroz proces odobrenja
+- `needApproval = false`: Zahtjev ide direktno u APPROVED status (npr. bolovanje)
+- `needApproval = true`: Zahtjev ide u SUBMITTED status i čeka odobrenje
+
+**hasPlanning (potrošnja dana):**
+- Određuje troši li zahtjev dane iz dodijeljenih dana
+- `hasPlanning = true`: Zahtjev kreira ledger entries, troši dane
+- `hasPlanning = false`: Zahtjev ne troši dane, samo evidencija (npr. bolovanje)
+
+**Korekcija dana:**
+- Korekcija se izvršava kada novi zahtjev prekriva DaySchedule zapis nastao iz zahtjeva s `hasPlanning=true`
+- Vraćaju se SVI preostali dani originalnog zahtjeva (od datuma početka novog zahtjeva do datuma završetka originalnog)
+- Kreira se CORRECTION ledger entry s pozitivnim changeDays (vraćanje)
+
+**Primjer kombinacija:**
+```
+| Tip             | needApproval | hasPlanning | Opis                              |
+|-----------------|--------------|-------------|-----------------------------------|
+| Godišnji odmor  | true         | true        | Treba odobrenje, troši dane       |
+| Slobodni dan    | true         | true        | Treba odobrenje, troši dane       |
+| Edukacija       | true         | true        | Treba odobrenje, troši dane       |
+| Bolovanje       | false        | false       | Ne treba odobrenje, ne troši dane |
+```
+
+**Napomena:** `hasPlanning` flag određuje da li zahtjev ima vlastite evidencije promjena (ledger entries) PO unavailabilityReason-u. Svaki unavailabilityReason s `hasPlanning=true` ima vlastite evidencije i ne miješa se s drugim tipovima.
 
 ---
 
@@ -144,15 +181,16 @@ function calculateWorkingDays(startDate: Date, endDate: Date): number {
 
 ---
 
-### BR-CALC-002: Kalkulacija balance-a (ledger SUM)
+### BR-CALC-002: Kalkulacija stanja (ledger SUM)
 **Pravilo:**
-- Balance = SUM svih changeDays za employee/reason/year
+- **Stanje se računa PO unavailabilityReason-u (svaki tip odvojeno)**
+- Stanje = SUM svih changeDays za employee/reason/year
 
 **Logika:**
 ```typescript
 async function getBalance(
   employeeId: number, 
-  unavailabilityReasonId: number, 
+  unavailabilityReasonId: number,  // OBAVEZNO - identificira tip
   year: number
 ): Promise<number> {
   const result = await prisma.unavailabilityLedgerEntry.aggregate({
@@ -164,16 +202,24 @@ async function getBalance(
 }
 ```
 
-**Primjer:**
+**Primjer - Zaposlenik ima dva odvojena stanja:**
 ```
-Ledger entries za 2025:
+Evidencije za 2025 - Godišnji odmor (unavailabilityReasonId=1):
 ALLOCATION   | +20
 TRANSFER     | +2
 USAGE        | -5
 USAGE        | -8
 CORRECTION   | +3
 ─────────────────
-BALANCE:       12 dana
+STANJE:       12 dana
+
+Evidencije za 2025 - Slobodni dani (unavailabilityReasonId=2):
+ALLOCATION   | +5
+USAGE        | -2
+─────────────────
+STANJE:       3 dana
+
+NAPOMENA: Ova dva stanja se NE zbrajaju! Svaki tip se gleda odvojeno.
 ```
 
 ---
@@ -181,13 +227,14 @@ BALANCE:       12 dana
 ### BR-CALC-003: Batch query za dashboard
 **Pravilo:**
 - Za dashboard više zaposlenika, koristi batch query
+- **Query vraća odvojena stanja PO unavailabilityReason-u**
 
 **Optimizacija:**
 ```typescript
 const balances = await prisma.$queryRaw`
   SELECT 
     employee_id,
-    unavailability_reason_id,
+    unavailability_reason_id,  -- Ključno: razlikuje tipove
     year,
     SUM(change_days) as balance
   FROM unavailability_ledger_entry
@@ -196,6 +243,8 @@ const balances = await prisma.$queryRaw`
   GROUP BY employee_id, unavailability_reason_id, year
 `;
 ```
+
+**Napomena:** Rezultat ima odvojene redove za svaki tip (Godišnji odmor, Slobodni dani, itd.).
 
 ---
 
@@ -642,12 +691,25 @@ await prisma.$transaction(async (tx) => {
   2. **Djelomično preklapanje** → Skratiti GO, vratiti preklopljene dane
   3. **Preklapanje u sredini** → Skratiti GO na prvi dio, vratiti ostatak
 
+**DaySchedule kreiranje za bolovanja:**
+- **Otvoreno bolovanje (bez datuma završetka):**
+  - Kreira se DaySchedule zapis samo za datum početka bolovanja
+  - UI prikazuje sve dane od početka do danas s oznakom "Aktivno bolovanje - u tijeku"
+  
+- **Zatvoreno bolovanje (s datumom završetka):**
+  - Pri zatvaranju kreiraju se DaySchedule zapisi za sve dane
+
 **Logika:**
 ```typescript
 async function handleSickLeaveOverlap(sickLeave: Application) {
   return await prisma.$transaction(async (tx) => {
+    // Odredi koje dane provjeriti
+    const checkDates = sickLeave.endDate 
+      ? generateDateRange(sickLeave.startDate, sickLeave.endDate)
+      : [sickLeave.startDate];  // Otvoreno: samo prvi dan
+    
     const overlappingVacations = await findOverlappingApprovedVacations(
-      tx, sickLeave.employeeId, sickLeave.startDate, sickLeave.endDate
+      tx, sickLeave.employeeId, checkDates
     );
 
     for (const vacation of overlappingVacations) {
@@ -696,13 +758,78 @@ async function handleSickLeaveOverlap(sickLeave: Application) {
         }
       });
     }
+    
+    // Kreiraj DaySchedule za bolovanje
+    if (sickLeave.endDate) {
+      await createDaySchedules(tx, sickLeave);  // Zatvoreno
+    } else {
+      await createSingleDaySchedule(tx, sickLeave, sickLeave.startDate);  // Otvoreno
+    }
   });
 }
 ```
 
 ---
 
-### BR-AUTO-002: Kreiranje DaySchedule zapisa
+### BR-AUTO-002: Zatvaranje otvorenog bolovanja
+
+**Pravilo:**
+- Pri zatvaranju bolovanja (dodavanje datuma završetka), kreiraju se DaySchedule zapisi
+- Manager ručno zatvara, nema automatskog zatvaranja
+
+**Logika:**
+```typescript
+async function closeSickLeave(sickLeaveId: number, endDate: Date) {
+  return await prisma.$transaction(async (tx) => {
+    const sickLeave = await tx.application.findUnique({
+      where: { id: sickLeaveId }
+    });
+    
+    // Ažuriraj Application
+    await tx.application.update({
+      where: { id: sickLeaveId },
+      data: { endDate }
+    });
+    
+    // Kreiraj DaySchedule za sve dane
+    const allDays = generateDateRange(sickLeave.startDate, endDate);
+    
+    for (const day of allDays) {
+      await tx.daySchedule.upsert({
+        where: {
+          organisationId_employeeId_date: {
+            organisationId: sickLeave.organisationId,
+            employeeId: sickLeave.employeeId,
+            date: day
+          }
+        },
+        create: {
+          organisationId: sickLeave.organisationId,
+          employeeId: sickLeave.employeeId,
+          applicationId: sickLeave.id,
+          unavailabilityReasonId: sickLeave.unavailabilityReasonId,
+          date: day,
+          dayCode: getDayCode(day),
+          isWeekend: isWeekend(day),
+          isHoliday: await isHoliday(day),
+          status: 'NOT_AVAILABLE'
+        },
+        update: {
+          applicationId: sickLeave.id,
+          status: 'NOT_AVAILABLE'
+        }
+      });
+    }
+    
+    // Provjeri preklapanje za cijelo razdoblje
+    await handleSickLeaveOverlap(tx, sickLeave);
+  });
+}
+```
+
+---
+
+### BR-AUTO-003: Kreiranje DaySchedule zapisa
 **Pravilo:**
 - Prilikom odobravanja zahtjeva, automatski kreiraj `DaySchedule` za svaki dan
 
@@ -743,7 +870,7 @@ async function createDaySchedules(tx: Transaction, application: Application) {
 
 ---
 
-### BR-AUTO-003: Godišnji transfer (carry-over) - Automatska obrada 1.1.
+### BR-AUTO-004: Godišnji transfer (carry-over) - Automatska obrada 1.1.
 
 **Pravilo:**
 - **Automatska obrada:** 1. siječnja u 00:00 (noćni job)
@@ -819,7 +946,7 @@ async function performYearEndTransfer(
 
 ---
 
-### BR-AUTO-004: Godišnja alokacija
+### BR-AUTO-005: Dodjela dana za godinu
 **Pravilo:**
 - Na početku godine (ili pri zapošljavanju), admin/manager dodjeljuje dane
 
