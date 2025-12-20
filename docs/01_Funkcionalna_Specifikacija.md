@@ -59,7 +59,7 @@ Sustav je web aplikacija za upravljanje godišnjim odmorima i bolovanja. Sustav 
   - Prvo odobrenje zahtjeva (SUBMITTED → APPROVED ili APPROVED_FIRST_LEVEL)
   - Odbijanje zahtjeva na prvom nivou
   - Pregled kalendara godišnjih odmora svog odjela
-  - Upravljanje godišnjim alokacijama zaposlenika svog odjela
+  - Upravljanje danima zaposlenika svog odjela
   - Evidencija bolovanja zaposlenika svog odjela
 - **Napomena:** Ne može odobravati vlastite zahtjeve
 
@@ -71,7 +71,7 @@ Sustav je web aplikacija za upravljanje godišnjim odmorima i bolovanja. Sustav 
   - Drugo odobrenje zahtjeva (APPROVED_FIRST_LEVEL → APPROVED)
   - Odbijanje zahtjeva na drugom nivou
   - Pregled kalendara svih odjela
-  - Upravljanje godišnjim alokacijama za sve zaposlenike
+  - Upravljanje danima za sve zaposlenike
   - Evidencija bolovanja za sve zaposlenike
   - Strateški pregled planiranja nedostupnosti
 
@@ -108,7 +108,7 @@ Sustav je web aplikacija za upravljanje godišnjim odmorima i bolovanja. Sustav 
   - Broj dana mora biti pozitivan broj (1-50)
   - Ime i prezime ne smiju biti prazni
 - **Business logika:**
-  - Prilikom kreiranja automatski se kreira alokacija za tekuću godinu
+  - Prilikom kreiranja automatski se kreira dodjela dana za tekuću godinu
   - Default broj dana je 20
   - Status je automatski postavljen na "aktivan"
 
@@ -388,19 +388,22 @@ Sustav je web aplikacija za upravljanje godišnjim odmorima i bolovanja. Sustav 
   - Mjesec
   - Prilagođeno razdoblje (max 3 mjeseca)
 
-**FR-APP-003: Pregled alokacija zaposlenika**
-- **Opis:** Odobravatelj vidi pregled godišnjih alokacija svih zaposlenika
+**FR-APP-003: Pregled stanja dana zaposlenika**
+- **Opis:** Odobravatelj vidi pregled stanja dana svih zaposlenika
 - **Prioritet:** Visok
 - **Prikazane informacije:**
   - Ime zaposlenika
-  - Ukupno dana (za tekuću/odabranu godinu)
-  - Iskorišteno dana
-  - Na čekanju dana
-  - Preostalo dana
+  - **Stanje PO tipu nedostupnosti (odvojeno za svaki tip)**
+  - Za svaki tip nedostupnosti (npr. "Godišnji odmor", "Slobodni dani", "Edukacija"):
+    - Ukupno dana (za tekuću/odabranu godinu)
+    - Iskorišteno dana
+    - Na čekanju dana
+    - Preostalo dana
 - **Funkcionalnosti:**
   - Sortiranje po različitim poljima
   - Eksport u Excel/CSV
-  - Vizualni indikator ako je preostalo < 5 dana
+  - Vizualni indikator ako je preostalo < 5 dana (za bilo koji tip)
+- **Napomena:** Stanja različitih tipova nedostupnosti se prikazuju odvojeno, ne zbrajaju se
 
 #### 3.3.2 Odobravanje zahtjeva
 
@@ -428,37 +431,50 @@ Sustav je web aplikacija za upravljanje godišnjim odmorima i bolovanja. Sustav 
   - Zaposlenik vidi razlog odbijanja
   - (Opciono) Zaposlenik dobiva notifikaciju
 
-#### 3.3.3 Upravljanje alokacijama
+#### 3.3.3 Upravljanje danima
 
-**FR-APP-008: Dodjela godišnjih dana za novu godinu**
-- **Opis:** Odobravatelj dodeljuje dane godišnjeg odmora zaposlenicima za novu godinu
+**FR-APP-008: Dodjela dana za novu godinu**
+- **Opis:** Odobravatelj dodeljuje dane zaposlenicima za novu godinu
 - **Prioritet:** Kritičan
+- **Proces:**
+  - **Odabir tipa nedostupnosti** ("Godišnji odmor", "Slobodni dani", "Edukacija", itd.)
+  - Odabir zaposlenika
+  - Unos broja dana za odabrani tip
 - **Mogućnosti:**
   - Pojedinačna dodjela po zaposleniku
-  - Masovna dodjela za sve zaposlenike odjela
-  - Kopiranje iz prethodne godine
+  - Masovna dodjela za sve zaposlenike odjela (za specifični tip)
+  - Kopiranje iz prethodne godine (zadržava raspodjelu po tipovima)
 - **Validacije:**
   - Broj dana mora biti između 1 i 50
   - Ne može se dodjeljivati za prošle godine
+- **Napomena:** Svaki tip nedostupnosti se dodjeljuje odvojeno (npr. 20 dana GO + 5 dana Slobodnih dana)
 
-**FR-APP-009: Izmjena alokacije tekuće godine**
+**FR-APP-009: Izmjena dodjele za tekuću godinu**
 - **Opis:** Odobravatelj može izmijeniti broj dana za tekuću godinu
 - **Prioritet:** Visok
+- **Proces:**
+  - **Odabir tipa nedostupnosti**
+  - Promjena broja dana za odabrani tip
 - **Ograničenja:**
-  - Ne može se smanjiti ispod već iskorištenih dana
-  - Promjena se logira u audit trail
+  - Ne može se smanjiti ispod već iskorištenih dana za taj specifični tip
+  - Promjena se logira u evidenciju promjena (ledger CORRECTION entry)
 - **Efekti:**
-  - Automatska rekalibracija preostalih dana
+  - Automatska rekalibracija preostalih dana za taj tip
+- **Napomena:** Promjena utječe samo na odabrani tip nedostupnosti, ostali tipovi ostaju nepromijenjeni
 
-**FR-APP-010: Pregled povijesti alokacija**
-- **Opis:** Odobravatelj vidi povijest alokacija zaposlenika
+**FR-APP-010: Pregled povijesti evidencije**
+- **Opis:** Odobravatelj vidi povijest evidencije dana zaposlenika
 - **Prioritet:** Srednji
-- **Prikazane informacije:**
+- **Proces:**
+  - **Odabir tipa nedostupnosti**
+  - Prikaz povijesti za odabrani tip
+- **Prikazane informacije (za odabrani tip):**
   - Godina
   - Ukupno dodeljeno dana
   - Iskorišteno
   - Preostalo (na kraju godine)
   - Datum dodjele
+- **Napomena:** Povijest se prikazuje odvojeno za svaki tip nedostupnosti (vlastite evidencije promjena)
 
 #### 3.3.4 Upravljanje bolovanja
 
@@ -481,13 +497,13 @@ Sustav je web aplikacija za upravljanje godišnjim odmorima i bolovanja. Sustav 
 - **Prioritet:** Kritičan
 - **Business logika:**
   - Sustav provjerava preklapanje bolovanja s odobrenim godišnjim odmorima
-  - **Slučaj 1 - Potpuno preklapanje:** Zahtjev se automatski otkazuje, dani se vraćaju u alokaciju
+  - **Slučaj 1 - Potpuno preklapanje:** Zahtjev se automatski otkazuje, dani se vraćaju
   - **Slučaj 2 - Djelomično preklapanje na početku:** Početni datum godišnjeg se pomiče
   - **Slučaj 3 - Djelomično preklapanje na kraju:** Završni datum godišnjeg se pomiče
   - **Slučaj 4 - Preklapanje u sredini:** Završni datum godišnjeg se skraćuje (ostaje prvi dio)
 - **Efekti:**
   - Automatska izmjena zahtjeva za godišnji
-  - Vraćanje preklopljenih dana u alokaciju
+  - Vraćanje preklopljenih dana
   - Odobravatelj dobiva izvještaj o svim prilagodbama
   - U komentaru zahtjeva se bilježi automatska prilagodba
 
@@ -533,7 +549,7 @@ Sustav je web aplikacija za upravljanje godišnjim odmorima i bolovanja. Sustav 
 - **Prioritet:** Nizak
 - **Efekti:**
   - Vraćanje eventualnih prilagodbi godišnjih odmora
-  - Vraćanje dana u alokaciju (ako su bili vraćeni)
+  - Vraćanje dana (ako su bili vraćeni)
 - **Ograničenja:**
   - Može se brisati samo bolovanje iz trenutne ili prethodne godine
   - Brisanje se logira u audit trail
@@ -663,7 +679,7 @@ Sustav je web aplikacija za upravljanje godišnjim odmorima i bolovanja. Sustav 
   - Kreiranje/uređivanje/brisanje zaposlenika
   - Kreiranje/uređivanje/brisanje odjela
   - Odobravanje/odbijanje zahtjeva
-  - Izmjena alokacija
+  - Izmjena dodjela dana
   - Evidencija bolovanja
 - **Podaci:**
   - Timestamp

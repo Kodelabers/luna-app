@@ -40,14 +40,16 @@ PREKLAPANJE: (StartNew <= EndExist) AND (EndNew >= StartExist)
 ### BR-VAL-003: Validacija dostupnih dana
 **Pravilo:**
 - Broj traženih radnih dana ne smije prelaziti dostupne dane
-- Dostupni dani = SUM(changeDays) iz ledger entry-ja
+- **Stanje dostupnih dana se izračunava PO tipu nedostupnosti**
+- Svaki tip nedostupnosti ima vlastito stanje i evidenciju promjena
+- Stanje dostupnih dana = SUM(changeDays) iz evidencija promjena za specifični tip nedostupnosti
 
 **Formula:**
 ```typescript
 const result = await prisma.unavailabilityLedgerEntry.aggregate({
   where: { 
     employeeId, 
-    unavailabilityReasonId,  // Npr. "Godišnji odmor"
+    unavailabilityReasonId,  // OBAVEZNO - npr. "Godišnji odmor", "Slobodni dani"
     year 
   },
   _sum: { changeDays: true }
@@ -58,6 +60,8 @@ const requestedWorkingDays = calculateWorkingDays(startDate, endDate);
 
 VALID IF: requestedWorkingDays <= balance
 ```
+
+**Napomena:** Stanje za "Godišnji odmor" i stanje za "Slobodni dani" su potpuno odvojeni i ne miješaju se.
 
 **Error poruka:**
 - "Nemate dovoljno preostalih dana. Preostalo: {X} dana, traženo: {Y} dana"
@@ -177,15 +181,17 @@ function calculateWorkingDays(startDate: Date, endDate: Date): number {
 
 ---
 
-### BR-CALC-002: Kalkulacija balance-a (ledger SUM)
+### BR-CALC-002: Kalkulacija stanja (ledger SUM)
 **Pravilo:**
-- Balance = SUM svih changeDays za employee/reason/year
+- **Stanje se izračunava PO tipu nedostupnosti**
+- Svaki tip nedostupnosti ima vlastite evidencije promjena i stanje
+- Stanje = SUM svih changeDays za employee/reason/year
 
 **Logika:**
 ```typescript
 async function getBalance(
   employeeId: number, 
-  unavailabilityReasonId: number, 
+  unavailabilityReasonId: number,  // OBAVEZNO - identificira tip (GO, Slobodni dani, itd.)
   year: number
 ): Promise<number> {
   const result = await prisma.unavailabilityLedgerEntry.aggregate({
@@ -197,38 +203,50 @@ async function getBalance(
 }
 ```
 
-**Primjer:**
+**Primjer - Zaposlenik ima dva odvojena stanja:**
 ```
-Ledger entries za 2025:
+Evidencije promjena za 2025 - Godišnji odmor (unavailabilityReasonId = 1):
 ALLOCATION   | +20
-TRANSFER     | +2
 USAGE        | -5
 USAGE        | -8
 CORRECTION   | +3
 ─────────────────
-BALANCE:       12 dana
+STANJE:       10 dana
+
+Evidencije promjena za 2025 - Slobodni dani (unavailabilityReasonId = 2):
+ALLOCATION   | +5
+USAGE        | -2
+─────────────────
+STANJE:       3 dana
+
+UKUPNO: Ne zbrajaju se! Tretiraju se odvojeno.
 ```
+
+**Napomena:** Stanje različitih tipova nedostupnosti se NE zbrajaju i NE miješaju.
 
 ---
 
 ### BR-CALC-003: Batch query za dashboard
 **Pravilo:**
 - Za dashboard više zaposlenika, koristi batch query
+- **Query vraća stanje PO tipu nedostupnosti (odvojeno za svaki tip)**
 
 **Optimizacija:**
 ```typescript
 const balances = await prisma.$queryRaw`
   SELECT 
     employee_id,
-    unavailability_reason_id,
+    unavailability_reason_id,  -- Ključno: razlikuje tipove (GO, Slobodni dani, itd.)
     year,
     SUM(change_days) as balance
   FROM unavailability_ledger_entry
   WHERE employee_id IN (${employeeIds})
     AND year = ${year}
-  GROUP BY employee_id, unavailability_reason_id, year
+  GROUP BY employee_id, unavailability_reason_id, year  -- Grupira PO tipu
 `;
 ```
+
+**Napomena:** Rezultat vraća odvojene redove za svaki tip nedostupnosti, ne sumira ih.
 
 ---
 

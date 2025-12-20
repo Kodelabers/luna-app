@@ -22,14 +22,20 @@
 ## 2. LEDGER MODEL
 
 ### 2.1 UnavailabilityLedgerEntry
-**Accounting pristup - svaka promjena dana = ledger entry.**
+**Accounting pristup - svaka promjena dana = evidencija promjene (ledger entry).**
+
+**Ključno pravilo:**
+- **Svaki tip nedostupnosti (unavailabilityReason) ima vlastite evidencije promjena i stanje**
+- Stanje se izračunava PO tipu nedostupnosti (ne sumira se sveukupno)
+- Zaposlenik ima odvojena stanja za "Godišnji odmor", "Slobodni dani", "Edukacija", itd.
+- Stanja različitih tipova nedostupnosti se NE zbrajaju i NE miješaju
 
 ```prisma
 model UnavailabilityLedgerEntry {
   id                     Int                  @id @default(autoincrement())
   organisationId         Int
   employeeId             Int
-  unavailabilityReasonId Int
+  unavailabilityReasonId Int                  // Identificira TIP (GO, Slobodni dani, itd.)
   year                   Int           // 2024, 2025...
   changeDays             Int           // + ili - broj dana
   type                   LedgerEntryType
@@ -49,26 +55,45 @@ enum LedgerEntryType {
 }
 ```
 
-**Primjer ledger zapisa:**
+**Primjer evidencija promjena - ODVOJENO po tipu nedostupnosti:**
 ```
-Employee ID: 123, Year: 2025, Reason: "Godišnji odmor"
+Employee ID: 123, Year: 2025
 
-ALLOCATION   | +20  | "Godišnja alokacija"
+--- Godišnji odmor (unavailabilityReasonId = 1) ---
+ALLOCATION   | +20  | "Godišnja dodjela GO"
 TRANSFER     | +2   | "Prijenos iz 2024"
 USAGE        | -5   | "GO 10-15.01.2025"
 CORRECTION   | +2   | "Vraćeno zbog bolovanja"
 ─────────────────────────────────────
-BALANCE:       19 dana
+STANJE:       19 dana
+
+--- Slobodni dani (unavailabilityReasonId = 2) ---
+ALLOCATION   | +5   | "Godišnja dodjela slobodnih dana"
+USAGE        | -2   | "Slobodan dan 20.01.2025"
+─────────────────────────────────────
+STANJE:       3 dana
+
+--- Edukacija (unavailabilityReasonId = 3) ---
+ALLOCATION   | +10  | "Budget za edukaciju"
+USAGE        | -3   | "Konferencija 05-07.02.2025"
+─────────────────────────────────────
+STANJE:       7 dana
+
+NAPOMENA: Ova stanja se NE zbrajaju! Svaki tip se gleda odvojeno.
 ```
 
-**Kalkulacija balance-a:**
+**Kalkulacija stanja za SPECIFIČNI tip nedostupnosti:**
 ```typescript
 const result = await prisma.unavailabilityLedgerEntry.aggregate({
-  where: { employeeId, unavailabilityReasonId, year },
+  where: { 
+    employeeId, 
+    unavailabilityReasonId,  // OBAVEZNO - mora biti specificirano
+    year 
+  },
   _sum: { changeDays: true }
 });
 
-const balance = result._sum.changeDays || 0;  // 20 + 2 - 5 + 2 = 19
+const balance = result._sum.changeDays || 0;  // 20 + 2 - 5 + 2 = 19 (samo za taj tip)
 ```
 
 **Prednosti:**

@@ -36,32 +36,37 @@ Ovaj dokument sadrži user stories za aplikaciju za upravljanje godišnjim odmor
 
 ---
 
-## 2. ZAPOSLENIK - PREGLED GODIŠNJEG ODMORA
+## 2. ZAPOSLENIK - PREGLED STANJA DANA
 
-### US-EMP-001: Pregled osnovnih informacija o godišnjem
+### US-EMP-001: Pregled stanja dana
 **Kao** zaposlenik  
-**Želim** vidjeti pregled svojih godišnjih dana  
+**Želim** vidjeti pregled stanja svojih dana  
 **Kako bih** znao koliko dana imam na raspolaganju
 
 **Kriteriji prihvaćanja:**
-- Prikazuje se ukupan broj dana godišnjeg odmora
-- Prikazuje se broj iskorištenih dana
-- Prikazuje se broj dana na čekanju
-- Prikazuje se broj preostalih dana
-- Sve informacije su prikazane u vizualnim karticama s ikonama
+- **Stanje se prikazuje PO tipu nedostupnosti (odvojeno za svaki tip)**
+- Za svaki tip nedostupnosti (npr. "Godišnji odmor", "Slobodni dani", "Edukacija") prikazuje se:
+  - Ukupan broj dodijeljenih dana za tekuću godinu
+  - Broj iskorištenih dana
+  - Broj dana na čekanju (SUBMITTED, APPROVED_FIRST_LEVEL)
+  - Broj preostalih dana
+- Svaki tip nedostupnosti ima vlastitu karticu s ikonom i bojom
+- **Napomena:** Ne prikazuje se "ukupna" suma svih tipova, već svaki tip posebno
 
 ---
 
-### US-EMP-002: Pregled raspodjele po godinama
-**Kao** zaposlenik  
-**Želim** vidjeti raspodjelu godišnjeg odmora po godinama  
+### US-EMP-002: Pregled stanja po godinama
+**Ako** zaposlenik  
+**Želim** vidjeti stanje svojih dana po godinama  
 **Kako bih** razumio koliko imam dana za svaku godinu
 
 **Kriteriji prihvaćanja:**
-- Prikazuje se tablica s raspodjelom po godinama
-- Za svaku godinu prikazuje se: dodijeljeno, iskorišteno, na čekanju, preostalo
-- Tablicu mogu otvoriti klikom na info ikonu kod "Ukupno dana"
+- **Stanje se prikazuje PO tipu nedostupnosti (odvojeno za svaki tip)**
+- Za svaki tip nedostupnosti (npr. "Godišnji odmor", "Slobodni dani") prikazuje se tablica po godinama
+- Za svaku godinu i svaki tip prikazuje se: dodijeljeno, iskorišteno, na čekanju, preostalo
+- Tablicu mogu otvoriti klikom na info ikonu kod kartice specifičnog tipa
 - Negativni preostali dani se prikazuju crvenom bojom
+- **Napomena:** Svaki tip nedostupnosti ima vlastitu tablicu/sekciju, ne miješaju se zajedno
 
 ---
 
@@ -517,65 +522,78 @@ Ovaj dokument sadrži user stories za aplikaciju za upravljanje godišnjim odmor
 
 ## 7. DEPARTMENT MANAGER / GENERAL MANAGER - UPRAVLJANJE ALOKACIJAMA
 
-### US-MGR-001: Pregled alokacija zaposlenika
+### US-MGR-001: Pregled stanja dana zaposlenika
 **Kao** Department Manager ili General Manager  
-**Želim** vidjeti pregled alokacija zaposlenika  
+**Želim** vidjeti pregled stanja dana zaposlenika  
 **Kako bih** znao koliko dana ima svaki zaposlenik
 
 **Kriteriji prihvaćanja:**
 - Department Manager vidi samo zaposlenike svog odjela
 - General Manager vidi sve zaposlenike u organizaciji
-- Prikazuje se lista zaposlenika s njihovim alokacijama
-- Za svakog zaposlenika vidim: ime, odjel, dodijeljeno, iskorišteno, na čekanju, preostalo
-- Informacije su prikazane u vizualnim chipovima s bojama
-- Za svakog zaposlenika prikazuje se tablica po godinama
-- Mogu kliknuti "Uredi dodjele" za promjenu alokacija
+- Prikazuje se lista zaposlenika sa stanjem njihovih dana
+- **Stanje se prikazuje PO tipu nedostupnosti (odvojeno za svaki tip)**
+- Za svakog zaposlenika i svaki tip nedostupnosti (npr. "Godišnji odmor", "Slobodni dani", "Edukacija") vidim:
+  - Naziv tipa nedostupnosti
+  - Dodijeljeno dana (za tekuću godinu)
+  - Iskorišteno dana
+  - Na čekanju dana
+  - Preostalo dana
+- Informacije su prikazane u vizualnim chipovima s bojama (svaki tip ima svoju boju)
+- Za svakog zaposlenika i svaki tip prikazuje se tablica po godinama
+- Mogu kliknuti "Uredi dodjele" za promjenu dodjela (po tipu)
+- **Napomena:** Ne prikazuje se "ukupna" suma svih tipova, već svaki tip nedostupnosti ima vlastite brojke
 
 ---
 
-### US-MGR-002: Dodjela godišnjih dana za novu godinu
+### US-MGR-002: Dodjela dana za novu godinu
 **Kao** Department Manager ili General Manager  
-**Želim** dodijeliti dane godišnjeg odmora zaposleniku za novu godinu  
+**Želim** dodijeliti dane zaposleniku za novu godinu  
 **Kako bi** zaposlenik imao dane za planiranje
 
 **Kriteriji prihvaćanja:**
-- Otvaram dialog za upravljanje alokacijama
-- Prikazuje se trenutni pregled alokacija
-- Vidim gumb "Dodaj novu godinu"
+- Otvaram dialog za upravljanje danima
+- **Odabirem tip nedostupnosti** za koji dodjelјujem dane (npr. "Godišnji odmor", "Slobodni dani", "Edukacija")
+- Prikazuje se trenutno stanje za odabrani tip
+- Vidim gumb "Dodaj novu godinu" za odabrani tip
 - Odabirem godinu
 - Unosim broj dana (1-50)
-- Spremam alokaciju (kreira se ALLOCATION ledger entry)
-- Nova godina se pojavljuje u tablici
+- Spremam dodjelu (kreira se ALLOCATION evidencija promjene za specifični tip)
+- Nova godina se pojavljuje u tablici za taj tip
+- **Napomena:** Svaki tip nedostupnosti ima vlastite evidencije promjena i stanje
 
 ---
 
-### US-MGR-003: Izmjena postojeće alokacije
+### US-MGR-003: Izmjena postojeće dodjele dana
 **Kao** Department Manager ili General Manager  
 **Želim** promijeniti broj dana za postojeću godinu  
 **Kako bi** ispravio grešku ili dodao dodatne dane
 
 **Kriteriji prihvaćanja:**
-- Kliknem na "Uredi" kod godine u tablici
+- **Odabirem tip nedostupnosti** za koji mijenjam dodjelu
+- Kliknem na "Uredi" kod godine u tablici za odabrani tip
 - Mijenjam broj dana
-- Ne mogu smanjiti ispod već iskorištenih dana
-- Spremam promjene (kreira se CORRECTION ledger entry)
-- Automatski se preračunavaju preostali dani
+- Ne mogu smanjiti ispod već iskorištenih dana (za taj specifični tip)
+- Spremam promjene (kreira se CORRECTION evidencija promjene za specifični tip)
+- Automatski se preračunavaju preostali dani za taj tip
 - Prikazuje se upozorenje ako pokušavam smanjiti ispod iskorištenih
+- **Napomena:** Promjena se odnosi samo na odabrani tip nedostupnosti, ne utječe na druge tipove
 
 ---
 
-### US-MGR-004: Pregled povijesti alokacija zaposlenika
+### US-MGR-004: Pregled povijesti evidencije zaposlenika
 **Kao** Department Manager ili General Manager  
-**Želim** vidjeti povijest alokacija zaposlenika po godinama  
+**Želim** vidjeti povijest evidencije dana zaposlenika po godinama  
 **Kako bih** imao uvid u sve promjene i korekcije
 
 **Kriteriji prihvaćanja:**
-- Prikazuje se tablica s poviješću svih ledger entries po godinama
-- Za svaku godinu vidim: početnu alokaciju, transfer, korekcije, potrošnju, preostalo
-- Svaki entry ima timestamp i korisnika koji ga je kreirao
-- Mogu filtrirati po godini i tipu entry-ja (ALLOCATION, USAGE, TRANSFER, CORRECTION)
-- Vidim poveznicu na zahtjev (applicationId) ako je entry nastao iz zahtjeva
-- Mogu eksportirati povijest u Excel/PDF
+- **Odabirem tip nedostupnosti** za koji želim vidjeti povijest
+- Prikazuje se tablica s poviješću svih evidencija promjena po godinama za odabrani tip
+- Za svaku godinu i odabrani tip vidim: početnu dodjelu, transfer, korekcije, potrošnju, preostalo
+- Svaka evidencija ima timestamp i korisnika koji ju je kreirao
+- Mogu filtrirati po godini i tipu evidencije (ALLOCATION, USAGE, TRANSFER, CORRECTION)
+- Vidim poveznicu na zahtjev (applicationId) ako je evidencija nastala iz zahtjeva
+- Mogu eksportirati povijest u Excel/PDF (za odabrani tip)
+- **Napomena:** Povijest se prikazuje odvojeno za svaki tip nedostupnosti, ne miješa se
 
 ---
 
