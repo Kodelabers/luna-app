@@ -1,10 +1,11 @@
 # Gap Analysis - Luna App Mockup
-## Analiza implementacije naspram specifikacije
+## Analiza implementacije naspram specifikacije i User Stories
 
 **Datum:** 20.12.2024  
-**Verzija:** 3.0  
-**Status:** Full-Featured Mockup Analysis  
-**Zadnje ažuriranje:** 20.12.2024 - Faza 2 završena (Tablični kalendar)
+**Verzija:** 4.0  
+**Status:** Full-Featured Mockup Analysis + User Stories Coverage  
+**Zadnje ažuriranje:** 20.12.2024 - Ažurirano s potpunim pokrivanjem User Stories
+**User Stories:** 76 User Stories analizirano (20% implementirano, 13% djelomično, 67% nije implementirano)
 
 ---
 
@@ -195,7 +196,7 @@ app/layout.tsx                      ← Dodana <Toaster /> komponenta
 ## 📋 IZVRŠNI SAŽETAK
 
 ### Svrha dokumenta
-Ovaj dokument analizira trenutnu implementaciju full-featured mockup aplikacije Luna u odnosu na detaljnu tehničku specifikaciju. Identifikuje implementirane funkcionalnosti, nedostajuće komponente i prioritete za završetak mockupa.
+Ovaj dokument analizira trenutnu implementaciju full-featured mockup aplikacije Luna u odnosu na detaljnu tehničku specifikaciju i **76 User Stories** iz dokumenta `user_stories.md`. Identifikuje implementirane funkcionalnosti, nedostajuće komponente i prioritete za završetak mockupa.
 
 ### Trenutni status
 - ✅ **Arhitektura:** Next.js 14+ sa TypeScript - potpuno implementirano
@@ -203,16 +204,100 @@ Ovaj dokument analizira trenutnu implementaciju full-featured mockup aplikacije 
 - ✅ **Data Layer:** Mock podaci (generator.ts) + Mock API (api.ts) - potpuno implementirano
 - ✅ **Business Logic:** Validacije i kalkulacije - potpuno implementirano
 - ✅ **State Management:** Mock API s localStorage - implementirano
-- ⚠️ **Workflow Logic:** Parcijalno implementirano (nedostaje approval)
+- ⚠️ **Workflow Logic:** Parcijalno implementirano (nedostaje approval i korekcija)
 - ❌ **Database:** Prisma schema definirano, ali ne koristi se u mockupu
 
 ### Postotak implementacije
 - **Ukupno:** ~65% funkcionalnosti prema specifikaciji
-- **Employee Dashboard:** 75% implementirano
-- **Manager Dashboard:** 70% implementirano
-- **Manager Planning:** 90% implementirano ✅
-- **General Manager Dashboard:** 20% implementirano
-- **Admin Dashboard:** 10% implementirano
+- **User Stories:** 20% potpuno, 13% djelomično, 67% nije implementirano
+- **Employee Dashboard:** 75% implementirano (US-EMP-001, 004, 006, 007 ✅)
+- **Manager Dashboard:** 70% implementirano (US-DM-001, 002 ✅)
+- **Manager Planning:** 90% implementirano (US-DM-002 ✅)
+- **Manager Approval:** 20% implementirano (logika postoji, UI nedostaje)
+- **Manager Alokacije:** 0% implementirano (US-MGR-001-004 ❌)
+- **Manager Bolovanja:** 0% implementirano (US-MGR-005-011 ❌)
+- **General Manager Dashboard:** 20% implementirano (US-GM-001-006 ❌)
+- **Admin Dashboard:** 10% implementirano (US-ADM-001-013 ❌)
+
+### Ključni gap-ovi
+**🔴 KRITIČNO za funkcionalan mockup:**
+1. **Approval proces** - Prvi nivo odobrenja (US-DM-004, US-DM-005)
+2. **Korekcija vraćanja dana** - INOVACIJA! (US-EMP-012B, US-VAL-007, US-MGR-008, BR-AUTO-001)
+3. **Upravljanje alokacijama** - Dodjela godišnjih dana (US-MGR-001, 002, 003, 004)
+4. **Evidencija bolovanja** - Forma i popis (US-MGR-005, 006, 007)
+5. **DaySchedule management** - Kreiranje i ažuriranje (BR-AUTO-002)
+
+**🟡 Poželjno za impressive mockup:**
+- Draft funkcionalnost (US-EMP-008, 010, 011)
+- Employee kalendar prikaz (US-EMP-003)
+- Drugi nivo odobrenja - General Manager (US-GM-001, 002, 003)
+- Detalji zahtjeva (US-EMP-012, US-DM-006)
+
+**🟢 Nice-to-have:**
+- Admin modul - CRUD operacije (US-ADM-001-013)
+- Masovno odobravanje (US-DM-007)
+- Eksport izvještaja (US-DM-008)
+- Email notifikacije (US-CMN-007)
+
+### User Stories Mapping - Quick Reference
+
+| Modul | User Stories | Status | Prioritet |
+|-------|--------------|--------|-----------|
+| **Autentifikacija** | US-AUTH-001, 002 | ❌ | 🟢 NIZAK (mock dovoljan) |
+| **Employee - Pregled** | US-EMP-001 ✅, 002 ❌, 003 ❌, 004 ✅ | 50% | 🟡 SREDNJI |
+| **Employee - Kreiranje** | US-EMP-005 ⚠️, 006 ✅, 007 ✅, 008-011 ❌, 012 ❌, 012B ⚠️, 013 ❌ | 30% | 🔴 KRITIČNO (012B) |
+| **Manager - Pregled** | US-DM-001 ✅, 002 ✅, 003 ⚠️ | 80% | ✅ ZAVRŠENO |
+| **Manager - Approval** | US-DM-004 ⚠️, 005 ⚠️, 006 ❌, 007 ❌, 008 ❌ | 20% | 🔴 KRITIČNO |
+| **Manager - Alokacije** | US-MGR-001, 002, 003, 004 | 0% | 🔴 KRITIČNO |
+| **Manager - Bolovanja** | US-MGR-005, 006, 007, 008, 009, 010, 011 | 0% | 🔴 KRITIČNO (008 INOVACIJA!) |
+| **General Manager** | US-GM-001, 002, 003, 004, 005 ⚠️, 006 | 0% | 🟡 SREDNJI |
+| **Administrator** | US-ADM-001 do 013 | 0% | 🟢 NIZAK |
+| **Zajedničke** | US-CMN-001 ⚠️, 002 ✅, 003 ⚠️, 004-005 ⚠️, 006 ✅, 007 ❌ | 40% | 🟢 NIZAK |
+| **Validacije** | US-VAL-000 ⚠️, 001 ⚠️, 002-004 ✅, 005-007 ❌ | 50% | 🔴 KRITIČNO (007) |
+
+**Legenda:**
+- ✅ Potpuno implementirano
+- ⚠️ Djelomično implementirano
+- ❌ Nije implementirano
+
+---
+
+## 0. AUTENTIFIKACIJA I SESSION MANAGEMENT
+
+### 0.1 Trenutno stanje
+
+#### ✅ Implementirano
+
+**Mock autentifikacija (`lib/mock-data/context.tsx`):**
+- ✅ MockAuthProvider - context provider
+- ✅ useMockAuth hook
+- ✅ currentUser state
+- ✅ switchRole funkcija (za prebacivanje između mock korisnika)
+- ✅ localStorage persistence
+- ✅ Dropdown s unaprijed definiranim korisnicima
+
+**Role switching (`components/layout/role-switcher.tsx`):**
+- ✅ Dropdown lista svih mock korisnika
+- ✅ Prebacivanje uloge klikom
+- ✅ Prikaz trenutnog korisnika
+
+#### ❌ Nedostaje
+
+**US-AUTH-001: Prijava u sustav**
+- ❌ Email i password input
+- ❌ "Prikaži/sakrij lozinku" funkcionalnost
+- ❌ Validacija email formata
+- ❌ Login forma s error handling-om
+- ❌ Stvarna autentifikacija (samo mock)
+
+**US-AUTH-002: Odjava iz sustava**
+- ❌ Logout gumb u headeru
+- ❌ Brisanje session-a
+- ❌ Redirect na login nakon odjave
+
+**Prioritet:** 🟢 NIZAK za mockup (mock auth je dovoljan)
+
+**Napomena:** Za mockup je dovoljan RoleSwitcher, ali za produkciju treba prava autentifikacija.
 
 ---
 
@@ -299,24 +384,39 @@ docs/                               ✅ Kompletna specifikacija
 #### ✅ Implementirano
 
 **Dashboard (`/employee/page.tsx`)**
-- ✅ Prikaz kartice sa statistikama:
-  - Ukupno dana (allocated)
-  - Iskorišteno dana (used)
-  - Na čekanju (pending)
-  - Preostalo (available)
-- ✅ Lista nedavnih zahtjeva (5 najnovijih)
-- ✅ Status badge za svaki zahtjev
+- ✅ US-EMP-001: Prikaz stanja dana PO tipu nedostupnosti (odvojeno)
+  - ✅ Svaki tip nedostupnosti ima vlastitu karticu
+  - ✅ Ukupno dana (allocated)
+  - ✅ Iskorišteno dana (used)
+  - ✅ Na čekanju (pending)
+  - ✅ Preostalo (available)
+  - ✅ Ikona i boja za svaki tip
+- ✅ US-EMP-004: Lista aktivnih zahtjeva
+  - ✅ Prikaz svih statusa: DRAFT, SUBMITTED, APPROVED_FIRST_LEVEL, APPROVED, REJECTED
+  - ✅ Status badge za svaki zahtjev
+  - ✅ Lista nedavnih zahtjeva (5 najnovijih)
 - ✅ Quick action button "Kreiraj Novi Zahtjev"
 - ✅ Kalkulacija balance-a pomoću ledger-a
 
 **Lista zahtjeva (`/employee/requests/page.tsx`)**
-- ✅ Prikaz svih zahtjeva zaposlenika
+- ✅ US-EMP-004: Prikaz svih zahtjeva zaposlenika
+  - ✅ Svi statusi: DRAFT, SUBMITTED, APPROVED_FIRST_LEVEL, APPROVED, REJECTED
 - ✅ Filtriranje po statusu
 - ✅ Status badges
 - ✅ Formatiranje datuma
 - ✅ Interakcija s mock API-jem
 
 **Kreiranje zahtjeva (`/employee/requests/new/page.tsx`)**
+- ✅ US-EMP-005: Odabir razdoblja (date picker)
+- ✅ US-EMP-006: Real-time validacija zahtjeva
+  - ✅ Automatska kalkulacija radnih dana
+  - ✅ Prikaz preostalih dana
+  - ✅ Zeleni/crveni okvir s porukama
+  - ✅ Provjera preklapanja s aktivnim zahtjevima
+  - ✅ Provjera preklapanja s DaySchedule-om (US-VAL-007)
+  - ✅ Upozorenje o korekciji (vraćanje dana) kod preklapanja
+  - ✅ Upozorenje o pregazivanju postojećeg plana
+- ✅ US-EMP-007: Dodavanje napomene (textarea)
 - ✅ Forma za kreiranje zahtjeva
 - ✅ Odabir tipa nedostupnosti
 - ✅ Odabir datuma (start/end)
@@ -326,14 +426,24 @@ docs/                               ✅ Kompletna specifikacija
 #### ❌ Nedostaje
 
 **Dashboard:**
-- ❌ Kalendarski prikaz (FR-EMP-002)
-- ❌ Vizualizacija godišnjih odmora na kalendaru
-- ❌ Klik na dan za prikaz detalja
+- ❌ US-EMP-002: Pregled stanja po godinama
+  - ❌ Tablica po godinama za svaki tip nedostupnosti
+  - ❌ Klik na info ikonu kod kartice za prikaz tablice
+  - ❌ Prikaz negativnih dana crvenom bojom
+- ❌ US-EMP-003: Kalendarski prikaz godišnjih odmora
+  - ❌ 12 mini kalendara za sve mjesece
+  - ❌ Color coding za statuse (zeleno=APPROVED, plavo=APPROVED_FIRST_LEVEL, žuto=SUBMITTED)
+  - ❌ Siva boja za vikende
+  - ❌ Crvena/narančasta za praznike
+  - ❌ Mijenjanje godine pomoću strelica
+  - ❌ Auto-pozicioniranje na trenutni mjesec
 
 **Lista zahtjeva:**
-- ❌ Detalji pojedinačnog zahtjeva (FR-EMP-010)
-- ❌ Povijest promjena statusa
-- ❌ Komentar voditelja
+- ❌ US-EMP-012: Pregled detalja odobrenog zahtjeva
+  - ❌ Detalji pojedinačnog zahtjeva (FR-EMP-010)
+  - ❌ Povijest promjena statusa
+  - ❌ Komentar voditelja (odobravatelja)
+  - ❌ Timestampovi (datum odobrenja, odobravatelj)
 - ❌ Filtriranje po godini
 - ❌ Sortiranje po različitim poljima
 
@@ -345,19 +455,56 @@ docs/                               ✅ Kompletna specifikacija
 - ✅ Prikaz balance-a i preostalih dana - **IMPLEMENTIRANO**
 - ✅ Real-time validacija s error porukama - **IMPLEMENTIRANO**
 - ✅ Toast notifications - **IMPLEMENTIRANO**
-- ❌ Draft funkcionalnost (FR-EMP-004)
+- ❌ US-EMP-008: Spremanje zahtjeva kao nacrt (DRAFT)
+  - ❌ Gumb "Spremi nacrt"
+  - ❌ Onemogućen ako zahtjev nije valjan
+  - ❌ Nacrt nije vidljiv voditelju
+  - ❌ Ne rezervira dane
+- ❌ US-EMP-009: Slanje zahtjeva na odobrenje
+  - ❌ Gumb "Pošalji zahtjev"
+  - ❌ Upozorenje o budućoj korekciji kod preklapanja
+  - ❌ Status postaje SUBMITTED (ili APPROVED ako needApproval=false)
+- ❌ US-EMP-005: Vizualni pregled odabranog razdoblja u kalendaru
+  - ❌ Interaktivni kalendar (TableCalendar stil)
+  - ❌ Klikom i povlačenjem za odabir raspona
+  - ❌ Crveni vikendi
+  - ❌ Narančaste točkice za praznike
+  - ❌ Prikaz broja kalendarskih dana
 - ❌ Prikaz vikenda i praznika inline
-- ❌ Uređivanje draft zahtjeva (FR-EMP-006)
-- ❌ Brisanje draft zahtjeva (FR-EMP-007)
+- ❌ US-EMP-010: Uređivanje draft zahtjeva (FR-EMP-006)
+  - ❌ Gumb "Uredi" kod DRAFT zahtjeva
+  - ❌ Popunjavanje postojećih podataka
+  - ❌ Spremanje promjena
+- ❌ US-EMP-011: Brisanje draft zahtjeva (FR-EMP-007)
+  - ❌ Gumb "Obriši" kod DRAFT zahtjeva
+  - ❌ Potvrda prije brisanja
+  - ❌ Trajno brisanje iz sustava
+
+**US-EMP-012B: Korekcija vraćanja dana kroz novi zahtjev**
+- ⚠️ Djelomično u validaciji, ali ne potpuno implementirano:
+  - ✅ Detekcija preklapanja s DaySchedule-om
+  - ✅ Provjera hasPlanning flag-a
+  - ✅ Upozorenje o korekciji kod preklapanja
+  - ❌ Stvarno izvršavanje korekcije pri odobrenju (APPROVED)
+  - ❌ Vraćanje SVIH preostalih dana iz originalnog zahtjeva (ne samo preklopljenih)
+  - ❌ Brisanje DaySchedule zapisa originalnog zahtjeva
+  - ❌ Dodavanje zapisa u log originalnog zahtjeva
+  - ❌ Kreiranje CORRECTION ledger entry
+  - ❌ Pregazivanje postojećeg plana u DaySchedule-u
 
 **Evidencija bolovanja:**
-- ❌ Pregled vlastitih bolovanja (FR-EMP-011)
+- ❌ US-EMP-013: Pregled vlastitih bolovanja (FR-EMP-011)
+  - ❌ Lista bolovanja zaposlenika
+  - ❌ Status (aktivno/završeno)
+  - ❌ Trajanje
+  - ❌ Utjecaj na godišnje odmore
 
-**Prioritet:** 🟡 SREDNJI (većina kritičnog završeno)
-- ✅ Kalkulacija radnih dana - **ZAVRŠENO**
-- ✅ Validacija preklapanja i dostupnih dana - **ZAVRŠENO**
-- Draft funkcionalnost - **SREDNJI**
-- Kalendar - **SREDNJI**
+**Prioritet:** 
+- 🔴 KRITIČNO: US-EMP-012B - Korekcija vraćanja dana (inovativna funkcionalnost)
+- 🟡 SREDNJI: Draft funkcionalnost (US-EMP-008, 010, 011)
+- 🟡 SREDNJI: Kalendar prikaz (US-EMP-003)
+- 🟡 SREDNJI: Detalji zahtjeva (US-EMP-012)
+- 🟢 NIZAK: Pregled stanja po godinama (US-EMP-002)
 
 ---
 
@@ -366,65 +513,224 @@ docs/                               ✅ Kompletna specifikacija
 #### ✅ Implementirano
 
 **Dashboard (`/manager/page.tsx`)**
-- ✅ Prikaz statistika odjela:
-  - Broj zaposlenika
-  - Zahtjevi na čekanju
-  - Odobreno ovaj mjesec
+- ✅ US-DM-001: Pregled zahtjeva na čekanju (djelomično)
+  - ✅ Prikaz statistika odjela
+  - ✅ Broj zaposlenika
+  - ✅ Zahtjevi na čekanju
+  - ✅ Odobreno ovaj mjesec
 - ✅ Lista pending zahtjeva (preview)
 - ✅ Link za planiranje
 
+**Planning (`/manager/planning`)**
+- ✅ US-DM-002: Tablični pregled godišnjih odmora
+  - ✅ Tablica s zaposlenicima u retcima i danima u stupcima
+  - ✅ Color coding:
+    - Zeleno: APPROVED
+    - Plavo: APPROVED_FIRST_LEVEL
+    - Žuto: SUBMITTED
+    - Narančasto: Bolovanje
+    - Sivo: Vikendi/praznici
+  - ✅ Odabir razdoblja prikaza
+  - ✅ Zaglavlja mjeseci
+  - ✅ Klik na obojani dan za pregled detalja
+- ✅ US-DM-003: Kombiniran prikaz (djelomično)
+  - ✅ Kalendar prikazan (planning grid)
+  - ⚠️ Sidebar s pending zahtjevima - nije implementiran kao sidebar
+- ✅ Tablični kalendar s popisom zaposlenika
+- ✅ Zoom kontrole (tjedan/mjesec)
+- ✅ Navigacija (prethodni/sljedeći/danas)
+- ✅ Legenda sa svim statusima
+- ✅ Vizualizacija kritičnih razdoblja
+- ✅ Filtriranje po odjelu managera
+
 **Zahtjevi (`/manager/requests/page.tsx`)**
 - ✅ Tablica svih pending zahtjeva
-- ✅ Odobri/Odbij akcije
+- ✅ Odobri/Odbij akcije (gumbi)
 - ✅ Dialog za odobrenje/odbijanje
 - ✅ Polje za komentar
 
 #### ❌ Nedostaje
 
 **Dashboard:**
-- ✅ Tablični kalendarski prikaz (FR-APP-002) - **IMPLEMENTIRANO**
-- ❌ Pregled alokacija zaposlenika (FR-APP-003)
+- ✅ US-DM-002: Tablični kalendarski prikaz (FR-APP-002) - **IMPLEMENTIRANO**
 - ✅ Vizualizacija kritičnih razdoblja - **IMPLEMENTIRANO**
+
+**US-DM-003: Kombiniran prikaz kalendara i zahtjeva**
+- ⚠️ Djelomično implementirano:
+  - ✅ Kalendar je prikazan (planning grid)
+  - ❌ Sidebar s desne strane (25% širine)
+  - ❌ Prikaz broja zahtjeva na čekanju u sidebaru
+  - ❌ Direktno odobravanje iz sidebara
+
+**US-DM-004: Odobravanje zahtjeva - Prvi nivo**
+- ⚠️ Djelomično implementirano:
+  - ✅ Gumb "Odobri" kod SUBMITTED zahtjeva
+  - ✅ Dialog s detaljima zahtjeva
+  - ✅ Polje za komentar (opcionalno)
+  - ✅ Logika u utils (canApprove, getNextStatus)
+  - ❌ Prikaz svih informacija (zaposlenik, razdoblje, dani, napomena)
+  - ❌ Upozorenje o preklapanju s DaySchedule-om (hasPlanning=true)
+  - ❌ Detalji o preklapanju (koji dani, razlog nedostupnosti)
+  - ❌ Razlikovanje: needSecondApproval false → APPROVED, true → APPROVED_FIRST_LEVEL
+  - ❌ Stvarno izvršavanje korekcije pri odobrenju
+  - ❌ Vraćanje SVIH preostalih dana ako postoji applicationId
+  - ❌ Brisanje DaySchedule zapisa originalnog zahtjeva
+  - ❌ Kreiranje CORRECTION ledger entry
+  - ❌ Kreiranje DaySchedule zapisa za novi zahtjev
+  - ❌ Oduzimanje dana od alokacije (USAGE ledger entry)
+
+**US-DM-005: Odbijanje zahtjeva - Prvi nivo**
+- ⚠️ Djelomično implementirano:
+  - ✅ Gumb "Odbij" kod SUBMITTED zahtjeva
+  - ✅ Polje za razlog odbijanja
+  - ✅ Logika u utils (canReject)
+  - ❌ Obavezno polje za razlog (validacija)
+  - ❌ Status postaje REJECTED
+  - ❌ Oslobađanje dana (ako su bili rezervirani)
+  - ❌ Zaposlenik vidi razlog odbijanja
+
+**US-DM-006: Pregled detalja odobrenog zahtjeva**
+- ❌ Klik na zeleni (APPROVED) ili plavi (APPROVED_FIRST_LEVEL) dan u kalendaru
+- ❌ Read-only dialog s detaljima
+- ❌ Prikaz: zaposlenika, razdoblja, dana, statusa, odobravatelja, datuma odobrenja
+- ❌ Prikaz napomene zaposlenika i komentara managera
+- ❌ Oznaka za APPROVED_FIRST_LEVEL (čeka drugi nivo)
+
+**US-DM-007: Masovno odobravanje zahtjeva**
+- ❌ Checkbox za selekciju više zahtjeva
+- ❌ Gumb "Masovno odobri"
+- ❌ Zajednički komentar za sve zahtjeve
+- ❌ Validacija za svaki zahtjev
+- ❌ Prikaz liste grešaka za neuspješne zahtjeve
+- ❌ Sažetak rezultata (X odobreno, Y odbijeno)
+
+**US-DM-008: Eksport izvještaja**
+- ❌ Eksport tabličnog prikaza u Excel i PDF
+- ❌ Eksport liste zahtjeva u Excel, PDF, CSV
+- ❌ Eksport pregleda alokacija u Excel i PDF
+- ❌ Eksport statistike odjela u PDF
+- ❌ Logo organizacije, datum, ime korisnika u eksportu
+- ❌ Formatiranje za PDF (headeri, footeri)
+- ❌ Excel s zamrznutim headerima i filterima
+- ❌ CSV u UTF-8 formatu
 
 **Zahtjevi:**
 - ❌ Prikaz detalja zahtjeva prije odobrenja
 - ❌ Prikaz preklapanja s drugim zaposlenicima
-- ✅ Upozorenje o kritičnom preklapanju - **IMPLEMENTIRANO**
+- ✅ Upozorenje o kritičnom preklapanju - **IMPLEMENTIRANO u planning grid**
 - ⚠️ Validacija prava odobrenja (implementirano u utils, nedostaje UI)
-- ⚠️ Razlikovanje SUBMITTED vs APPROVED_FIRST_LEVEL statusa (logika postoji)
-- ⚠️ Logika dva nivoa odobrenja (needSecondApproval) (logika postoji)
+- ⚠️ Razlikovanje SUBMITTED vs APPROVED_FIRST_LEVEL statusa (logika postoji u utils)
+- ⚠️ Logika dva nivoa odobrenja (needSecondApproval) (logika postoji u utils)
 - ❌ Prikaz preostalih dana zaposlenika prije odobrenja
 
 **Upravljanje alokacijama:**
-- ❌ Dodjela godišnjih dana za novu godinu (FR-APP-008)
-- ❌ Pojedinačna dodjela
-- ❌ Masovna dodjela
-- ❌ Kopiranje iz prethodne godine
-- ❌ Izmjena alokacije tekuće godine (FR-APP-009)
-- ❌ Pregled povijesti alokacija (FR-APP-010)
+- ❌ US-MGR-001: Pregled stanja dana zaposlenika
+  - ❌ Lista zaposlenika s stanjem dana
+  - ❌ PO tipu nedostupnosti (odvojeno za svaki tip)
+  - ❌ Za svaki tip: dodijeljeno, iskorišteno, na čekanju, preostalo
+  - ❌ Vizualni chipovi s bojama za svaki tip
+  - ❌ Tablica po godinama za svaki tip
+  - ❌ Gumb "Uredi dodjele" (po tipu)
+- ❌ US-MGR-002: Dodjela godišnjih dana za novu godinu (FR-APP-008)
+  - ❌ Dialog za upravljanje danima
+  - ❌ Odabir tipa nedostupnosti
+  - ❌ Prikaz trenutnog stanja za odabrani tip
+  - ❌ Gumb "Dodaj novu godinu"
+  - ❌ Odabir godine
+  - ❌ Unos broja dana (1-50)
+  - ❌ Kreiranje ALLOCATION ledger entry
+- ❌ US-MGR-003: Izmjena postojeće dodjele dana (FR-APP-009)
+  - ❌ Gumb "Uredi" kod godine u tablici
+  - ❌ Mijenjanje broja dana
+  - ❌ Validacija: ne može ispod iskorištenih
+  - ❌ Kreiranje CORRECTION ledger entry
+  - ❌ Preračunavanje preostalih dana
+  - ❌ Upozorenje pri pokušaju smanjenja ispod iskorištenih
+- ❌ US-MGR-004: Pregled povijesti ledger-a zaposlenika (FR-APP-010)
+  - ❌ Odabir tipa nedostupnosti
+  - ❌ Tablica povijesti svih ledger entries po godinama
+  - ❌ Za svaku godinu: početna dodjela, transfer, korekcije, potrošnja, preostalo
+  - ❌ Timestamp i korisnik koji je kreirao entry
+  - ❌ Filtriranje po godini i tipu entry-ja
+  - ❌ Poveznica na zahtjev (applicationId) ako postoji
+  - ❌ Eksport povijesti u Excel/PDF
 
 **Upravljanje bolovanja:**
-- ❌ Evidencija novog bolovanja (FR-APP-011) - **KRITIČNO**
-- ❌ Automatska prilagodba godišnjih odmora (FR-APP-012) - **INOVATIVNA FUNKCIJA**
-- ❌ Zatvaranje aktivnog bolovanja (FR-APP-013)
-- ❌ Lista bolovanja odjela (FR-APP-014)
+- ❌ US-MGR-005: Evidentiranje novog bolovanja (FR-APP-011) - **KRITIČNO**
+  - ❌ Odabir zaposlenika iz liste
+  - ❌ Unos datuma početka (obavezno)
+  - ❌ Datum završetka (opcionalno za aktivna bolovanja)
+  - ❌ Napomena
+  - ❌ Upload medicinske dokumentacije
+  - ❌ Status "Završeno" ili "Aktivno"
+  - ❌ Za otvorena bolovanja: DaySchedule samo za datum početka
+  - ❌ Za zatvorena bolovanja: DaySchedule za sve dane
+  - ❌ Vizualni prikaz "Aktivno bolovanje - u tijeku" u kalendaru
+- ❌ US-MGR-006: Pregled aktivnih bolovanja (FR-APP-014)
+  - ❌ Lista zaposlenika s aktivnim bolovanja
+  - ❌ Označeni zaposlenici s aktivnim bolovanjem
+  - ❌ Datum početka, trajanje (od početka do danas)
+  - ❌ Crvena oznaka za aktivno bolovanje
+  - ❌ Prikaz u kalendaru (svi dani od početka do danas)
+  - ❌ Gumb za zatvaranje bolovanja
+- ❌ US-MGR-007: Zatvaranje aktivnog bolovanja (FR-APP-013)
+  - ❌ Gumb "Zatvori bolovanje"
+  - ❌ Unos datuma završetka (mora biti nakon početka)
+  - ❌ Dodatna napomena
+  - ❌ Upload dodatne dokumentacije
+  - ❌ Status "Završeno"
+  - ❌ Kreiranje DaySchedule zapisa za sve dane
+  - ❌ Ažuriranje prvog dana (update umjesto create)
+  - ❌ Automatska prilagodba godišnjih odmora (korekcija)
+- ❌ US-MGR-008: Automatska prilagodba GO pri bolovanju (FR-APP-012) - **INOVATIVNA FUNKCIJA**
+  - ❌ Algoritam prilagodbe (4 scenarija - vidi user stories)
+  - ❌ Za otvorena bolovanja: provjera preklapanja samo za datum početka
+  - ❌ Za zatvorena bolovanja: provjera preklapanja za cijelo razdoblje
+  - ❌ Provjera hasPlanning=true u DaySchedule-u
+  - ❌ Vraćanje SVIH preostalih dana ako postoji applicationId
+  - ❌ Brisanje DaySchedule zapisa originalnog zahtjeva
+  - ❌ Kreiranje CORRECTION ledger entry
+  - ❌ Dodavanje zapisa u log originalnog zahtjeva
+  - ❌ Izvještaj o prilagodbama
+  - ❌ Ažuriranje DaySchedule zapisa
+- ❌ US-MGR-009: Pregled izvještaja o prilagodbama
+  - ❌ Dialog s izvještajem nakon spremanja bolovanja
+  - ❌ Za svaku prilagodbu: ID zahtjeva, staro razdoblje, novo razdoblje, vraćeni dani
+  - ❌ Oznaka za otkazane zahtjeve
+  - ❌ Ukupan broj vraćenih dana
+- ❌ US-MGR-010: Upload medicinske dokumentacije
+  - ❌ Gumb "Upload dokumenta"
+  - ❌ Odabir datoteke (PDF, JPG, PNG)
+  - ❌ Maksimalna veličina: 5MB
+  - ❌ Višestruki dokumenti
+  - ❌ Spremanje uz bolovanje
+  - ❌ Lista uploadanih dokumenata
+- ❌ US-MGR-011: Pregled povijesti bolovanja (FR-APP-015)
+  - ❌ Gumb "Prikaži povijest"
+  - ❌ Lista svih bolovanja (aktivnih i završenih)
+  - ❌ Za svako: razdoblje, trajanje, status, napomena, dokumentacija
+  - ❌ Filtriranje po statusu
+  - ❌ Preuzimanje medicinske dokumentacije
 - ❌ Uređivanje bolovanja (FR-APP-015)
 - ❌ Brisanje bolovanja (FR-APP-016)
 
 **Planiranje:**
-- ✅ Tablični kalendar (FR-APP-017) - **KLJUČNO ZA MOCKUP - ZAVRŠENO!**
+- ✅ US-DM-002: Tablični kalendar (FR-APP-017) - **KLJUČNO ZA MOCKUP - ZAVRŠENO!**
 - ✅ Vizualizacija preklapanja - **IMPLEMENTIRANO**
 - ✅ Identifikacija kritičnih razdoblja - **IMPLEMENTIRANO**
-- ❌ Eksport plana
+- ❌ Eksport plana (vidi US-DM-008)
 
 **Statistike:**
 - ❌ Statistika odjela (FR-APP-018)
-- ❌ Eksport izvještaja (FR-APP-019)
+- ❌ Eksport izvještaja (FR-APP-019) - vidi US-DM-008
 
-**Prioritet:** 🟡 SREDNJI (glavna funkcionalnost završena)
-- ✅ Tablični kalendar - **ZAVRŠENO!**
-- ❌ Upravljanje alokacijama - **SLJEDEĆI PRIORITET**
-- ❌ Evidencija bolovanja + automatska prilagodba - **INOVATIVNA FUNKCIJA**
+**Prioritet:** 
+- 🔴 KRITIČNO: US-DM-004, US-DM-005 - Approval proces (prvi nivo)
+- 🔴 KRITIČNO: US-MGR-002, US-MGR-003 - Upravljanje alokacijama
+- 🔴 KRITIČNO: US-MGR-005, US-MGR-007, US-MGR-008 - Evidencija bolovanja + automatska prilagodba (INOVACIJA!)
+- 🟡 SREDNJI: US-MGR-001, US-MGR-004 - Pregled stanja i povijesti
+- 🟡 SREDNJI: US-DM-006 - Detalji odobrenog zahtjeva
+- 🟢 NIZAK: US-DM-007, US-DM-008 - Masovno odobravanje i eksport (nice-to-have)
 
 ---
 
@@ -436,25 +742,71 @@ docs/                               ✅ Kompletna specifikacija
 
 #### ❌ Nedostaje
 
+**US-GM-001: Pregled zahtjeva za drugi nivo odobrenja**
+- ❌ Lista svih zahtjeva sa statusom APPROVED_FIRST_LEVEL
+- ❌ Za svaki zahtjev: ime zaposlenika, odjel, razdoblje, broj dana, napomena
+- ❌ Tko je odobrio na prvom nivou (Department Manager)
+- ❌ Broj zahtjeva na čekanju za drugi nivo
+- ❌ Klik na zahtjev za finalno odobrenje
+
+**US-GM-002: Finalno odobravanje zahtjeva (drugi nivo)**
+- ❌ Gumb "Odobri" kod APPROVED_FIRST_LEVEL zahtjeva
+- ❌ Dialog s detaljima zahtjeva
+- ❌ Prikaz svih informacija: zaposlenik, odjel, razdoblje, dani, napomena
+- ❌ Prikaz komentara Department Managera
+- ❌ Upozorenje o preklapanju s DaySchedule-om (hasPlanning=true)
+- ❌ Detalji o preklapanju (koji dani, razlog nedostupnosti)
+- ❌ Polje za vlastiti komentar (opcionalno)
+- ❌ Status postaje APPROVED (konačno)
+- ❌ Oduzimanje dana od alokacije (USAGE ledger entry)
+- ❌ Izvršavanje korekcije ako postoji preklapanje (CORRECTION ledger entry)
+- ❌ Vraćanje SVIH preostalih dana ako postoji applicationId
+- ❌ Brisanje DaySchedule zapisa originalnog zahtjeva
+- ❌ Kreiranje novih DaySchedule zapisa
+
+**US-GM-003: Odbijanje zahtjeva - Drugi nivo**
+- ❌ Gumb "Odbij" kod APPROVED_FIRST_LEVEL zahtjeva
+- ❌ Obavezno polje za razlog odbijanja
+- ❌ Status postaje REJECTED
+- ❌ Oslobađanje dana (ako su bili rezervirani)
+- ❌ Zaposlenik i Department Manager vide razlog odbijanja
+
+**US-GM-004: Pregled svih zahtjeva u organizaciji**
+- ❌ Lista svih zahtjeva iz svih odjela
+- ❌ Filtriranje po odjelu, statusu, zaposleniku
+- ❌ Prikaz statusa svakog zahtjeva
+- ❌ Pregled detalja bilo kojeg zahtjeva
+- ❌ Tablični prikaz planiranja za sve odjele
+
+**US-GM-005: Kreiranje vlastitih zahtjeva General Managera**
+- ⚠️ Djelomično implementirano:
+  - ✅ General Manager može koristiti employee modul za kreiranje zahtjeva
+  - ❌ Specifičan flow za General Managera nije implementiran
+
+**US-GM-006: Odobravanje vlastitih zahtjeva**
+- ❌ Mogućnost odobrenja vlastitih zahtjeva na prvom nivou (kao Department Manager)
+- ❌ Mogućnost odobrenja vlastitih zahtjeva na drugom nivou (kao General Manager)
+- ❌ Sustav ne blokira odobravanje vlastitih zahtjeva za General Managera
+- ❌ Logiranje u log-u da je General Manager sam odobrio vlastiti zahtjev
+- ❌ Upozorenje da odobrava vlastiti zahtjev
+
 **Dashboard:**
 - ❌ Pregled svih odjela u organizaciji
 - ❌ Zahtjevi u statusu APPROVED_FIRST_LEVEL (čeka drugi nivo)
 - ❌ Statistike cijele organizacije
-
-**Zahtjevi:**
-- ❌ Drugi nivo odobrenja (APPROVED_FIRST_LEVEL → APPROVED)
-- ❌ Mogućnost odobravanja vlastitih zahtjeva (nakon prvog nivoa)
-- ❌ Pregled svih zahtjeva u organizaciji
 
 **Planiranje:**
 - ❌ Strateški pregled planiranja nedostupnosti
 - ❌ Kalendar svih odjela
 
 **Upravljanje:**
-- ❌ Upravljanje godišnjim alokacijama za sve zaposlenike
-- ❌ Evidencija bolovanja za sve zaposlenike
+- ❌ Upravljanje godišnjim alokacijama za sve zaposlenike (vidi US-MGR-001 do US-MGR-004)
+- ❌ Evidencija bolovanja za sve zaposlenike (vidi US-MGR-005 do US-MGR-011)
 
-**Prioritet:** 🟡 SREDNJI (General Manager je "nice-to-have" za mockup)
+**Prioritet:** 🟡 SREDNJI 
+- 🔴 KRITIČNO za produkciju: US-GM-002, US-GM-003 - Drugi nivo odobrenja
+- 🟡 SREDNJI za mockup: General Manager je "nice-to-have", može se testirati s Department Manager modulom
+- 🟢 NIZAK: US-GM-004, US-GM-006 - Dodatne funkcionalnosti
 
 ---
 
@@ -467,21 +819,99 @@ docs/                               ✅ Kompletna specifikacija
 #### ❌ Nedostaje
 
 **Upravljanje zaposlenicima:**
-- ❌ Dodavanje novog zaposlenika (FR-ADM-001)
-- ❌ Uređivanje zaposlenika (FR-ADM-002)
-- ❌ Deaktivacija zaposlenika (FR-ADM-003)
-- ❌ Pregled liste zaposlenika (FR-ADM-004)
-- ❌ Pretraga, filtriranje, sortiranje
+- ❌ US-ADM-001: Dodavanje novog zaposlenika (FR-ADM-001)
+  - ❌ Gumb "Dodaj zaposlenika"
+  - ❌ Unos imena (obavezno)
+  - ❌ Unos prezimena (obavezno)
+  - ❌ Unos email-a (obavezno, jedinstveno)
+  - ❌ Odabir odjela (opcionalno)
+  - ❌ Unos broja dana godišnjeg odmora (default: 20)
+  - ❌ Automatsko kreiranje alokacije za tekuću godinu
+  - ❌ Status "Aktivan"
+- ❌ US-ADM-002: Pregled liste zaposlenika (FR-ADM-004)
+  - ❌ Tablica s zaposlenicima
+  - ❌ Za svakog: ime i prezime, email, odjel
+  - ❌ Pretraživanje po imenu i emailu
+  - ❌ Avatar s inicijalima
+  - ❌ Razlikovanje aktivnih/neaktivnih
+  - ❌ Klik za uređivanje
+- ❌ US-ADM-003: Uređivanje zaposlenika (FR-ADM-002)
+  - ❌ Gumb "Uredi" ili klik na red
+  - ❌ Form s postojećim podacima
+  - ❌ Promjena imena, prezimena, email-a, odjela
+  - ❌ Validacija jedinstvenog email-a
+  - ❌ Spremanje promjena
+- ❌ US-ADM-004: Deaktivacija zaposlenika (FR-ADM-003)
+  - ❌ Menu "..." kod zaposlenika
+  - ❌ Opcija "Deaktiviraj"
+  - ❌ Status "Neaktivan"
+  - ❌ Zaposlenik ne može pristupiti sustavu
+  - ❌ Postojeći podaci ostaju vidljivi
+  - ❌ Mogućnost ponovne aktivacije
+- ❌ US-ADM-005: Brisanje zaposlenika
+  - ❌ Menu "..." kod zaposlenika
+  - ❌ Opcija "Obriši"
+  - ❌ Potvrda brisanja
+  - ❌ Trajno brisanje iz sustava
 
 **Upravljanje odjelima:**
-- ❌ Kreiranje odjela (FR-ADM-005)
-- ❌ Uređivanje odjela (FR-ADM-006)
-- ❌ Dodjeljivanje odobravatelja (FR-ADM-007)
+- ❌ US-ADM-006: Kreiranje novog odjela (FR-ADM-005)
+  - ❌ Gumb "Dodaj odjel"
+  - ❌ Unos naziva odjela (obavezno, jedinstveno)
+  - ❌ Unos opisa (opcionalno)
+  - ❌ Dodavanje Department Managera iz liste
+  - ❌ Dodavanje zaposlenika koji pripadaju odjelu
+  - ❌ Spremanje odjela
+- ❌ US-ADM-007: Uređivanje odjela (FR-ADM-006)
+  - ❌ Gumb "Uredi" kod odjela
+  - ❌ Promjena naziva i opisa
+  - ❌ Dodavanje/uklanjanje Department Managera
+  - ❌ Dodavanje/uklanjanje zaposlenika
+  - ❌ Spremanje promjena
+- ❌ US-ADM-008: Dodjeljivanje Department Managera odjelu (FR-ADM-007)
+  - ❌ Popis mogućih Department Managera u formi odjela
+  - ❌ Odabir jednog ili više Department Managera
+  - ❌ Department Manager mora biti aktivni zaposlenik
+  - ❌ Automatsko dobivanje pristupa funkcijama odobravanja prvog nivoa
+  - ❌ Jedan zaposlenik može biti DM za više odjela
+- ❌ US-ADM-008B: Dodjeljivanje General Managera
+  - ❌ Popis mogućih General Managera u postavkama organizacije
+  - ❌ Odabir jednog ili više General Managera
+  - ❌ General Manager mora biti aktivni zaposlenik
+  - ❌ Automatsko dobivanje pristupa funkcijama odobravanja drugog nivoa
+  - ❌ Pristup svim odjelima u organizaciji
+- ❌ US-ADM-009: Pregled odjela
+  - ❌ Lista svih odjela
+  - ❌ Za svaki odjel: naziv, opis, broj zaposlenika, broj DM-ova
+  - ❌ Filtriranje aktivnih/neaktivnih
+  - ❌ Klik za uređivanje
 
 **Upravljanje praznicima:**
-- ❌ Dodavanje praznika (FR-ADM-008)
-- ❌ Uređivanje praznika (FR-ADM-009)
-- ❌ Brisanje praznika (FR-ADM-010)
+- ❌ US-ADM-010: Dodavanje novog praznika (FR-ADM-008)
+  - ❌ Gumb "Dodaj praznik"
+  - ❌ Unos naziva (obavezno)
+  - ❌ Odabir datuma (obavezno)
+  - ❌ Odabir tipa: ponavljajući ili jednokratni
+  - ❌ Ako jednokratni: unos godine
+  - ❌ Spremanje praznika
+  - ❌ Prikaz u kalendaru zaposlenika
+- ❌ US-ADM-011: Pregled liste praznika
+  - ❌ Lista svih praznika
+  - ❌ Za svaki: naziv, datum, tip (ponavljajući/jednokratni)
+  - ❌ Sortiranje po datumu
+  - ❌ Filtriranje po godini
+  - ❌ Mogućnost uređivanja i brisanja
+- ❌ US-ADM-012: Uređivanje praznika (FR-ADM-009)
+  - ❌ Gumb "Uredi" kod praznika
+  - ❌ Promjena naziva i datuma
+  - ❌ Promjena tipa (ponavljajući/jednokratni)
+  - ❌ Zabrana uređivanja praznika iz prošlosti
+  - ❌ Spremanje promjena
+- ❌ US-ADM-013: Brisanje praznika (FR-ADM-010)
+  - ❌ Gumb "Obriši" kod praznika
+  - ❌ Potvrda brisanja
+  - ❌ Brisanje iz kalendara
+  - ❌ Postojeći zahtjevi se ne mijenjaju retroaktivno
 - ❌ Uvoz praznika za novu godinu (FR-ADM-011)
 
 **Dashboard:**
@@ -490,7 +920,81 @@ docs/                               ✅ Kompletna specifikacija
 - ❌ Broj zahtjeva na čekanju (svi odjeli)
 - ❌ Trend bolovanja
 
-**Prioritet:** 🟡 SREDNJI (Admin je više "setup", manje operativan)
+**Prioritet:** 🟡 SREDNJI 
+- 🟢 NIZAK za mockup: Admin je više "setup", manje operativan
+- 🟡 SREDNJI za produkciju: US-ADM-001 do US-ADM-005 - Upravljanje zaposlenicima
+- 🟢 NIZAK: US-ADM-006 do US-ADM-013 - Upravljanje odjelima i praznicima
+
+---
+
+## 2.5 ZAJEDNIČKE FUNKCIONALNOSTI (US-CMN)
+
+### 2.5.1 Trenutno stanje
+
+#### ✅ Implementirano
+
+**US-CMN-002: Navigacija između modula**
+- ✅ Navigacijski meni (sidebar u DashboardLayout)
+- ✅ Meni prikazuje samo opcije dostupne za ulogu
+- ✅ Klik na stavku menija za prijelaz
+- ✅ Trenutna stranica označena u meniju
+
+**US-CMN-003: Prikaz trenutno prijavljenog korisnika**
+- ✅ Prikaz imena korisnika (u role-switcher)
+- ✅ Prikaz uloge
+- ⚠️ Gumb za odjavu (nedostaje)
+
+**US-CMN-006: Prikaz potvrda uspješnih akcija**
+- ✅ Toast notifications (zelene potvrde)
+- ✅ Automatsko zatvaranje nakon 3-5 sekundi
+- ✅ Ručno zatvaranje
+
+#### ❌ Nedostaje
+
+**US-CMN-001: Responsive dizajn**
+- ⚠️ Djelomično implementirano:
+  - ✅ Tailwind CSS responsive utilities
+  - ❌ Testiranje na manjim ekranima (tablet, mobitel)
+  - ❌ Vertikalno slaganje elemenata na manjim ekranima
+  - ❌ Mobile navigation
+  - ❌ Mobile table views
+  - ❌ Mobile forms
+  - ❌ Minimalna podržana rezolucija: 1024x768
+
+**US-CMN-003: Prikaz trenutno prijavljenog korisnika**
+- ✅ Prikaz imena i uloge - **IMPLEMENTIRANO**
+- ❌ Gumb za odjavu
+
+**US-CMN-004: Brzo osvježavanje podataka**
+- ❌ Ikona za osvježavanje
+- ❌ Ponovno učitavanje podataka s backend-a
+- ❌ Spinner tijekom učitavanja
+
+**US-CMN-005: Prikaz grešaka**
+- ⚠️ Djelomično implementirano:
+  - ✅ Toast notifications za greške (crvene)
+  - ✅ Automatsko zatvaranje nakon 3-5 sekundi
+  - ✅ Ručno zatvaranje
+  - ❌ Snackbar pozicioniran na dnu ekrana (trenutno u gornjem desnom kutu)
+
+**US-CMN-007: Email notifikacije**
+- ❌ Email notifikacije za zaposlenika:
+  - ❌ Zahtjev odobren (APPROVED)
+  - ❌ Zahtjev odbijen (REJECTED)
+  - ❌ Zahtjev odobren na prvom nivou (APPROVED_FIRST_LEVEL)
+  - ❌ Alokacija dana promijenjena
+- ❌ Email notifikacije za Department Managera:
+  - ❌ Novi zahtjev na čekanju (SUBMITTED)
+  - ❌ Zahtjev otkazan od strane zaposlenika
+- ❌ Email notifikacije za General Managera:
+  - ❌ Zahtjev čeka drugo odobrenje (APPROVED_FIRST_LEVEL)
+- ❌ Email sadrži: tip događaja, zaposlenik, razdoblje, broj dana, link za pregled
+- ❌ Isključivanje notifikacija u postavkama profila
+- ❌ Asinkrono slanje (queue/background job)
+
+**Prioritet:** 
+- 🟢 NIZAK za mockup: US-CMN-001 (responsive), US-CMN-004 (refresh), US-CMN-007 (email)
+- 🟡 SREDNJI za produkciju: US-CMN-007 (email notifikacije)
 
 ---
 
@@ -509,20 +1013,53 @@ docs/                               ✅ Kompletna specifikacija
 
 #### ✅ Novo implementirano
 
-**BR-VAL-001: Validacija datuma zahtjeva** - **ZAVRŠENO**
+**US-VAL-000: Razlikovanje needApproval i hasPlanning flagova**
+- ⚠️ Djelomično implementirano:
+  - ✅ needApproval flag postoji u tipovima
+  - ✅ hasPlanning flag postoji u tipovima
+  - ✅ Mock podaci koriste oba flaga
+  - ❌ UI jasno razlikuje tipove nedostupnosti s needApproval=false
+  - ❌ Direktno APPROVED status za needApproval=false nije implementiran u workflow-u
+  - ❌ Korekcija dana temelji se na hasPlanning=true (logika postoji u validacijama, ali nije izvršena u workflow-u)
+
+**US-VAL-001: Validacija preklapanja zahtjeva**
+- ✅ BR-VAL-002: Provjera preklapanja s aktivnim zahtjevima (DRAFT, SUBMITTED, APPROVED_FIRST_LEVEL)
+- ✅ APPROVED i REJECTED zahtjevi se ne uzimaju u obzir (provjerava se DaySchedule)
+- ⚠️ US-VAL-007: Provjera preklapanja s DaySchedule-om:
+  - ✅ Detektiranje preklapanja
+  - ✅ Provjera hasPlanning=true u unavailability reason
+  - ✅ Upozorenje o budućoj korekciji
+  - ✅ Upozorenje o vraćanju SVIH preostalih dana ako postoji applicationId
+  - ✅ Upozorenje o pregazivanju postojećeg plana
+  - ❌ Stvarno izvršavanje korekcije pri odobrenju (APPROVED)
+  - ❌ Kreiranje CORRECTION ledger entry
+  - ❌ Vraćanje dana
+  - ❌ Brisanje DaySchedule zapisa
+  - ❌ Dodavanje u log originalnog zahtjeva
+- ✅ Greška jasno navodi razdoblje i status postojećeg zahtjeva
+
+**US-VAL-002: Kalkulacija radnih dana**
+- ✅ BR-CALC-001: Kalkulacija radnih dana - **ZAVRŠENO**
+- ✅ Isključivanje subota i nedjelja
+- ✅ Isključivanje praznika iz tablice
+- ✅ Ponavljajući praznici za sve godine
+- ✅ Jednokratni praznici samo za specifičnu godinu
+- ✅ Prikaz točnog broja radnih dana
+
+**US-VAL-003: Validacija dostupnih dana**
+- ✅ BR-VAL-003: Validacija dostupnih dana - **ZAVRŠENO**
+- ✅ Kalkulacija: Dodijeljeno - Odobreno (APPROVED) - Na čekanju (SUBMITTED, APPROVED_FIRST_LEVEL)
+- ✅ Greška ako traženi dani prelaze dostupne
+- ✅ Prikaz koliko je dostupno i koliko se traži
+- ✅ Validacija za godinu u kojoj POČINJE zahtjev
+- ✅ Balance se računa iz ledger entries (SUM changeDays)
+
+**US-VAL-004: Validacija datuma zahtjeva**
+- ✅ BR-VAL-001: Validacija datuma zahtjeva - **ZAVRŠENO**
 - ✅ Datum početka prije ili jednak datumu završetka
-- ✅ Datum početka ne smije biti u prošlosti
+- ✅ Datum početka smije biti u prošlosti (evidencija naknadnih događaja)
 - ✅ Datum završetka max 365 dana u budućnosti
-
-**BR-VAL-002: Validacija preklapanja zahtjeva** - **ZAVRŠENO**
-- ✅ Provjera preklapanja s SUBMITTED/APPROVED_FIRST_LEVEL/APPROVED
-- ✅ Logika preklapanja: `(StartNew <= EndExist) AND (EndNew >= StartExist)`
-- ✅ Error poruka s detaljima preklapanja
-
-**BR-VAL-003: Validacija dostupnih dana** - **ZAVRŠENO**
-- ✅ Kalkulacija balance-a iz ledger-a
-- ✅ Provjera: requestedWorkdays <= balance
-- ✅ Error poruka s informacijom o preostalom
+- ✅ Zahtjev mora uključivati barem 1 radni dan (BR-VAL-004)
 
 **BR-VAL-004: Validacija minimalne duljine** - **ZAVRŠENO**
 - ✅ Zahtjev mora imati barem 1 radni dan
@@ -530,11 +1067,41 @@ docs/                               ✅ Kompletna specifikacija
 
 #### ❌ Nedostaje
 
+**US-VAL-005: Validacija bolovanja**
+- ❌ Provjera preklapanja s aktivnim bolovanjima
+- ❌ Greška pri preklapanju
+- ❌ Datum početka ne smije biti u budućnosti
+- ❌ Datum završetka mora biti nakon datuma početka
+
+**US-VAL-006: Validacija statusa za uređivanje zahtjeva**
+- ⚠️ Djelomično u logici, ali ne u UI-u:
+  - ✅ Pravila postoje u tipovima i dokumentaciji
+  - ❌ UI sprječavanje uređivanja SUBMITTED zahtjeva
+  - ❌ UI sprječavanje uređivanja APPROVED_FIRST_LEVEL zahtjeva
+  - ❌ UI sprječavanje uređivanja APPROVED zahtjeva
+  - ❌ UI sprječavanje uređivanja REJECTED zahtjeva
+  - ❌ Error poruka: "Ne možete uređivati zahtjev u statusu: {status}"
+  - ✅ DRAFT zahtjevi mogu se uređivati i brisati (logika postoji)
+
 **BR-VAL-005: Validacija statusa za uređivanje**
 - ❌ DRAFT - može se uređivati i brisati
 - ❌ Ostali statusi - ne mogu se uređivati
 
-**Prioritet:** 🟢 NIZAK (kritične validacije završene)
+**US-VAL-007: Provjera preklapanja s DaySchedule-om i korekcija pri odobrenju**
+- ⚠️ Djelomično implementirano (vidi gore pod US-VAL-001)
+- ❌ **KRITIČNO:** Stvarno izvršavanje korekcije pri odobrenju nije implementirano
+- ❌ Kreiranje CORRECTION ledger entry
+- ❌ Vraćanje dana (changeDays pozitivan)
+- ❌ Brisanje DaySchedule zapisa originalnog zahtjeva
+- ❌ Kreiranje novih DaySchedule zapisa za novi zahtjev
+- ❌ Dodavanje zapisa u log originalnog zahtjeva
+- ❌ Automatsko mijenjanje DaySchedule-a pri odobrenju (APPROVED)
+
+**Prioritet:** 
+- 🔴 KRITIČNO: US-VAL-007 - Izvršavanje korekcije pri odobrenju (INOVACIJA!)
+- 🟡 SREDNJI: US-VAL-006 - Validacija statusa za uređivanje
+- 🟡 SREDNJI: US-VAL-005 - Validacija bolovanja
+- 🟢 NIZAK: BR-VAL-005 (pokriveno s US-VAL-006)
 
 ---
 
@@ -601,37 +1168,62 @@ docs/                               ✅ Kompletna specifikacija
 #### ❌ Nedostaje
 
 **BR-WF-001: Životni ciklus zahtjeva**
-- ❌ Flow 1: needApproval=false (direktno APPROVED)
-- ❌ Flow 2: needApproval=true, needSecondApproval=false
-- ❌ Flow 3: needApproval=true, needSecondApproval=true (dva nivoa)
-- ❌ Razlikovanje u UI-u
+- ⚠️ Djelomično implementirano:
+  - ✅ Statusi postoje u tipovima (DRAFT, SUBMITTED, APPROVED_FIRST_LEVEL, APPROVED, REJECTED)
+  - ✅ Mock podaci pokrivaju sve statuse
+  - ✅ needApproval flag postoji
+  - ✅ needSecondApproval flag postoji
+  - ❌ Flow 1: needApproval=false (direktno APPROVED) - nije implementiran u workflow-u
+  - ❌ Flow 2: needApproval=true, needSecondApproval=false (SUBMITTED → APPROVED)
+  - ❌ Flow 3: needApproval=true, needSecondApproval=true (SUBMITTED → APPROVED_FIRST_LEVEL → APPROVED)
+  - ❌ UI razlikovanje različitih flow-ova
 
 **BR-WF-002: Submit zahtjeva**
-- ❌ Određivanje statusa ovisno o needApproval
-- ❌ Logiranje akcije
-- ❌ Kreiranje ledger entry-ja (za direktno odobrene)
+- ⚠️ Djelomično implementirano:
+  - ✅ Mock API funkcija submitApplication postoji
+  - ❌ Određivanje statusa ovisno o needApproval
+  - ❌ Logiranje akcije
+  - ❌ Kreiranje ledger entry-ja (za direktno odobrene, needApproval=false)
+  - ❌ Kreiranje DaySchedule entry-ja (za direktno odobrene)
 
 **BR-WF-003: Prvo odobrenje**
-- ❌ Provjera prava (Department Manager)
-- ❌ Ne može vlastite zahtjeve
-- ❌ Određivanje statusa (APPROVED ili APPROVED_FIRST_LEVEL)
-- ❌ Kreiranje ledger/DaySchedule (ako konačno odobren)
+- ⚠️ Logika postoji u utils, ali nije implementirana u UI:
+  - ✅ canApprove() funkcija za provjeru prava
+  - ✅ getNextStatus() za određivanje statusa
+  - ❌ UI implementacija prvog odobrenja
+  - ❌ Provjera: Ne može vlastite zahtjeve (canApprove vrača false)
+  - ❌ Određivanje statusa: APPROVED ili APPROVED_FIRST_LEVEL
+  - ❌ Kreiranje USAGE ledger entry (oduzimanje dana)
+  - ❌ Kreiranje DaySchedule zapisa (ako konačno odobren)
+  - ❌ Izvršavanje korekcije (ako postoji preklapanje s DaySchedule-om)
 
 **BR-WF-004: Drugo odobrenje**
-- ❌ Provjera prava (General Manager)
-- ❌ Samo APPROVED_FIRST_LEVEL → APPROVED
-- ❌ Kreiranje ledger/DaySchedule
+- ❌ Potpuno nedostaje:
+  - ❌ Provjera prava (General Manager)
+  - ❌ Samo APPROVED_FIRST_LEVEL → APPROVED
+  - ❌ Kreiranje USAGE ledger entry
+  - ❌ Kreiranje DaySchedule zapisa
+  - ❌ Izvršavanje korekcije (ako postoji preklapanje)
 
 **BR-WF-005: Odbijanje**
-- ❌ Razlog obavezan
-- ❌ Ne kreira se ledger
-- ❌ Logiranje
+- ⚠️ Logika postoji u utils, ali nije implementirana u UI:
+  - ✅ canReject() funkcija
+  - ❌ UI implementacija odbijanja
+  - ❌ Razlog obavezan
+  - ❌ Ne kreira se ledger
+  - ❌ Logiranje
 
 **BR-WF-006: Otkazivanje**
-- ❌ CORRECTION entry za vraćanje dana
-- ❌ Brisanje DaySchedule
+- ❌ Potpuno nedostaje:
+  - ❌ Funkcionalnost otkazivanja APPROVED zahtjeva
+  - ❌ CORRECTION entry za vraćanje dana
+  - ❌ Brisanje DaySchedule zapisa
 
-**Prioritet:** 🔴 KRITIČNO za prvi nivo odobrenja, 🟡 SREDNJI za drugi nivo
+**Prioritet:** 🔴 KRITIČNO 
+- 🔴 KRITIČNO: BR-WF-002, BR-WF-003, BR-WF-005 - Prvi nivo odobrenja i odbijanja
+- 🔴 KRITIČNO: Izvršavanje korekcije pri odobrenju (dio BR-WF-003 i BR-WF-004)
+- 🟡 SREDNJI: BR-WF-004 - Drugi nivo odobrenja
+- 🟢 NIZAK: BR-WF-006 - Otkazivanje (nice-to-have)
 
 ---
 
@@ -639,34 +1231,52 @@ docs/                               ✅ Kompletna specifikacija
 
 #### ❌ Potpuno nedostaje
 
-**BR-AUTO-001: Automatska prilagodba GO pri bolovanju**
-- ❌ Algoritam prilagodbe (4 scenarija):
-  1. Potpuno preklapanje → Otkazati GO
-  2. Preklapanje na početku → Pomicanje start datuma
-  3. Preklapanje na kraju → Pomicanje end datuma
-  4. Preklapanje u sredini → Skraćivanje na prvi dio
+**BR-AUTO-001: Automatska prilagodba GO pri bolovanju** - **INOVATIVNA FUNKCIONALNOST!**
+- ❌ Algoritam prilagodbe (4 scenarija prema user stories):
+  1. ❌ Potpuno preklapanje → Otkazati GO
+  2. ❌ Preklapanje na početku → Pomicanje start datuma
+  3. ❌ Preklapanje na kraju → Pomicanje end datuma
+  4. ❌ Preklapanje u sredini → Skraćivanje na prvi dio
+- ❌ **KLJUČNO:** Vraćanje SVIH preostalih dana iz originalnog zahtjeva (ne samo preklopljenih)
+  - ❌ Ako bolovanje počinje 15.1., a GO je 1.1.-31.1.
+  - ❌ Vraćaju se SVI dani od 15.1. do 31.1., ne samo preklopljeni dani
+  - ❌ Razlog: Bolovanje prekida GO, često bez poznatog kraja
 - ❌ Kreiranje CORRECTION ledger entry
-- ❌ Ažuriranje DaySchedule
+- ❌ Ažuriranje DaySchedule zapisa:
+  - ❌ Brisanje DaySchedule zapisa originalnog zahtjeva (od datuma početka novog zahtjeva)
+  - ❌ Kreiranje novih DaySchedule zapisa za novi zahtjev (bolovanje)
 - ❌ Dodavanje komentara na zahtjev
-- ❌ Izvještaj o prilagodbama
+- ❌ Izvještaj o prilagodbama (US-MGR-009)
+- ❌ Za otvorena bolovanja (bez datuma završetka):
+  - ❌ DaySchedule zapis samo za datum početka
+  - ❌ Vizualni prikaz "Aktivno bolovanje - u tijeku" od početka do danas
+  - ❌ Provjera preklapanja samo za datum početka
+  - ❌ Pri zatvaranju: kreiranje DaySchedule za sve dane
 
 **Napomena:** Ovo je **KLJUČNA INOVATIVNA FUNKCIONALNOST** aplikacije!
 
 **BR-AUTO-002: Kreiranje DaySchedule zapisa**
 - ❌ Upsert za svaki dan razdoblja
 - ❌ Postavljanje unavailabilityReasonId
+- ❌ Postavljanje applicationId (povezivanje s zahtjevom)
 - ❌ Postavljanje statusa (NOT_AVAILABLE)
+- ❌ Pregazivanje postojećih DaySchedule zapisa pri odobrenju
 
 **BR-AUTO-003: Godišnji transfer (carry-over)**
 - ❌ Scheduled job (1.1.)
 - ❌ Max 5 dana prenosa
 - ❌ Samo za hasPlanning=true
+- ❌ Kreiranje TRANSFER ledger entry
 
 **BR-AUTO-004: Godišnja alokacija**
 - ❌ ALLOCATION entry kreiranje
 - ❌ Masovna dodjela
+- ❌ Pojedinačna dodjela
 
-**Prioritet:** 🔴 KRITIČNO za bolovanje prilagodbu
+**Prioritet:** 🔴 KRITIČNO 
+- 🔴 KRITIČNO: BR-AUTO-001 - Automatska prilagodba (INOVACIJA!)
+- 🔴 KRITIČNO: BR-AUTO-002 - Kreiranje DaySchedule zapisa
+- 🟢 NIZAK za mockup: BR-AUTO-003, BR-AUTO-004 (background jobs)
 
 ---
 
@@ -1417,85 +2027,247 @@ lib/constants/
 - ✅ Helper funkcije: 95%
 - ✅ Planning Grid: 90%
 - ⚠️ Manager Dashboard: 70%
+- ⚠️ Manager Requests (Approval): 20% (logika postoji, UI nedostaje)
 - ❌ Manager Alokacije: 0% (KRITIČNO!)
 - ❌ Manager Bolovanja: 0% (INOVACIJA!)
+- ❌ Automatska prilagodba GO: 0% (INOVACIJA!)
 - ❌ General Manager: 10%
 - ❌ Admin: 10%
+
+**Pokrivenost User Stories:**
+
+**Autentifikacija (2 US):**
+- US-AUTH-001: ❌ Login forma (mock auth je dovoljan za mockup)
+- US-AUTH-002: ❌ Logout (mock auth je dovoljan)
+
+**Zaposlenik - Pregled (4 US):**
+- US-EMP-001: ✅ Pregled stanja dana PO tipu nedostupnosti
+- US-EMP-002: ❌ Pregled stanja po godinama
+- US-EMP-003: ❌ Kalendarski prikaz godišnjih odmora
+- US-EMP-004: ✅ Pregled aktivnih zahtjeva
+
+**Zaposlenik - Kreiranje (10 US):**
+- US-EMP-005: ⚠️ Odabir razdoblja (djelomično - nedostaje TableCalendar)
+- US-EMP-006: ✅ Real-time validacija
+- US-EMP-007: ✅ Dodavanje napomene
+- US-EMP-008: ❌ Spremanje kao draft
+- US-EMP-009: ⚠️ Slanje na odobrenje (gumb postoji, workflow nedostaje)
+- US-EMP-010: ❌ Uređivanje DRAFT zahtjeva
+- US-EMP-011: ❌ Brisanje DRAFT zahtjeva
+- US-EMP-012: ❌ Pregled detalja odobrenog zahtjeva
+- US-EMP-012B: ⚠️ Korekcija vraćanja dana (upozorenje postoji, izvršavanje nedostaje)
+- US-EMP-013: ❌ Pregled vlastitih bolovanja
+
+**Department Manager - Pregled (3 US):**
+- US-DM-001: ✅ Pregled zahtjeva na čekanju
+- US-DM-002: ✅ Tablični pregled godišnjih odmora
+- US-DM-003: ⚠️ Kombiniran prikaz (nedostaje sidebar)
+
+**Department Manager - Odobravanje (4+2 US):**
+- US-DM-004: ⚠️ Odobravanje zahtjeva - Prvi nivo (logika postoji, UI nedostaje)
+- US-DM-005: ⚠️ Odbijanje zahtjeva - Prvi nivo (logika postoji, UI nedostaje)
+- US-DM-006: ❌ Pregled detalja odobrenog zahtjeva
+- US-DM-007: ❌ Masovno odobravanje (nice-to-have)
+- US-DM-008: ❌ Eksport izvještaja (nice-to-have)
+
+**Manager - Alokacije (4 US):**
+- US-MGR-001: ❌ Pregled stanja dana zaposlenika (PO tipu)
+- US-MGR-002: ❌ Dodjela dana za novu godinu (PO tipu)
+- US-MGR-003: ❌ Izmjena postojeće dodjele (PO tipu)
+- US-MGR-004: ❌ Pregled povijesti ledger-a (PO tipu)
+
+**Manager - Bolovanja (7 US):**
+- US-MGR-005: ❌ Evidentiranje novog bolovanja
+- US-MGR-006: ❌ Pregled aktivnih bolovanja
+- US-MGR-007: ❌ Zatvaranje aktivnog bolovanja
+- US-MGR-008: ❌ Automatska prilagodba GO (INOVACIJA!)
+- US-MGR-009: ❌ Pregled izvještaja o prilagodbama
+- US-MGR-010: ❌ Upload medicinske dokumentacije
+- US-MGR-011: ❌ Pregled povijesti bolovanja
+
+**General Manager (6 US):**
+- US-GM-001: ❌ Pregled zahtjeva za drugi nivo
+- US-GM-002: ❌ Finalno odobravanje (drugi nivo)
+- US-GM-003: ❌ Odbijanje - drugi nivo
+- US-GM-004: ❌ Pregled svih zahtjeva u organizaciji
+- US-GM-005: ⚠️ Kreiranje vlastitih zahtjeva (može koristiti employee modul)
+- US-GM-006: ❌ Odobravanje vlastitih zahtjeva
+
+**Administrator (13 US):**
+- US-ADM-001 do 005: ❌ Upravljanje zaposlenicima (5 US)
+- US-ADM-006 do 009: ❌ Upravljanje odjelima (4 US + General Manager)
+- US-ADM-010 do 013: ❌ Upravljanje praznicima (4 US)
+
+**Zajedničke funkcionalnosti (7 US):**
+- US-CMN-001: ⚠️ Responsive dizajn (djelomično)
+- US-CMN-002: ✅ Navigacija između modula
+- US-CMN-003: ⚠️ Prikaz korisnika (nedostaje odjava)
+- US-CMN-004: ❌ Brzo osvježavanje podataka
+- US-CMN-005: ⚠️ Prikaz grešaka (postoji, ali ne kao snackbar)
+- US-CMN-006: ✅ Prikaz potvrda uspješnih akcija
+- US-CMN-007: ❌ Email notifikacije (nice-to-have)
+
+**Validacije (8 US):**
+- US-VAL-000: ⚠️ Razlikovanje needApproval/hasPlanning (djelomično)
+- US-VAL-001: ⚠️ Validacija preklapanja (upozorenje postoji, izvršavanje nedostaje)
+- US-VAL-002: ✅ Kalkulacija radnih dana
+- US-VAL-003: ✅ Validacija dostupnih dana
+- US-VAL-004: ✅ Validacija datuma zahtjeva
+- US-VAL-005: ❌ Validacija bolovanja
+- US-VAL-006: ⚠️ Validacija statusa za uređivanje (logika postoji, UI nedostaje)
+- US-VAL-007: ⚠️ Provjera DaySchedule-a i korekcija (upozorenje postoji, izvršavanje nedostaje)
+
+**UKUPNO: 76 User Stories**
+- ✅ Potpuno implementirano: ~15 US (20%)
+- ⚠️ Djelomično implementirano: ~10 US (13%)
+- ❌ Nije implementirano: ~51 US (67%)
+
+**KRITIČNI GAP-ovi (Must-have za funkcionalan mockup):**
+1. 🔴 US-DM-004, US-DM-005 - Approval proces (prvi nivo odobrenja i odbijanja)
+2. 🔴 US-EMP-012B, US-VAL-007, BR-AUTO-001 - Korekcija vraćanja dana pri odobrenju (INOVACIJA!)
+3. 🔴 US-MGR-002, US-MGR-003 - Upravljanje alokacijama
+4. 🔴 US-MGR-005, US-MGR-007, US-MGR-008 - Evidencija bolovanja + automatska prilagodba
+5. 🔴 BR-WF-002, BR-WF-003 - Workflow: submit i prvo odobrenje
+6. 🔴 BR-AUTO-002 - Kreiranje DaySchedule zapisa
 
 ### 15.2 Prioriteti za full-featured mockup
 
 #### 🔴 Must-have (kritično za funkcionalan mockup)
 
-1. **~~Validacije i kalkulacije~~** ✅ **ZAVRŠENO**
-   - ✅ Workdays kalkulacija s praznicima
-   - ✅ Overlap detection
-   - ✅ Balance validation
-   - ✅ Real-time feedback
+**1. Approval proces - PRVI NIVO (2-3 dana)** ⏳ **SLJEDEĆI PRIORITET**
+- Implementacija UI-a za odobrenje/odbijanje u `/manager/requests`
+- Prikaz detalja zahtjeva prije odobrenja
+- Razlikovanje SUBMITTED → APPROVED vs APPROVED_FIRST_LEVEL
+- Kreiranje USAGE ledger entry pri odobrenju
+- Kreiranje DaySchedule zapisa pri odobrenju
+- Implementacija upozorenja o preklapanju s DaySchedule-om
+- Povezuje: US-DM-004, US-DM-005, BR-WF-003, BR-WF-005
 
-2. **~~Tablični kalendar~~** ✅ **ZAVRŠENO**
-   - ✅ Planning grid komponenta
-   - ✅ Vizualizacija odjela
-   - ✅ Kritična razdoblja
+**2. Korekcija vraćanja dana pri odobrenju (3-4 dana)** 🔴 **INOVACIJA!**
+- Algoritam prilagodbe (4 scenarija)
+- Vraćanje SVIH preostalih dana iz originalnog zahtjeva (ne samo preklopljenih)
+- Kreiranje CORRECTION ledger entry
+- Brisanje DaySchedule zapisa originalnog zahtjeva
+- Ažuriranje DaySchedule-a s novim zahtjevom
+- Dodavanje zapisa u log originalnog zahtjeva
+- Izvještaj o prilagodbama
+- Povezuje: US-EMP-012B, US-VAL-007, US-MGR-008, BR-AUTO-001
 
-3. **Upravljanje alokacijama** ⏳ **SLJEDEĆI PRIORITET**
-   - Dodjela godišnjih dana
-   - Masovna dodjela
-   - Pojedinačna izmjena
+**3. Upravljanje alokacijama (3-4 dana)**
+- Ruta `/manager/allocations`
+- US-MGR-001: Lista zaposlenika s stanjem dana (PO tipu nedostupnosti)
+- US-MGR-002: Forma za dodjelu dana za novu godinu (PO tipu)
+- US-MGR-003: Izmjena postojeće dodjele (PO tipu)
+- US-MGR-004: Pregled povijesti ledger-a (PO tipu)
+- Validacija (1-50 dana, ne može ispod iskorištenih)
 
-4. **Evidencija bolovanja + Automatska prilagodba**
-   - Forma za bolovanje
-   - Algoritam prilagodbe (4 scenarija)
-   - Izvještaj o izmjenama
+**4. Evidencija bolovanja (2-3 dana)**
+- Ruta `/manager/sick-leaves`
+- US-MGR-005: Forma za novo bolovanje
+- US-MGR-006: Lista aktivnih bolovanja
+- US-MGR-007: Zatvaranje aktivnog bolovanja
+- Za otvorena bolovanja: DaySchedule samo za datum početka
+- Za zatvorena bolovanja: DaySchedule za sve dane
 
-5. **Approval proces**
-   - ✅ Logika u utils (canApprove, canReject, getNextStatus)
-   - ❌ UI za odobrenje u `/manager/requests`
-   - ❌ Provjera prava u UI
-   - ❌ Workflow logika u formi
+**5. DaySchedule management (dio approval procesa)**
+- BR-AUTO-002: Kreiranje DaySchedule zapisa
+- Upsert za svaki dan razdoblja
+- Postavljanje unavailabilityReasonId i applicationId
+- Pregazivanje postojećih DaySchedule zapisa
 
 #### 🟡 Should-have (poželjno za impressive mockup)
 
-6. **Draft funkcionalnost**
-7. **Kalendar prikaz za Employee**
-8. **Drugi nivo odobrenja (General Manager)**
-9. **Detalji zahtjeva**
-10. **Toast notifications**
+**6. Draft funkcionalnost (2-3 dana)**
+- US-EMP-008: Spremanje kao draft
+- US-EMP-010: Uređivanje draft-a
+- US-EMP-011: Brisanje draft-a
+- US-VAL-006: Validacija statusa za uređivanje
+
+**7. Kalendar prikaz za Employee (2-3 dana)**
+- US-EMP-003: Ruta `/employee/calendar`
+- 12 mini kalendara za sve mjesece
+- Color coding za statuse
+- Mijenjanje godine
+
+**8. Drugi nivo odobrenja - General Manager (2-3 dana)**
+- US-GM-001: Pregled zahtjeva za drugi nivo
+- US-GM-002: Finalno odobravanje
+- US-GM-003: Odbijanje - drugi nivo
+- BR-WF-004: Workflow pravila
+
+**9. Detalji zahtjeva (1-2 dana)**
+- US-EMP-012: Pregled detalja za zaposlenika
+- US-DM-006: Pregled detalja za managera
+- Povijest promjena statusa
+- Komentar voditelja
+
+**10. Pregled stanja po godinama (1-2 dana)**
+- US-EMP-002: Tablica po godinama za svaki tip nedostupnosti
+- Klik na info ikonu
+- Negativni dani crvenom bojom
 
 #### 🟢 Nice-to-have (cherry on top)
 
-11. **Admin modul (CRUD)**
-12. **Statistike i izvještaji**
-13. **Eksport funkcionalnosti**
-14. **Mobile responsive**
+**11. Admin modul (4-5 dana)**
+- US-ADM-001 do 005: Upravljanje zaposlenicima
+- US-ADM-006 do 009: Upravljanje odjelima
+- US-ADM-010 do 013: Upravljanje praznicima
+
+**12. Dodatne funkcionalnosti (3-4 dana)**
+- US-DM-007: Masovno odobravanje
+- US-DM-008: Eksport izvještaja
+- US-MGR-010: Upload medicinske dokumentacije
+- US-CMN-007: Email notifikacije
+
+**13. UX poboljšanja (2-3 dana)**
+- US-CMN-001: Responsive dizajn
+- US-EMP-005: TableCalendar za odabir razdoblja
+- US-DM-003: Sidebar s pending zahtjevima
+- Loading states, animations
 
 ### 15.3 Procjena vremena
 
 **Za full-featured mockup:**
 
-| Faza | Funkcionalnost | Dani | Priority | Status |
-|------|----------------|------|----------|---------|
-| 1 | Validacije + kalkulacije | 2-3 | 🔴 | ✅ ZAVRŠENO |
-| 2 | Tablični kalendar | 5-7 | 🔴 | ✅ ZAVRŠENO |
-| 3 | Alokacije + bolovanja | 5-7 | 🔴 | ⏳ Sljedeći |
-| 4 | Approval proces | 2-3 | 🔴 | ⏳ |
-| 5 | Employee poboljšanja | 3-4 | 🟡 | ⏳ |
-| 6 | General Manager | 2-3 | 🟡 | ⏳ |
-| 7 | Admin modul | 3-4 | 🟢 | ⏳ |
-| 8 | Polish + UX | 2-3 | 🟢 | ⏳ |
+| Faza | Funkcionalnost | Dani | Priority | Status | User Stories |
+|------|----------------|------|----------|---------|--------------|
+| 1 | Validacije + kalkulacije | 2-3 | 🔴 | ✅ ZAVRŠENO | US-VAL-002, 003, 004, US-EMP-006 |
+| 2 | Tablični kalendar | 5-7 | 🔴 | ✅ ZAVRŠENO | US-DM-002 |
+| 3 | Approval proces - Prvi nivo | 2-3 | 🔴 | ⏳ Sljedeći | US-DM-004, 005, BR-WF-003, 005 |
+| 4 | Korekcija vraćanja dana | 3-4 | 🔴 | ⏳ | US-EMP-012B, US-VAL-007, US-MGR-008, BR-AUTO-001 |
+| 5 | DaySchedule management | 1-2 | 🔴 | ⏳ | BR-AUTO-002 (dio approval-a) |
+| 6 | Upravljanje alokacijama | 3-4 | 🔴 | ⏳ | US-MGR-001, 002, 003, 004 |
+| 7 | Evidencija bolovanja | 2-3 | 🔴 | ⏳ | US-MGR-005, 006, 007 |
+| 8 | Draft funkcionalnost | 2-3 | 🟡 | ⏳ | US-EMP-008, 010, 011, US-VAL-006 |
+| 9 | Employee kalendar | 2-3 | 🟡 | ⏳ | US-EMP-003 |
+| 10 | General Manager - drugi nivo | 2-3 | 🟡 | ⏳ | US-GM-001, 002, 003, BR-WF-004 |
+| 11 | Detalji zahtjeva | 1-2 | 🟡 | ⏳ | US-EMP-012, US-DM-006 |
+| 12 | Pregled stanja po godinama | 1-2 | 🟡 | ⏳ | US-EMP-002 |
+| 13 | Admin modul | 4-5 | 🟢 | ⏳ | US-ADM-001 do 013 |
+| 14 | Dodatne funkcionalnosti | 3-4 | 🟢 | ⏳ | US-DM-007, 008, US-MGR-010, US-CMN-007 |
+| 15 | UX polish | 2-3 | 🟢 | ⏳ | US-CMN-001, US-EMP-005, US-DM-003 |
 
-**Ukupno:** 24-34 radna dana (5-7 tjedana)  
+**Ukupno:** 37-51 radni dan (7.5-10 tjedana)  
 **Završeno:** ~7-10 dana (Faze 1 i 2)  
-**Preostalo:** ~17-24 dana (3.5-5 tjedana)
+**Preostalo kritično (🔴):** ~14-19 dana (Faze 3-7) → ~3-4 tjedna  
+**Preostalo poželjno (🟡):** ~10-13 dana (Faze 8-12) → ~2-2.5 tjedna  
+**Nice-to-have (🟢):** ~9-12 dana (Faze 13-15) → ~2 tjedna
 
 **Prioritet za sljedeće:**
-1. 🔴 **Approval proces** (2-3 dana) - Manager može odobriti/odbiti zahtjeve
-2. 🔴 **Upravljanje alokacijama** (3-4 dana) - Dodjela godišnjih dana
-3. 🔴 **Evidencija bolovanja** (2-3 dana) - Forma i popis bolovanja
+1. 🔴 **Approval proces - Prvi nivo** (2-3 dana) - Manager može odobriti/odbiti zahtjeve
+2. 🔴 **Korekcija vraćanja dana** (3-4 dana) - INOVATIVNA FUNKCIONALNOST!
+3. 🔴 **Upravljanje alokacijama** (3-4 dana) - Dodjela godišnjih dana
+4. 🔴 **Evidencija bolovanja** (2-3 dana) - Forma i popis bolovanja
 
-**Za minimum viable mockup (samo kritično):**
-- Faze 1-4: ~14-20 dana (3-4 tjedna)
+**Za minimum viable mockup (samo kritično - 🔴):**
+- Faze 1-7: ~19-26 dana (4-5 tjedana)
 - Faze 1-2: ✅ Završeno (~7-10 dana)
-- Preostalo: ~7-10 dana (1.5-2 tjedna)
+- **Preostalo: ~12-16 dana (2.5-3 tjedna)**
+
+**Za impressive mockup (kritično + poželjno - 🔴🟡):**
+- Faze 1-12: ~29-39 dana (6-8 tjedana)
+- Faze 1-2: ✅ Završeno (~7-10 dana)
+- **Preostalo: ~22-29 dana (4.5-6 tjedana)**
 
 ### 15.4 Preporuke
 
@@ -1504,32 +2276,46 @@ lib/constants/
 1. **Approval proces (2-3 dana):** ⏳ **SLJEDEĆI KORAK**
    - ✅ Validacije su gotove
    - ✅ Mock API infrastruktura postoji
-   - ✅ Permissions logika implementirana (canApprove, canReject)
+   - ✅ Permissions logika implementirana (canApprove, canReject, getNextStatus)
    - ⏳ Treba dodati approveApplication i rejectApplication u api.ts
    - ⏳ Treba implementirati UI za odobrenje u `/manager/requests`
    - ⏳ Treba dodati prikaz detalja zahtjeva i balance-a zaposlenika
+   - ⏳ Treba razlikovati SUBMITTED → APPROVED vs APPROVED_FIRST_LEVEL
+   - **Povezuje:** US-DM-004, US-DM-005, BR-WF-003, BR-WF-005
 
-2. **Upravljanje alokacijama (3-4 dana):**
+2. **Korekcija vraćanja dana (3-4 dana):** 🔴 **INOVACIJA!**
+   - ✅ Upozorenja o korekciji postoje u validacijama
+   - ⏳ Implementirati algoritam prilagodbe (4 scenarija)
+   - ⏳ **KLJUČNO:** Vraćanje SVIH preostalih dana (ne samo preklopljenih)
+   - ⏳ Kreiranje CORRECTION ledger entry
+   - ⏳ Brisanje DaySchedule zapisa originalnog zahtjeva
+   - ⏳ Kreiranje novih DaySchedule zapisa
+   - ⏳ Dodavanje zapisa u log originalnog zahtjeva
+   - ⏳ Izvještaj o prilagodbama (US-MGR-009)
+   - **Povezuje:** US-EMP-012B, US-VAL-007, US-MGR-008, BR-AUTO-001
+
+3. **Upravljanje alokacijama (3-4 dana):**
    - Kreiraj `/manager/allocations` rutu
-   - Lista zaposlenika s trenutnim alokacijama
-   - Forma za pojedinačnu i masovnu dodjelu
-   - Validacija (1-50 dana)
+   - US-MGR-001: Lista zaposlenika s trenutnim alokacijama (PO tipu nedostupnosti)
+   - US-MGR-002: Forma za pojedinačnu i masovnu dodjelu (PO tipu)
+   - US-MGR-003: Izmjena postojeće dodjele (PO tipu)
+   - US-MGR-004: Pregled povijesti ledger-a (PO tipu)
+   - Validacija (1-50 dana, ne može ispod iskorištenih)
 
-3. **Evidencija bolovanja (2-3 dana):**
+4. **Evidencija bolovanja (2-3 dana):**
    - Kreiraj `/manager/sick-leaves` rutu
-   - Forma za novo bolovanje
-   - Lista bolovanja odjela
-   - Zatvaranje aktivnog bolovanja
+   - US-MGR-005: Forma za novo bolovanje
+   - US-MGR-006: Lista bolovanja odjela
+   - US-MGR-007: Zatvaranje aktivnog bolovanja
+   - Za otvorena bolovanja: DaySchedule samo za datum početka
+   - Za zatvorena bolovanja: DaySchedule za sve dane
+   - Pri zatvaranju: automatska prilagodba GO (korekcija)
 
-4. **Automatska prilagodba (2-3 dana):**
-   - Algoritam prilagodbe (4 scenarija)
-   - Kreiranje CORRECTION ledger entry
-   - Izvještaj o prilagodbama
-
-5. **~~Tablični kalendar~~** ✅ **ZAVRŠENO**
-   - ✅ Faza 2 kompletno implementirana
-   - ✅ Planning grid s svim funkcionalnostima
-   - ✅ Kritična razdoblja identificirana
+5. **DaySchedule management (dio approval procesa):**
+   - BR-AUTO-002: Kreiranje DaySchedule zapisa
+   - Upsert za svaki dan razdoblja
+   - Postavljanje unavailabilityReasonId i applicationId
+   - Pregazivanje postojećih DaySchedule zapisa pri odobrenju
 
 6. **Iterativni pristup:**
    - ✅ Faza 1 završena - odličan napredak!
@@ -1537,45 +2323,97 @@ lib/constants/
    - Ne pokušavaj sve odjednom
    - Završi jednu funkcionalnost kompletno prije nego kreneš na drugu
    - Testiraj svaku fazu prije prelaska na sljedeću
+   - **Sljedeća prioritet: Approval proces + Korekcija vraćanja dana**
 
-4. **Mock data strategy:**
+7. **Mock data strategy:**
    - ✅ Mock podaci su odlično struktuirani
    - Dodaj više Applications za testiranje overlap-a (po potrebi)
    - Dodaj više LedgerEntries za testiranje balance-a (po potrebi)
+   - Dodaj DaySchedule mock podatke za testiranje korekcije
 
-5. **Component library:**
+8. **Component library:**
    - Napravi reusable komponente
-   - Posebno za tablični kalendar
+   - Posebno za detalje zahtjeva (dialog)
    - Posebno za validaciju forme (već ima u validation.ts)
 
-6. **Keep it simple:**
+9. **Keep it simple:**
    - Mockup ne treba biti perfektan
    - Fokus na demo-iranje ključnih funkcionalnosti
+   - **INOVACIJA = Korekcija vraćanja dana!** - ovo je najvažnije za pokazati
    - UX polish je manje važan od funkcionalnosti
 
 ### 15.5 Success criteria
 
 **Success criteria za mockup:**
 
-**Core funkcionalnosti:**
-✅ Zaposlenik može kreirati zahtjev s validacijom - **ZAVRŠENO**
-✅ Balance kalkulacija je točna - **ZAVRŠENO**
-✅ Overlap detection radi - **ZAVRŠENO**
-✅ Real-time validacija s feedback-om - **ZAVRŠENO**
-✅ Toast notifications - **ZAVRŠENO**
-✅ Manager vidi tablični kalendar s planiranjem - **ZAVRŠENO**
-✅ Identifikacija kritičnih razdoblja - **ZAVRŠENO**
+**Core funkcionalnosti - ✅ ZAVRŠENO:**
+- ✅ Zaposlenik može kreirati zahtjev s validacijom - **ZAVRŠENO**
+- ✅ Balance kalkulacija je točna - **ZAVRŠENO**
+- ✅ Overlap detection radi - **ZAVRŠENO**
+- ✅ Real-time validacija s feedback-om - **ZAVRŠENO**
+- ✅ Toast notifications - **ZAVRŠENO**
+- ✅ Manager vidi tablični kalendar s planiranjem - **ZAVRŠENO**
+- ✅ Identifikacija kritičnih razdoblja - **ZAVRŠENO**
 
-**Nedostaje:**
-❌ Manager može odobriti/odbiti zahtjev  
-❌ Manager može dodjeljivati godišnje dane  
-❌ Manager može evidentirati bolovanje  
-❌ Automatska prilagodba GO pri bolovanju radi  
+**Approval proces - ⏳ KRITIČNO:**
+- ❌ Manager može odobriti zahtjev (US-DM-004)
+- ❌ Manager može odbiti zahtjev (US-DM-005)
+- ❌ Razlikovanje prvog i drugog nivoa odobrenja
+- ❌ Kreiranje USAGE ledger entry pri odobrenju
+- ❌ Kreiranje DaySchedule zapisa pri odobrenju
 
-**Bonus:**
-❌ General Manager može drugi nivo odobrenja  
-❌ Employee ima kalendar prikaz  
-❌ Admin može upravljati zaposlenicima  
+**Korekcija vraćanja dana - 🔴 INOVACIJA:**
+- ❌ Algoritam prilagodbe radi (4 scenarija)
+- ❌ **KLJUČNO:** Vraćanje SVIH preostalih dana (ne samo preklopljenih)
+- ❌ Kreiranje CORRECTION ledger entry
+- ❌ Brisanje DaySchedule zapisa originalnog zahtjeva
+- ❌ Ažuriranje DaySchedule-a s novim zahtjevom
+- ❌ Dodavanje u log originalnog zahtjeva
+- ❌ Izvještaj o prilagodbama (US-MGR-009)
+
+**Upravljanje alokacijama - ⏳ KRITIČNO:**
+- ❌ Manager može dodjeljivati godišnje dane (US-MGR-002)
+- ❌ PO tipu nedostupnosti (odvojeno za svaki tip)
+- ❌ Pregled stanja zaposlenika (US-MGR-001)
+- ❌ Izmjena postojeće dodjele (US-MGR-003)
+- ❌ Pregled povijesti ledger-a (US-MGR-004)
+
+**Evidencija bolovanja - ⏳ KRITIČNO:**
+- ❌ Manager može evidentirati bolovanje (US-MGR-005)
+- ❌ Pregled aktivnih bolovanja (US-MGR-006)
+- ❌ Zatvaranje aktivnog bolovanja (US-MGR-007)
+- ❌ Za otvorena bolovanja: DaySchedule samo za datum početka
+- ❌ Pri zatvaranju: automatska prilagodba GO (korekcija)
+
+**Bonus - 🟡 Nice-to-have:**
+- ❌ Draft funkcionalnost (US-EMP-008, 010, 011)
+- ❌ Employee kalendar prikaz (US-EMP-003)
+- ❌ General Manager drugi nivo odobrenja (US-GM-002, 003)
+- ❌ Admin modul - upravljanje zaposlenicima (US-ADM-001 do 005)
+- ❌ Detalji zahtjeva (US-EMP-012, US-DM-006)
+- ❌ Pregled stanja po godinama (US-EMP-002)
+
+**Prioritizirani success criteria:**
+1. 🔴 **Approval proces** - Must-have za funkcionalan mockup
+2. 🔴 **Korekcija vraćanja dana** - INOVACIJA! Must-have za pokazati vrijednost aplikacije
+3. 🔴 **Upravljanje alokacijama** - Must-have za funkcionalan mockup
+4. 🔴 **Evidencija bolovanja** - Must-have za kompletnu funkcionalnost korekcije
+5. 🟡 Draft, kalendar, drugi nivo - Nice-to-have
+6. 🟢 Admin modul - Lowest priority
+
+**Minimum viable mockup:**
+- Core funkcionalnosti ✅
+- Approval proces ❌ (SLJEDEĆI)
+- Korekcija vraćanja dana ❌ (INOVACIJA!)
+- Upravljanje alokacijama ❌
+- Evidencija bolovanja ❌
+
+**Impressive mockup:**
+- Minimum viable mockup
+- Draft funkcionalnost
+- Employee kalendar prikaz
+- Drugi nivo odobrenja
+- Detalji zahtjeva  
 
 ---
 
@@ -1601,6 +2439,7 @@ lib/constants/
 - [x] Testiranje
 
 **Status:** ✅ Sve funkcionalnosti Faze 1 implementirane!
+**Pokriva:** US-VAL-002, US-VAL-003, US-VAL-004, US-EMP-006
 
 ---
 
@@ -1627,25 +2466,126 @@ lib/constants/
 - [x] Bug fixing
 
 **Status:** ✅ Sva funkcionalnost Faze 2 implementirana!
+**Pokriva:** US-DM-002
 
 ---
 
-**Sprint 3: Alokacije i bolovanja (5-7 dana)** ⏳ **SLJEDEĆI**
+**Sprint 3: Approval proces - Prvi nivo (2-3 dana)** ⏳ **SLJEDEĆI**
+
+Dan 1:
+- [ ] Kreiraj approveApplication i rejectApplication u api.ts
+- [ ] Dodaj DaySchedule mock podatke
+- [ ] Implementiraj getNextStatus logiku (SUBMITTED → APPROVED ili APPROVED_FIRST_LEVEL)
+
+Dan 2:
+- [ ] UI za odobrenje u /manager/requests
+- [ ] Dialog s detaljima zahtjeva
+- [ ] Prikaz balance-a zaposlenika
+- [ ] Upozorenje o preklapanju s DaySchedule-om
+
+Dan 3:
+- [ ] Kreiranje USAGE ledger entry pri odobrenju
+- [ ] Kreiranje DaySchedule zapisa pri odobrenju
+- [ ] Testiranje workflow-a
+- [ ] Bug fixing
+
+**Deliverable:** Manager može odobriti/odbiti zahtjeve
+**Pokriva:** US-DM-004, US-DM-005, BR-WF-003, BR-WF-005
+
+---
+
+**Sprint 4: Korekcija vraćanja dana (3-4 dana)** 🔴 **INOVACIJA!**
 
 Dan 1-2:
-- [ ] Allocations ruta i forma
-- [ ] Masovna dodjela
-- [ ] Validacije
+- [ ] Implementiraj algoritam prilagodbe (4 scenarija)
+- [ ] **KLJUČNO:** Vraćanje SVIH preostalih dana (ne samo preklopljenih)
+- [ ] Kreiranje CORRECTION ledger entry
 
-Dan 3-4:
-- [ ] Sick leave ruta i forma
-- [ ] Lista bolovanja
-- [ ] Zatvaranje bolovanja
+Dan 3:
+- [ ] Brisanje DaySchedule zapisa originalnog zahtjeva
+- [ ] Kreiranje novih DaySchedule zapisa
+- [ ] Dodavanje zapisa u log originalnog zahtjeva
 
-Dan 5-7:
-- [ ] Automatska prilagodba algoritam
-- [ ] Izvještaj o prilagodbama
+Dan 4:
+- [ ] Izvještaj o prilagodbama (US-MGR-009)
+- [ ] Testiranje svih scenarija
+- [ ] Bug fixing
+
+**Deliverable:** Automatska prilagodba GO pri odobrenju novog zahtjeva koji se preklapa
+**Pokriva:** US-EMP-012B, US-VAL-007, US-MGR-008, BR-AUTO-001
+
+---
+
+**Sprint 5: Upravljanje alokacijama (3-4 dana)** ⏳
+
+Dan 1:
+- [ ] Kreiraj rutu /manager/allocations
+- [ ] US-MGR-001: Lista zaposlenika s stanjem dana (PO tipu nedostupnosti)
+- [ ] Filtriranje po odjelu managera
+
+Dan 2:
+- [ ] US-MGR-002: Dialog za dodjelu dana za novu godinu (PO tipu)
+- [ ] Forma za unos godine i broja dana
+- [ ] Kreiranje ALLOCATION ledger entry
+
+Dan 3:
+- [ ] US-MGR-003: Forma za izmjenu postojeće dodjele (PO tipu)
+- [ ] Validacija (1-50 dana, ne može ispod iskorištenih)
+- [ ] Kreiranje CORRECTION ledger entry
+
+Dan 4:
+- [ ] US-MGR-004: Pregled povijesti ledger-a (PO tipu)
+- [ ] Tablica povijesti svih entries po godinama
+- [ ] Filtriranje i eksport
 - [ ] Testiranje
+
+**Deliverable:** Manager može dodijeliti i mijenjati godišnje dane zaposlenicima
+**Pokriva:** US-MGR-001, US-MGR-002, US-MGR-003, US-MGR-004
+
+---
+
+**Sprint 6: Evidencija bolovanja (2-3 dana)** ⏳
+
+Dan 1:
+- [ ] Kreiraj rutu /manager/sick-leaves
+- [ ] US-MGR-005: Forma za novo bolovanje
+- [ ] Odabir zaposlenika, datum početka, datum završetka (opcionalno)
+- [ ] Status "Aktivno" ili "Završeno"
+
+Dan 2:
+- [ ] US-MGR-006: Lista aktivnih bolovanja
+- [ ] Prikaz u kalendaru (od početka do danas za aktivna)
+- [ ] DaySchedule zapis za datum početka (otvorena bolovanja)
+- [ ] DaySchedule zapisi za sve dane (zatvorena bolovanja)
+
+Dan 3:
+- [ ] US-MGR-007: Zatvaranje aktivnog bolovanja
+- [ ] Unos datuma završetka
+- [ ] Kreiranje DaySchedule zapisa za sve dane
+- [ ] Automatska prilagodba GO (poziv korekcije)
+- [ ] Testiranje
+
+**Deliverable:** Manager može evidentirati i zatvarati bolovanja
+**Pokriva:** US-MGR-005, US-MGR-006, US-MGR-007
+
+---
+
+**Sprint 7-12: Poželjne funkcionalnosti (🟡)** - **Opcionalno**
+
+- Sprint 7: Draft funkcionalnost (2-3 dana) - US-EMP-008, 010, 011, US-VAL-006
+- Sprint 8: Employee kalendar (2-3 dana) - US-EMP-003
+- Sprint 9: Drugi nivo odobrenja (2-3 dana) - US-GM-001, 002, 003, BR-WF-004
+- Sprint 10: Detalji zahtjeva (1-2 dana) - US-EMP-012, US-DM-006
+- Sprint 11: Pregled stanja po godinama (1-2 dana) - US-EMP-002
+- Sprint 12: Dodatne funkcionalnosti (2-3 dana) - US-DM-007, 008, US-MGR-010
+
+---
+
+**Sprint 13-15: Nice-to-have (🟢)** - **Najniži prioritet**
+
+- Sprint 13: Admin modul - Zaposlenici (2-3 dana) - US-ADM-001 do 005
+- Sprint 14: Admin modul - Odjeli i praznici (2-3 dana) - US-ADM-006 do 013
+- Sprint 15: UX polish (2-3 dana) - US-CMN-001, US-EMP-005, US-DM-003
 
 ---
 
@@ -1655,10 +2595,43 @@ Dan 5-7:
 
 **Pripremio:** AI Assistant  
 **Datum:** 20.12.2024  
-**Verzija:** 3.0  
-**Status:** Ažurirano nakon implementacije Faza 1 i 2 (Validacije, kalkulacije i tablični kalendar)
+**Verzija:** 4.0  
+**Status:** Ažurirano s potpunim pokrivanjem User Stories (76 US)
 
 **Changelog:**
+- **v4.0 (20.12.2024):** Ažurirano da u potpunosti pokriva sve User Stories iz user_stories.md
+  - Dodana sekcija 0: Autentifikacija i session management
+  - Dodana sekcija 2.5: Zajedničke funkcionalnosti (US-CMN-001 do US-CMN-007)
+  - Proširena sekcija 2.1: Employee modul s detaljnim mapiranjem User Stories
+  - Proširena sekcija 2.2: Manager modul s detaljnim mapiranjem User Stories (US-DM, US-MGR)
+  - Proširena sekcija 2.3: General Manager modul s US-GM User Stories
+  - Proširena sekcija 2.4: Admin modul s US-ADM User Stories
+  - Proširena sekcija 3.1: Validacije s US-VAL User Stories
+  - Proširena sekcija 3.3: Workflow s detaljnim statusom implementacije
+  - Proširena sekcija 3.4: Automatizacija s fokusom na BR-AUTO-001 (INOVACIJA!)
+  - Ažurirane success criteria s prioritiziranim User Stories
+  - Ažurirane tablice prioriteta s mapiranjem na User Stories
+  - Dodani detaljan sprint plan s mapiranjem User Stories
+  - **Ključni fokus:** Korekcija vraćanja SVIH preostalih dana (ne samo preklopljenih)
 - **v3.0 (20.12.2024):** Ažurirano nakon implementacije Faze 2 - Tablični kalendar za planiranje
 - **v2.0 (20.12.2024):** Ažurirano nakon implementacije Faze 1 - Validacije i kalkulacije
 - **v1.0 (20.12.2024):** Inicijalna analiza
+
+**Sažetak User Stories pokrivenosti:**
+- **76 User Stories ukupno**
+- ✅ Potpuno implementirano: ~15 US (20%)
+- ⚠️ Djelomično implementirano: ~10 US (13%)
+- ❌ Nije implementirano: ~51 US (67%)
+
+**Kritični gap-ovi (Must-have):**
+1. 🔴 Approval proces - Prvi nivo (US-DM-004, US-DM-005, BR-WF-003, BR-WF-005)
+2. 🔴 Korekcija vraćanja dana (US-EMP-012B, US-VAL-007, US-MGR-008, BR-AUTO-001) - **INOVACIJA!**
+3. 🔴 Upravljanje alokacijama (US-MGR-001, 002, 003, 004)
+4. 🔴 Evidencija bolovanja (US-MGR-005, 006, 007)
+5. 🔴 DaySchedule management (BR-AUTO-002)
+
+**Prioritet za sljedeće:**
+1. Approval proces (2-3 dana)
+2. Korekcija vraćanja dana (3-4 dana) - **INOVACIJA!**
+3. Upravljanje alokacijama (3-4 dana)
+4. Evidencija bolovanja (2-3 dana)
