@@ -7,52 +7,35 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar, FileText, Clock, CheckCircle2 } from "lucide-react";
 import {
-  mockApplications,
-  mockLedgerEntries,
   mockUnavailabilityReasons,
 } from "@/lib/mock-data/generator";
 import Link from "next/link";
 import { formatDateRange } from "@/lib/utils/dates";
+import { useBalance } from "@/hooks/useBalance";
+import { useMockApplications } from "@/lib/mock-data/api";
 
 export default function EmployeeDashboard() {
   const { currentUser } = useMockAuth();
+  const { applications } = useMockApplications();
 
   if (!currentUser) return null;
 
   // Get employee applications
-  const employeeApplications = mockApplications.filter(
+  const employeeApplications = applications.filter(
     (app) => app.employeeId === currentUser.employeeId
   );
 
-  // Get employee balance for "Godišnji odmor" (id: 1)
+  // Get employee balance for "Godišnji odmor" (id: 1) using the hook
   const godisnjOdmorId = 1;
-  const ledgerForGodisnji = mockLedgerEntries.filter(
-    (entry) =>
-      entry.employeeId === currentUser.employeeId &&
-      entry.unavailabilityReasonId === godisnjOdmorId &&
-      entry.year === 2025
+  const balance = useBalance(
+    currentUser.employeeId,
+    godisnjOdmorId,
+    2025,
+    undefined,
+    applications
   );
 
-  const totalAllocated = ledgerForGodisnji
-    .filter((e) => e.type === "ALLOCATION" || e.type === "TRANSFER")
-    .reduce((sum, e) => sum + e.changeDays, 0);
-
-  const totalUsed = Math.abs(
-    ledgerForGodisnji
-      .filter((e) => e.type === "USAGE")
-      .reduce((sum, e) => sum + e.changeDays, 0)
-  );
-
-  const pendingApplications = employeeApplications.filter(
-    (app) => app.status === "SUBMITTED" || app.status === "APPROVED_FIRST_LEVEL"
-  );
-
-  const pendingDays = pendingApplications.reduce(
-    (sum, app) => sum + (app.requestedWorkdays || 0),
-    0
-  );
-
-  const available = totalAllocated - totalUsed - pendingDays;
+  const { allocated: totalAllocated, used: totalUsed, pending: pendingDays, available } = balance;
 
   const recentApplications = employeeApplications
     .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())

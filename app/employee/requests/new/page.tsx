@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { DashboardLayout } from "@/components/layout/dashboard-layout";
 import { useMockAuth } from "@/lib/mock-data/context";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,15 +15,29 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { mockUnavailabilityReasons, mockHolidays } from "@/lib/mock-data/generator";
+import {
+  mockUnavailabilityReasons,
+  mockHolidays,
+  mockLedgerEntries,
+} from "@/lib/mock-data/generator";
 import { calculateWorkingDays } from "@/lib/utils/workdays";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, AlertCircle } from "lucide-react";
 import Link from "next/link";
+import { toast } from "@/lib/utils/toast";
+import { useBalance } from "@/hooks/useBalance";
+import { validateApplication } from "@/lib/utils/validation";
+import { useMockApplications, useMockLedgerEntries } from "@/lib/mock-data/api";
+import { ApplicationStatus } from "@/lib/types";
+import { calculateBalance, calculatePendingDays } from "@/lib/utils/ledger";
 
 export default function CreateRequestPage() {
   const { currentUser } = useMockAuth();
   const router = useRouter();
+  const { applications, createApplication, submitApplication } =
+    useMockApplications();
+  const { ledgerEntries } = useMockLedgerEntries();
+
   const [formData, setFormData] = useState({
     unavailabilityReasonId: "",
     startDate: "",
@@ -31,56 +45,203 @@ export default function CreateRequestPage() {
     description: "",
   });
   const [workingDays, setWorkingDays] = useState<number | null>(null);
-  const [errors, setErrors] = useState<string[]>([]);
+  const [validationErrors, setValidationErrors] = useState<
+    Array<{ field?: string; message: string }>
+  >([]);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleDateChange = () => {
+  // Get balance for selected reason
+  const reasonId = formData.unavailabilityReasonId
+    ? parseInt(formData.unavailabilityReasonId)
+    : null;
+  const balance = useBalance(
+    currentUser?.employeeId || 0,
+    reasonId || 1,
+    2025,
+    undefined,
+    applications
+  );
+
+  // Calculate working days when dates change
+  useEffect(() => {
     if (formData.startDate && formData.endDate) {
       const start = new Date(formData.startDate);
       const end = new Date(formData.endDate);
-      
-      if (start > end) {
-        setErrors(["Datum početka mora biti prije datuma završetka"]);
-        setWorkingDays(null);
-        return;
-      }
 
-      const days = calculateWorkingDays(start, end, mockHolidays);
-      setWorkingDays(days);
-      
-      if (days === 0) {
-        setErrors(["Zahtjev mora uključivati barem jedan radni dan"]);
+      if (start <= end) {
+        const days = calculateWorkingDays(start, end, mockHolidays);
+        setWorkingDays(days);
       } else {
-        setErrors([]);
+        setWorkingDays(null);
       }
+    } else {
+      setWorkingDays(null);
     }
-  };
+  }, [formData.startDate, formData.endDate]);
 
-  const handleSubmit = (isDraft: boolean) => {
-    const newErrors: string[] = [];
-
-    if (!formData.unavailabilityReasonId) {
-      newErrors.push("Molimo odaberite tip nedostupnosti");
-    }
-    if (!formData.startDate) {
-      newErrors.push("Molimo unesite datum početka");
-    }
-    if (!formData.endDate) {
-      newErrors.push("Molimo unesite datum završetka");
-    }
-
-    if (newErrors.length > 0) {
-      setErrors(newErrors);
+  // Real-time validation
+  useEffect(() => {
+    if (
+      !formData.startDate ||
+      !formData.endDate ||
+      !formData.unavailabilityReasonId ||
+      !currentUser
+    ) {
+      setValidationErrors([]);
       return;
     }
 
-    // Mock save - in real app this would call API
-    alert(
-      isDraft
-        ? "Zahtjev spremljen kao draft"
-        : "Zahtjev poslan na odobrenje"
+    const start = new Date(formData.startDate);
+    const end = new Date(formData.endDate);
+    const reasonIdNum = parseInt(formData.unavailabilityReasonId);
+
+    const newApp: Partial<typeof applications[0]> = {
+      organisationId: currentUser.organisationId,
+      departmentId: currentUser.departmentId || 1,
+      employeeId: currentUser.employeeId,
+      unavailabilityReasonId: reasonIdNum,
+      startDate: start,
+      endDate: end,
+      requestedWorkdays: workingDays || 0,
+      status: ApplicationStatus.DRAFT,
+      active: true,
+      createdById: currentUser.employeeId,
+    };
+
+    // Calculate balance for the selected reason
+    let availableBalance = balance.available;
+    if (reasonIdNum !== reasonId) {
+      const baseBalance = calculateBalance(
+        ledgerEntries,
+        currentUser.employeeId,
+        reasonIdNum,
+        2025
+      );
+      const pending = calculatePendingDays(
+        applications,
+        currentUser.employeeId,
+        reasonIdNum
+      );
+      availableBalance = baseBalance.allocated - baseBalance.used - pending;
+    }
+
+    const errors = validateApplication(
+      newApp,
+      applications,
+      availableBalance
     );
-    router.push("/employee/requests");
+
+    setValidationErrors(errors);
+  }, [
+    formData.startDate,
+    formData.endDate,
+    formData.unavailabilityReasonId,
+    workingDays,
+    currentUser,
+    applications,
+    balance.available,
+    reasonId,
+    ledgerEntries,
+  ]);
+
+  const handleSubmit = async (isDraft: boolean) => {
+    if (!currentUser) {
+      toast.error("Greška", "Niste prijavljeni");
+      return;
+    }
+
+    // Basic field validation
+    if (!formData.unavailabilityReasonId) {
+      toast.error("Greška", "Molimo odaberite tip nedostupnosti");
+      return;
+    }
+    if (!formData.startDate) {
+      toast.error("Greška", "Molimo unesite datum početka");
+      return;
+    }
+    if (!formData.endDate) {
+      toast.error("Greška", "Molimo unesite datum završetka");
+      return;
+    }
+
+    const start = new Date(formData.startDate);
+    const end = new Date(formData.endDate);
+    const reasonIdNum = parseInt(formData.unavailabilityReasonId);
+
+    // Get balance for validation - use the hook result if same reason, otherwise calculate directly
+    let availableBalance = balance.available;
+    if (reasonIdNum !== reasonId) {
+      const baseBalance = calculateBalance(
+        ledgerEntries,
+        currentUser.employeeId,
+        reasonIdNum,
+        2025
+      );
+      const pending = calculatePendingDays(
+        applications,
+        currentUser.employeeId,
+        reasonIdNum
+      );
+      availableBalance = baseBalance.allocated - baseBalance.used - pending;
+    }
+
+    // Full validation
+    const newApp: Partial<typeof applications[0]> = {
+      organisationId: currentUser.organisationId,
+      departmentId: currentUser.departmentId || 1,
+      employeeId: currentUser.employeeId,
+      unavailabilityReasonId: reasonIdNum,
+      startDate: start,
+      endDate: end,
+      requestedWorkdays: workingDays || 0,
+      description: formData.description || undefined,
+      status: isDraft
+        ? ApplicationStatus.DRAFT
+        : ApplicationStatus.SUBMITTED,
+      active: true,
+      createdById: currentUser.employeeId,
+    };
+
+    const errors = validateApplication(
+      newApp,
+      applications,
+      reasonBalance.available
+    );
+
+    if (errors.length > 0) {
+      // Show first error as toast
+      toast.error("Greška", errors[0].message);
+      setValidationErrors(errors);
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      // Create application
+      const created = createApplication(newApp as any);
+
+      if (isDraft) {
+        toast.success("Uspjeh", "Zahtjev spremljen kao draft");
+      } else {
+        // If not draft, submit it
+        submitApplication(created.id, ApplicationStatus.SUBMITTED);
+        toast.success("Uspjeh", "Zahtjev poslan na odobrenje");
+      }
+
+      // Navigate back to requests list
+      setTimeout(() => {
+        router.push("/employee/requests");
+      }, 1000);
+    } catch (error) {
+      toast.error("Greška", "Neuspješno kreiranje zahtjeva");
+      setIsSubmitting(false);
+    }
   };
+
+  const selectedReason = mockUnavailabilityReasons.find(
+    (r) => r.id.toString() === formData.unavailabilityReasonId
+  );
 
   return (
     <DashboardLayout>
@@ -99,15 +260,15 @@ export default function CreateRequestPage() {
           </div>
         </div>
 
-        {errors.length > 0 && (
+        {validationErrors.length > 0 && (
           <Card className="border-destructive">
             <CardContent className="pt-6">
               <div className="flex gap-2">
                 <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
                 <div className="space-y-1">
-                  {errors.map((error, index) => (
+                  {validationErrors.map((error, index) => (
                     <p key={index} className="text-sm text-destructive">
-                      {error}
+                      {error.message}
                     </p>
                   ))}
                 </div>
@@ -136,7 +297,10 @@ export default function CreateRequestPage() {
                   {mockUnavailabilityReasons
                     .filter((r) => r.active)
                     .map((reason) => (
-                      <SelectItem key={reason.id} value={reason.id.toString()}>
+                      <SelectItem
+                        key={reason.id}
+                        value={reason.id.toString()}
+                      >
                         <div className="flex items-center gap-2">
                           <div
                             className="h-3 w-3 rounded-full"
@@ -155,6 +319,24 @@ export default function CreateRequestPage() {
               </Select>
             </div>
 
+            {/* Balance Display */}
+            {reasonId && (
+              <Card className="bg-muted">
+                <CardContent className="pt-6">
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <p className="text-muted-foreground">Dostupno</p>
+                      <p className="text-2xl font-bold">{balance.available}</p>
+                    </div>
+                    <div>
+                      <p className="text-muted-foreground">Ukupno</p>
+                      <p className="text-2xl font-bold">{balance.allocated}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label htmlFor="startDate">Datum Početka *</Label>
@@ -164,7 +346,6 @@ export default function CreateRequestPage() {
                   value={formData.startDate}
                   onChange={(e) => {
                     setFormData({ ...formData, startDate: e.target.value });
-                    setTimeout(handleDateChange, 0);
                   }}
                 />
               </div>
@@ -177,7 +358,6 @@ export default function CreateRequestPage() {
                   value={formData.endDate}
                   onChange={(e) => {
                     setFormData({ ...formData, endDate: e.target.value });
-                    setTimeout(handleDateChange, 0);
                   }}
                 />
               </div>
@@ -191,6 +371,12 @@ export default function CreateRequestPage() {
                       Broj radnih dana
                     </p>
                     <p className="text-3xl font-bold">{workingDays}</p>
+                    {reasonId && (
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Preostalo nakon ovog zahtjeva:{" "}
+                        {balance.available - workingDays} dana
+                      </p>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -214,11 +400,16 @@ export default function CreateRequestPage() {
                 variant="outline"
                 onClick={() => handleSubmit(true)}
                 className="flex-1"
+                disabled={isSubmitting || validationErrors.length > 0}
               >
                 Spremi kao Draft
               </Button>
-              <Button onClick={() => handleSubmit(false)} className="flex-1">
-                Pošalji na Odobrenje
+              <Button
+                onClick={() => handleSubmit(false)}
+                className="flex-1"
+                disabled={isSubmitting || validationErrors.length > 0}
+              >
+                {isSubmitting ? "Šalje se..." : "Pošalji na Odobrenje"}
               </Button>
             </div>
           </CardContent>
@@ -227,4 +418,3 @@ export default function CreateRequestPage() {
     </DashboardLayout>
   );
 }
-

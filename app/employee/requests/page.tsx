@@ -13,17 +13,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { mockApplications, mockUnavailabilityReasons } from "@/lib/mock-data/generator";
+import { mockUnavailabilityReasons } from "@/lib/mock-data/generator";
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import { formatDateRange } from "@/lib/utils/dates";
+import { useMockApplications } from "@/lib/mock-data/api";
 
 export default function EmployeeRequestsPage() {
   const { currentUser } = useMockAuth();
+  const { applications } = useMockApplications();
 
   if (!currentUser) return null;
 
-  const employeeApplications = mockApplications.filter(
+  const employeeApplications = applications.filter(
     (app) => app.employeeId === currentUser.employeeId
   );
 

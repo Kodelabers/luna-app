@@ -2,8 +2,105 @@
 ## Analiza implementacije naspram specifikacije
 
 **Datum:** 20.12.2024  
-**Verzija:** 1.0  
+**Verzija:** 2.0  
 **Status:** Full-Featured Mockup Analysis  
+**Zadnje ažuriranje:** 20.12.2024
+
+---
+
+## 🎯 NAJNOVIJE PROMJENE
+
+### ✅ Faza 1 - ZAVRŠENA (Validacije i kalkulacije)
+
+**Implementirane nove funkcionalnosti:**
+
+1. **Toast notifications sistem**
+   - `components/ui/toast.tsx` i `toaster.tsx`
+   - `hooks/use-toast.ts`
+   - `lib/utils/toast.ts` helper
+
+2. **Validacije (lib/utils/validation.ts)**
+   - ✅ BR-VAL-001: Validacija datuma zahtjeva
+   - ✅ BR-VAL-002: Validacija preklapanja zahtjeva
+   - ✅ BR-VAL-003: Validacija dostupnih dana
+   - ✅ BR-VAL-004: Validacija minimalne duljine
+   - ✅ Master `validateApplication()` funkcija
+
+3. **Overlap detection (lib/utils/overlap.ts)**
+   - ✅ `detectOverlap()` - provjera preklapanja dva zahtjeva
+   - ✅ `findOverlappingApps()` - pronađi sve preklapajuće zahtjeve
+   - ✅ `hasOverlap()` - brza provjera preklapanja
+
+4. **Ledger utilities (lib/utils/ledger.ts)**
+   - ✅ `calculateBalance()` - računanje balance-a iz ledger-a
+   - ✅ `calculatePendingDays()` - računanje pending dana
+   - ✅ `getEntriesForEmployee()` - filtriranje ledger zapisa
+   - ✅ `groupEntriesByType()` - grupiranje po tipu
+
+5. **Custom hooks**
+   - ✅ `hooks/useBalance.ts` - reusable balance hook s useMemo cache-om
+
+6. **Mock API (lib/mock-data/api.ts)**
+   - ✅ `useMockApplications()` - state management za aplikacije
+   - ✅ `useMockLedgerEntries()` - state management za ledger
+   - ✅ localStorage persistence
+   - ✅ CRUD operacije: create, update, delete, submit
+
+7. **Ažuriran forma za kreiranje zahtjeva (app/employee/requests/new/page.tsx)**
+   - ✅ Real-time kalkulacija radnih dana
+   - ✅ Real-time validacija s error prikazom
+   - ✅ Prikaz balance-a i dostupnih dana
+   - ✅ Toast notifications za uspjeh/greške
+   - ✅ Korištenje svih novih helper funkcija
+
+**Napredak:**
+- Postotak implementacije: 35% → **50%**
+- Employee modul: 60% → **75%**
+- Validacije: 0% → **90%**
+- Kalkulacije: 40% → **90%**
+- Helper funkcije: 30% → **80%**
+
+**Sljedeći koraci:**
+- 🔴 PRIORITET: Tablični kalendar (Faza 2)
+- 🔴 PRIORITET: Approval proces (dio Faze 1)
+- 🔴 PRIORITET: Upravljanje alokacijama (Faza 3)
+
+### 📁 Nove datoteke u projektu
+
+**UI komponente:**
+```
+components/ui/
+├── toast.tsx          ← Toast notification komponenta
+└── toaster.tsx        ← Toast provider i renderer
+```
+
+**Hooks:**
+```
+hooks/
+├── use-toast.ts       ← Toast hook za notifikacije
+└── useBalance.ts      ← Balance kalkulacija hook
+```
+
+**Utility funkcije:**
+```
+lib/utils/
+├── validation.ts      ← Sve validacije (VAL-001 do VAL-004)
+├── overlap.ts         ← Overlap detection funkcije
+├── ledger.ts          ← Ledger kalkulacije i helperi
+└── toast.ts           ← Toast helper wrapper
+```
+
+**Mock API:**
+```
+lib/mock-data/
+└── api.ts             ← State management za applications i ledger
+```
+
+**Ažurirane datoteke:**
+```
+app/employee/requests/new/page.tsx  ← Forma s validacijama i real-time feedback
+app/layout.tsx                      ← Dodana <Toaster /> komponenta
+```
 
 ---
 
@@ -15,14 +112,16 @@ Ovaj dokument analizira trenutnu implementaciju full-featured mockup aplikacije 
 ### Trenutni status
 - ✅ **Arhitektura:** Next.js 14+ sa TypeScript - potpuno implementirano
 - ✅ **UI Framework:** shadcn/ui + Tailwind CSS - potpuno implementirano
-- ⚠️ **Data Layer:** Mock podaci (generator.ts) - potpuno implementirano
-- ⚠️ **Business Logic:** Parcijalno implementirano
+- ✅ **Data Layer:** Mock podaci (generator.ts) + Mock API (api.ts) - potpuno implementirano
+- ✅ **Business Logic:** Validacije i kalkulacije - potpuno implementirano
+- ✅ **State Management:** Mock API s localStorage - implementirano
+- ⚠️ **Workflow Logic:** Parcijalno implementirano (nedostaje approval)
 - ❌ **Database:** Prisma schema definirano, ali ne koristi se u mockupu
 
 ### Postotak implementacije
-- **Ukupno:** ~35% funkcionalnosti prema specifikaciji
-- **Employee Dashboard:** 60% implementirano
-- **Manager Dashboard:** 40% implementirano
+- **Ukupno:** ~50% funkcionalnosti prema specifikaciji
+- **Employee Dashboard:** 75% implementirano
+- **Manager Dashboard:** 45% implementirano
 - **General Manager Dashboard:** 20% implementirano
 - **Admin Dashboard:** 10% implementirano
 
@@ -61,13 +160,22 @@ components/
 lib/
 ├── mock-data/
 │   ├── context.tsx                 ✅ Mock autentifikacija
-│   └── generator.ts                ✅ Mock podaci
+│   ├── generator.ts                ✅ Mock podaci
+│   └── api.ts                      ✅ Mock API s state management - NOVO!
 ├── types/
 │   └── index.ts                    ✅ TypeScript tipovi
 ├── utils/
 │   ├── dates.ts                    ✅ Date utilities
-│   └── workdays.ts                 ✅ Workday kalkulacije
+│   ├── workdays.ts                 ✅ Workday kalkulacije
+│   ├── validation.ts               ✅ Validacije - NOVO!
+│   ├── overlap.ts                  ✅ Overlap detection - NOVO!
+│   ├── ledger.ts                   ✅ Ledger helpers - NOVO!
+│   └── toast.ts                    ✅ Toast helper - NOVO!
 └── utils.ts                        ✅ cn() helper
+
+hooks/
+├── use-toast.ts                    ✅ Toast hook - NOVO!
+└── useBalance.ts                   ✅ Balance hook - NOVO!
 
 docs/                               ✅ Kompletna specifikacija
 ```
@@ -113,6 +221,7 @@ docs/                               ✅ Kompletna specifikacija
 - ✅ Filtriranje po statusu
 - ✅ Status badges
 - ✅ Formatiranje datuma
+- ✅ Interakcija s mock API-jem
 
 **Kreiranje zahtjeva (`/employee/requests/new/page.tsx`)**
 - ✅ Forma za kreiranje zahtjeva
@@ -136,10 +245,14 @@ docs/                               ✅ Kompletna specifikacija
 - ❌ Sortiranje po različitim poljima
 
 **Kreiranje zahtjeva:**
+- ✅ Automatska kalkulacija radnih dana (real-time) - **IMPLEMENTIRANO**
+- ✅ Validacija preklapanja (FR-VAL-002) - **IMPLEMENTIRANO**
+- ✅ Validacija dostupnih dana (FR-VAL-003) - **IMPLEMENTIRANO**
+- ✅ Validacija datuma (BR-VAL-001) - **IMPLEMENTIRANO**
+- ✅ Prikaz balance-a i preostalih dana - **IMPLEMENTIRANO**
+- ✅ Real-time validacija s error porukama - **IMPLEMENTIRANO**
+- ✅ Toast notifications - **IMPLEMENTIRANO**
 - ❌ Draft funkcionalnost (FR-EMP-004)
-- ❌ Automatska kalkulacija radnih dana (real-time)
-- ❌ Validacija preklapanja (FR-VAL-002)
-- ❌ Validacija dostupnih dana (FR-VAL-003)
 - ❌ Prikaz vikenda i praznika inline
 - ❌ Uređivanje draft zahtjeva (FR-EMP-006)
 - ❌ Brisanje draft zahtjeva (FR-EMP-007)
@@ -147,9 +260,9 @@ docs/                               ✅ Kompletna specifikacija
 **Evidencija bolovanja:**
 - ❌ Pregled vlastitih bolovanja (FR-EMP-011)
 
-**Prioritet:** 🔴 VISOK
-- Kalkulacija radnih dana - **KRITIČNO**
-- Validacija preklapanja i dostupnih dana - **KRITIČNO**
+**Prioritet:** 🟡 SREDNJI (većina kritičnog završeno)
+- ✅ Kalkulacija radnih dana - **ZAVRŠENO**
+- ✅ Validacija preklapanja i dostupnih dana - **ZAVRŠENO**
 - Draft funkcionalnost - **SREDNJI**
 - Kalendar - **SREDNJI**
 
@@ -298,33 +411,37 @@ docs/                               ✅ Kompletna specifikacija
 - ✅ Required fields validacija
 - ✅ Date format validacija
 - ✅ Form submission handling
+- ✅ Real-time validacija s feedback-om
+- ✅ Toast notifications za greške
+
+#### ✅ Novo implementirano
+
+**BR-VAL-001: Validacija datuma zahtjeva** - **ZAVRŠENO**
+- ✅ Datum početka prije ili jednak datumu završetka
+- ✅ Datum početka ne smije biti u prošlosti
+- ✅ Datum završetka max 365 dana u budućnosti
+
+**BR-VAL-002: Validacija preklapanja zahtjeva** - **ZAVRŠENO**
+- ✅ Provjera preklapanja s SUBMITTED/APPROVED_FIRST_LEVEL/APPROVED
+- ✅ Logika preklapanja: `(StartNew <= EndExist) AND (EndNew >= StartExist)`
+- ✅ Error poruka s detaljima preklapanja
+
+**BR-VAL-003: Validacija dostupnih dana** - **ZAVRŠENO**
+- ✅ Kalkulacija balance-a iz ledger-a
+- ✅ Provjera: requestedWorkdays <= balance
+- ✅ Error poruka s informacijom o preostalom
+
+**BR-VAL-004: Validacija minimalne duljine** - **ZAVRŠENO**
+- ✅ Zahtjev mora imati barem 1 radni dan
+- ✅ Provjera da nisu samo vikendi/praznici
 
 #### ❌ Nedostaje
-
-**BR-VAL-001: Validacija datuma zahtjeva**
-- ❌ Datum početka prije ili jednak datumu završetka
-- ❌ Datum početka ne smije biti u prošlosti
-- ❌ Datum završetka max 365 dana u budućnosti
-
-**BR-VAL-002: Validacija preklapanja zahtjeva**
-- ❌ Provjera preklapanja s SUBMITTED/APPROVED_FIRST_LEVEL/APPROVED
-- ❌ Logika preklapanja: `(StartNew <= EndExist) AND (EndNew >= StartExist)`
-- ❌ Error poruka s detaljima preklapanja
-
-**BR-VAL-003: Validacija dostupnih dana**
-- ❌ Kalkulacija balance-a iz ledger-a
-- ❌ Provjera: requestedWorkdays <= balance
-- ❌ Error poruka s informacijom o preostalom
-
-**BR-VAL-004: Validacija minimalne duljine**
-- ❌ Zahtjev mora imati barem 1 radni dan
-- ❌ Provjera da nisu samo vikendi/praznici
 
 **BR-VAL-005: Validacija statusa za uređivanje**
 - ❌ DRAFT - može se uređivati i brisati
 - ❌ Ostali statusi - ne mogu se uređivati
 
-**Prioritet:** 🔴 KRITIČNO
+**Prioritet:** 🟢 NIZAK (kritične validacije završene)
 
 ---
 
@@ -353,26 +470,27 @@ docs/                               ✅ Kompletna specifikacija
   - available = totalAllocated - totalUsed - pendingDays
 ```
 
+#### ✅ Novo implementirano
+
+**BR-CALC-001: Kalkulacija radnih dana** - **ZAVRŠENO**
+- ✅ Koristi se u kreiranje zahtjeva formi
+- ✅ Provjerava praznike iz mockHolidays
+- ✅ Real-time kalkulacija pri odabiru datuma
+- ✅ Prikaz broja radnih dana u formi
+
+**BR-CALC-002: Kalkulacija balance-a (ledger SUM)** - **ZAVRŠENO**
+- ✅ Postoji kao reusable funkcija (`lib/utils/ledger.ts`)
+- ✅ Hook `useBalance()` za korištenje u komponentama
+- ✅ Prima parametre (employeeId, reasonId, year)
+- ✅ Koristi se u validacijama i prikazu
+
 #### ❌ Nedostaje
-
-**BR-CALC-001: Kalkulacija radnih dana**
-- ⚠️ Postoji u `workdays.ts`, ali:
-  - ❌ Ne koristi se u kreiranje zahtjeva formi
-  - ❌ Ne provjerava praznike iz mockHolidays
-  - ❌ Nema async provjeru praznika
-  - ❌ Nema real-time kalkulaciju pri odabiru datuma
-
-**BR-CALC-002: Kalkulacija balance-a (ledger SUM)**
-- ⚠️ Implementirano u Dashboard-u, ali:
-  - ❌ Ne postoji kao reusable funkcija
-  - ❌ Ne može se koristiti u validacijama
-  - ❌ Ne prima parametre (employeeId, reasonId, year)
 
 **BR-CALC-003: Batch query za dashboard**
 - ❌ Trenutno pojedinačno za svakog zaposlenika
 - ❌ Ne postoji optimizirana verzija
 
-**Prioritet:** 🔴 KRITIČNO za workdays kalkulaciju
+**Prioritet:** 🟢 NIZAK (kritične kalkulacije završene)
 
 ---
 
@@ -476,7 +594,9 @@ components/ui/
 ├── label.tsx          ✅
 ├── select.tsx         ✅
 ├── table.tsx          ✅
-└── textarea.tsx       ✅
+├── textarea.tsx       ✅
+├── toast.tsx          ✅ NOVO!
+└── toaster.tsx        ✅ NOVO!
 ```
 
 #### ✅ Layout komponente
@@ -550,12 +670,12 @@ components/layout/
 **7. Ostalo**
 - ❌ `<EmptyState>` - empty state s ilustracijom
 - ❌ `<LoadingState>` - skeleton loader
-- ❌ `<Toast>` - toast notifications (kritično!)
+- ✅ `<Toast>` - toast notifications - **IMPLEMENTIRANO**
 - ❌ `<Tabs>` - tab navigation (postoji u shadcn, ali ne koristi se)
 - ❌ `<Tooltip>` - tooltips za dodatne info
 
 **Prioritet:**
-- 🔴 KRITIČNO: PlanningGrid, Toast, DateRangePicker
+- 🔴 KRITIČNO: PlanningGrid, DateRangePicker
 - 🟡 SREDNJI: Calendar, Charts, DataTable
 - 🟢 NIZAK: Ostalo
 
@@ -667,70 +787,44 @@ components/layout/
 
 #### ❌ State management za mutacije
 
-**Problem:** Trenutno nema načina da se mock podaci mijenjaju.
+**Status:** ✅ **DJELOMIČNO IMPLEMENTIRANO**
+
+**Implementirano:**
+- ✅ `lib/mock-data/api.ts` - CRUD API za mock podatke
+- ✅ `useMockApplications()` hook - aplikacije s state-om
+- ✅ `useMockLedgerEntries()` hook - ledger entries s state-om
+- ✅ localStorage persistence
+- ✅ Funkcije: createApplication, updateApplication, deleteApplication, submitApplication
+- ✅ Funkcija: createLedgerEntry
 
 **Nedostaje:**
-- ❌ Mock API funkcije za CRUD operacije
-- ❌ useState za mutacije podataka
+- ❌ approveApplication funkcija
+- ❌ rejectApplication funkcija
+- ❌ cancelApplication funkcija
 - ❌ Optimistic updates
-- ❌ Error handling
+- ❌ Advanced error handling
 
-**Potrebno:**
+#### ✅ Računanje balance-a - **ZAVRŠENO**
 
-```typescript
-// lib/mock-data/api.ts
-export function useMockApplications() {
-  const [applications, setApplications] = useState(mockApplications);
-  
-  const createApplication = (data) => { ... }
-  const updateApplication = (id, data) => { ... }
-  const deleteApplication = (id) => { ... }
-  const approveApplication = (id, comment) => { ... }
-  const rejectApplication = (id, reason) => { ... }
-  
-  return { applications, createApplication, ... }
-}
+**Implementirano:**
+- ✅ `useBalance(employeeId, reasonId, year)` hook (`hooks/useBalance.ts`)
+- ✅ `calculateBalance()` helper (`lib/utils/ledger.ts`)
+- ✅ `calculatePendingDays()` helper (`lib/utils/ledger.ts`)
+- ✅ Cache rezultata s useMemo
+- ✅ Reusable helper funkcije
 
-export function useMockLedgerEntries() { ... }
-export function useMockEmployees() { ... }
-```
+#### ✅ Validacije - **ZAVRŠENO**
 
-#### ❌ Računanje balance-a
+**Implementirano:**
+- ✅ `validateApplication()` funkcija (`lib/utils/validation.ts`)
+- ✅ `validateDateRange()` - BR-VAL-001
+- ✅ `validateOverlap()` - BR-VAL-002
+- ✅ `validateBalance()` - BR-VAL-003
+- ✅ `validateMinWorkdays()` - BR-VAL-004
+- ✅ Overlap detection (`lib/utils/overlap.ts`)
+- ✅ `detectOverlap()`, `findOverlappingApps()`, `hasOverlap()`
 
-**Problem:** Balance se računa inline u komponentama.
-
-**Nedostaje:**
-- ❌ `useBalance(employeeId, reasonId, year)` hook
-- ❌ Cache rezultata
-- ❌ Reusable helper funkcije
-
-**Potrebno:**
-
-```typescript
-// lib/hooks/useBalance.ts
-export function useBalance(employeeId, reasonId, year) {
-  const ledgerEntries = useMockLedgerEntries();
-  
-  const allocated = useMemo(() => { ... }, [ledgerEntries]);
-  const used = useMemo(() => { ... }, [ledgerEntries]);
-  const pending = useMemo(() => { ... }, [applications]);
-  const available = allocated - used - pending;
-  
-  return { allocated, used, pending, available };
-}
-```
-
-#### ❌ Validacije
-
-**Problem:** Nema reusable validacija.
-
-**Nedostaje:**
-- ❌ `useApplicationValidation()` hook
-- ❌ Overlap detection
-- ❌ Balance check
-- ❌ Date validations
-
-**Prioritet:** 🔴 KRITIČNO za interaktivnost mockupa
+**Prioritet:** 🟢 NIZAK (većina završeno, preostalo su nice-to-have)
 
 ---
 
@@ -755,6 +849,49 @@ export function useBalance(employeeId, reasonId, year) {
 ✅ cn(...classes): string  // classnames helper
 ```
 
+#### ✅ `lib/utils/validation.ts` - **NOVO**
+```typescript
+✅ validateDateRange(start, end): ValidationError[]
+✅ validateMinWorkdays(start, end): ValidationError[]
+✅ validateOverlap(newApp, existingApps): ValidationError[]
+✅ validateBalance(available, requestedDays): ValidationError[]
+✅ validateApplication(): ValidationError[]  // Master validacija
+```
+
+#### ✅ `lib/utils/overlap.ts` - **NOVO**
+```typescript
+✅ detectOverlap(app1, app2): boolean
+✅ findOverlappingApps(newApp, existingApps): Application[]
+✅ hasOverlap(): boolean
+```
+
+#### ✅ `lib/utils/ledger.ts` - **NOVO**
+```typescript
+✅ calculateBalance(entries, employeeId, reasonId, year): Balance
+✅ getEntriesForEmployee(entries, employeeId, reasonId, year): Entry[]
+✅ groupEntriesByType(entries): GroupedEntries
+✅ calculatePendingDays(applications, employeeId, reasonId): number
+```
+
+#### ✅ `lib/utils/toast.ts` - **NOVO**
+```typescript
+✅ toast.success(message, description?)
+✅ toast.error(message, description?)
+✅ toast.warning(message, description?)
+✅ toast.info(message, description?)
+```
+
+#### ✅ `hooks/useBalance.ts` - **NOVO**
+```typescript
+✅ useBalance(employeeId, reasonId, year): Balance
+```
+
+#### ✅ `lib/mock-data/api.ts` - **NOVO**
+```typescript
+✅ useMockApplications(): { applications, createApplication, updateApplication, ... }
+✅ useMockLedgerEntries(): { ledgerEntries, createLedgerEntry }
+```
+
 ### 7.2 Nedostaje
 
 #### ❌ Date utilities
@@ -773,26 +910,26 @@ export function useBalance(employeeId, reasonId, year) {
 #### ❌ Business logic helpers
 
 ```typescript
-// lib/utils/validation.ts
-❌ validateDateRange(start, end): ValidationError[]
-❌ validateOverlap(newApp, existingApps): boolean
-❌ validateBalance(employeeId, reasonId, days): boolean
+// lib/utils/validation.ts - ✅ IMPLEMENTIRANO
+✅ validateDateRange(start, end): ValidationError[]
+✅ validateOverlap(newApp, existingApps): boolean
+✅ validateBalance(employeeId, reasonId, days): boolean
 
-// lib/utils/ledger.ts
-❌ calculateBalance(entries): number
-❌ getEntriesForEmployee(entries, employeeId, year): Entry[]
-❌ groupEntriesByType(entries): GroupedEntries
+// lib/utils/ledger.ts - ✅ IMPLEMENTIRANO
+✅ calculateBalance(entries): number
+✅ getEntriesForEmployee(entries, employeeId, year): Entry[]
+✅ groupEntriesByType(entries): GroupedEntries
 
-// lib/utils/application.ts
+// lib/utils/application.ts - ❌ NEDOSTAJE
 ❌ canApprove(user, application): boolean
 ❌ canEdit(user, application): boolean
 ❌ canCancel(user, application): boolean
 ❌ getNextStatus(current, action, reason): Status
 
-// lib/utils/overlap.ts
-❌ detectOverlap(app1, app2): boolean
-❌ findOverlappingApps(newApp, existingApps): App[]
-❌ calculateAdjustment(sickLeave, vacation): Adjustment
+// lib/utils/overlap.ts - ✅ IMPLEMENTIRANO
+✅ detectOverlap(app1, app2): boolean
+✅ findOverlappingApps(newApp, existingApps): App[]
+❌ calculateAdjustment(sickLeave, vacation): Adjustment  // Za bolovanje
 ```
 
 #### ❌ Formatting helpers
@@ -805,7 +942,7 @@ export function useBalance(employeeId, reasonId, year) {
 ❌ getStatusColor(status): string
 ```
 
-**Prioritet:** 🔴 KRITIČNO za validation helpers
+**Prioritet:** 🟡 SREDNJI (većina završeno)
 
 ---
 
@@ -866,34 +1003,34 @@ export const reasonColors = {
 
 ## 9. PRIORITIZIRANI PLAN IMPLEMENTACIJE
 
-### FAZA 1: KRITIČNE FUNKCIONALNOSTI (1-2 tjedna)
+### FAZA 1: KRITIČNE FUNKCIONALNOSTI ~~(1-2 tjedna)~~ ✅ **ZAVRŠENO**
 
-#### 🔴 P1 - Najviši prioritet
+#### ✅ P1 - Završeno
 
-**1.1 Workdays kalkulacija i validacije**
-- [ ] Fix `calculateWorkingDays()` da koristi mockHolidays
-- [ ] Real-time kalkulacija u formi za kreiranje zahtjeva
-- [ ] Validacija preklapanja (BR-VAL-002)
-- [ ] Validacija dostupnih dana (BR-VAL-003)
-- [ ] Toast notifications za greške
+**1.1 Workdays kalkulacija i validacije** ✅
+- [x] Fix `calculateWorkingDays()` da koristi mockHolidays
+- [x] Real-time kalkulacija u formi za kreiranje zahtjeva
+- [x] Validacija preklapanja (BR-VAL-002)
+- [x] Validacija dostupnih dana (BR-VAL-003)
+- [x] Toast notifications za greške
 
-**Deliverable:** Funkcionalna forma za zahtjev s validacijama
+**Deliverable:** ✅ Funkcionalna forma za zahtjev s validacijama
 
-**1.2 Balance management**
-- [ ] `useBalance()` hook
-- [ ] Prikaz balance-a prije kreiranja zahtjeva
-- [ ] Validacija balance-a u submit-u
+**1.2 Balance management** ✅
+- [x] `useBalance()` hook
+- [x] Prikaz balance-a prije kreiranja zahtjeva
+- [x] Validacija balance-a u submit-u
 
-**Deliverable:** Real-time feedback o dostupnim danima
+**Deliverable:** ✅ Real-time feedback o dostupnim danima
 
-**1.3 Manager - Prvo odobrenje**
+**1.3 Manager - Prvo odobrenje** ⚠️
 - [ ] Logika prvog odobrenja (Department Manager)
 - [ ] Provjera prava (ne može vlastite zahtjeve)
 - [ ] Prikaz detalja zahtjeva prije odobrenja
 - [ ] Prikaz preostalih dana zaposlenika
 - [ ] Razlikovanje SUBMITTED → APPROVED vs APPROVED_FIRST_LEVEL
 
-**Deliverable:** Funkcionalan approval proces
+**Deliverable:** ⏳ Još nije završen approval proces
 
 ---
 
@@ -1055,12 +1192,17 @@ export const reasonColors = {
 - Konzistentno formatiranje
 - shadcn/ui best practices
 - Separation of concerns (components/lib)
+- ✅ **NOVO:** Reusable helper funkcije u `lib/utils/*`
+- ✅ **NOVO:** Custom hooks za business logiku
+- ✅ **NOVO:** Centralizirane validacije
+- ✅ **NOVO:** State management s localStorage persistence
 
 #### ⚠️ Za poboljšanje
 - Inline style definitions (trebaju u theme.ts)
 - Duplicirani kod (getStatusBadge u više mjesta)
 - Magic numbers (5 najnovijih, itd.)
 - Hard-coded strings (trebaju u i18n ili constants)
+- Nedostaje approveApplication i rejectApplication u mock API
 
 ### 10.2 Missing patterns
 
@@ -1069,11 +1211,11 @@ export const reasonColors = {
 **Custom hooks:**
 ```
 hooks/
-├── useApplications.ts     ❌
-├── useBalance.ts          ❌
-├── useValidation.ts       ❌
-├── useCalendar.ts         ❌
-└── useLedger.ts           ❌
+├── use-toast.ts           ✅ IMPLEMENTIRANO
+├── useBalance.ts          ✅ IMPLEMENTIRANO
+├── useApplications.ts     ❌ (koristi useMockApplications iz api.ts)
+├── useValidation.ts       ❌ (validacija je u utils)
+└── useCalendar.ts         ❌
 ```
 
 **Services/helpers:**
@@ -1083,6 +1225,7 @@ lib/services/
 ├── ledgerService.ts       ❌
 └── validationService.ts   ❌
 ```
+**Napomena:** Helper funkcije su implementirane u `lib/utils/*`, services nisu potrebni za mockup.
 
 **Constants:**
 ```
@@ -1172,10 +1315,12 @@ lib/constants/
 
 ### 15.1 Sažetak gapa
 
-**Implementirano:** ~35%
-- ✅ Infrastruktura: 90%
-- ✅ Employee Dashboard: 60%
-- ⚠️ Manager Dashboard: 40%
+**Implementirano:** ~50%
+- ✅ Infrastruktura: 95%
+- ✅ Employee Dashboard: 75%
+- ✅ Validacije i kalkulacije: 90%
+- ✅ Helper funkcije: 80%
+- ⚠️ Manager Dashboard: 45%
 - ❌ Manager Planning: 0% (KRITIČNO!)
 - ❌ Manager Alokacije: 0% (KRITIČNO!)
 - ❌ Manager Bolovanja: 0% (INOVACIJA!)
@@ -1186,13 +1331,13 @@ lib/constants/
 
 #### 🔴 Must-have (kritično za funkcionalan mockup)
 
-1. **Validacije i kalkulacije**
-   - Workdays kalkulacija s praznicima
-   - Overlap detection
-   - Balance validation
-   - Real-time feedback
+1. **~~Validacije i kalkulacije~~** ✅ **ZAVRŠENO**
+   - ✅ Workdays kalkulacija s praznicima
+   - ✅ Overlap detection
+   - ✅ Balance validation
+   - ✅ Real-time feedback
 
-2. **Tablični kalendar**
+2. **Tablični kalendar** ⏳ **SLJEDEĆI PRIORITET**
    - Planning grid komponenta
    - Vizualizacija odjela
    - Kritična razdoblja
@@ -1231,68 +1376,91 @@ lib/constants/
 
 **Za full-featured mockup:**
 
-| Faza | Funkcionalnost | Dani | Priority |
-|------|----------------|------|----------|
-| 1 | Validacije + kalkulacije | 2-3 | 🔴 |
-| 2 | Tablični kalendar | 5-7 | 🔴 |
-| 3 | Alokacije + bolovanja | 5-7 | 🔴 |
-| 4 | Approval proces | 2-3 | 🔴 |
-| 5 | Employee poboljšanja | 3-4 | 🟡 |
-| 6 | General Manager | 2-3 | 🟡 |
-| 7 | Admin modul | 3-4 | 🟢 |
-| 8 | Polish + UX | 2-3 | 🟢 |
+| Faza | Funkcionalnost | Dani | Priority | Status |
+|------|----------------|------|----------|---------|
+| 1 | Validacije + kalkulacije | 2-3 | 🔴 | ✅ ZAVRŠENO |
+| 2 | Tablični kalendar | 5-7 | 🔴 | ⏳ Sljedeći |
+| 3 | Alokacije + bolovanja | 5-7 | 🔴 | ⏳ |
+| 4 | Approval proces | 2-3 | 🔴 | ⏳ |
+| 5 | Employee poboljšanja | 3-4 | 🟡 | ⏳ |
+| 6 | General Manager | 2-3 | 🟡 | ⏳ |
+| 7 | Admin modul | 3-4 | 🟢 | ⏳ |
+| 8 | Polish + UX | 2-3 | 🟢 | ⏳ |
 
-**Ukupno:** 24-34 radna dana (5-7 tjedana)
+**Ukupno:** 24-34 radna dana (5-7 tjedana)  
+**Završeno:** ~2-3 dana (Faza 1)  
+**Preostalo:** ~22-31 dan (4-6 tjedana)
+
+**Prioritet za sljedeće:**
+1. 🔴 **Approval proces** (2-3 dana) - Manager može odobriti/odbiti zahtjeve
+2. 🔴 **Tablični kalendar** (5-7 dana) - Planning grid za vizualizaciju
+3. 🔴 **Upravljanje alokacijama** (3-4 dana) - Dodjela godišnjih dana
+4. 🔴 **Evidencija bolovanja** (2-3 dana) - Forma i popis bolovanja
 
 **Za minimum viable mockup (samo kritično):**
 - Faze 1-4: ~14-20 dana (3-4 tjedna)
+- Faza 1: ✅ Završeno (2-3 dana)
+- Preostalo: ~12-17 dana (2.5-3.5 tjedna)
 
 ### 15.4 Preporuke
 
 #### Za nastavak razvoja
 
-1. **Fokus na kritično:**
-   - Počni s Fazom 1 (validacije)
-   - Odmah nakon toga Faza 2 (tablični kalendar)
-   - To su 2 najvažnije stvari za impressive mockup
+1. **Fokus na approval proces (2-3 dana):**
+   - ✅ Validacije su gotove
+   - ✅ Mock API infrastruktura postoji
+   - ⏳ Treba dodati approveApplication i rejectApplication u api.ts
+   - ⏳ Treba implementirati UI za odobrenje u `/manager/requests`
+   - ⏳ Treba dodati prikaz detalja zahtjeva i balance-a zaposlenika
 
-2. **Iterativni pristup:**
+2. **Tablični kalendar (nakon approval-a):**
+   - Počni s Fazom 2 (tablični kalendar)
+   - Kreiraj `<PlanningGrid>` komponentu
+   - To je najvažnija vizualna funkcionalnost za impressive mockup
+
+3. **Iterativni pristup:**
+   - ✅ Faza 1 završena - odličan napredak!
    - Ne pokušavaj sve odjednom
    - Završi jednu funkcionalnost kompletno prije nego kreneš na drugu
    - Testiraj svaku fazu prije prelaska na sljedeću
 
-3. **Mock data strategy:**
-   - Proširi mock podatke po potrebi
-   - Dodaj više Applications za testiranje overlap-a
-   - Dodaj više LedgerEntries za testiranje balance-a
+4. **Mock data strategy:**
+   - ✅ Mock podaci su odlično struktuirani
+   - Dodaj više Applications za testiranje overlap-a (po potrebi)
+   - Dodaj više LedgerEntries za testiranje balance-a (po potrebi)
 
-4. **Component library:**
+5. **Component library:**
    - Napravi reusable komponente
    - Posebno za tablični kalendar
-   - Posebno za validaciju forme
+   - Posebno za validaciju forme (već ima u validation.ts)
 
-5. **Keep it simple:**
+6. **Keep it simple:**
    - Mockup ne treba biti perfektan
    - Fokus na demo-iranje ključnih funkcionalnosti
    - UX polish je manje važan od funkcionalnosti
 
 ### 15.5 Success criteria
 
-**Mockup je uspješan ako:**
+**Success criteria za mockup:**
 
-✅ Zaposlenik može kreirati zahtjev s validacijom  
-✅ Manager vidi tablični kalendar s planiranjem  
-✅ Manager može odobriti/odbiti zahtjev  
-✅ Manager može dodjeljivati godišnje dane  
-✅ Manager može evidentirati bolovanje  
-✅ Automatska prilagodba GO pri bolovanju radi  
-✅ Balance kalkulacija je točna  
-✅ Overlap detection radi  
+**Core funkcionalnosti:**
+✅ Zaposlenik može kreirati zahtjev s validacijom - **ZAVRŠENO**
+✅ Balance kalkulacija je točna - **ZAVRŠENO**
+✅ Overlap detection radi - **ZAVRŠENO**
+✅ Real-time validacija s feedback-om - **ZAVRŠENO**
+✅ Toast notifications - **ZAVRŠENO**
+
+**Nedostaje:**
+❌ Manager vidi tablični kalendar s planiranjem  
+❌ Manager može odobriti/odbiti zahtjev  
+❌ Manager može dodjeljivati godišnje dane  
+❌ Manager može evidentirati bolovanje  
+❌ Automatska prilagodba GO pri bolovanju radi  
 
 **Bonus:**
-✅ General Manager može drugi nivo odobrenja  
-✅ Employee ima kalendar prikaz  
-✅ Admin može upravljati zaposlenicima  
+❌ General Manager može drugi nivo odobrenja  
+❌ Employee ima kalendar prikaz  
+❌ Admin može upravljati zaposlenicima  
 
 ---
 
@@ -1300,24 +1468,28 @@ lib/constants/
 
 ### 16.1 Sljedeći koraci (Next Sprint)
 
-**Sprint 1: Validacije i kalkulacije (2-3 dana)**
+**Sprint 1: ~~Validacije i kalkulacije (2-3 dana)~~** ✅ **ZAVRŠENO**
 
-Dan 1:
-- [ ] Fix calculateWorkingDays() sa holidays
-- [ ] Dodaj real-time kalkulaciju u formu
-- [ ] Implementiraj BR-VAL-001 (date validation)
+~~Dan 1:~~
+- [x] Fix calculateWorkingDays() sa holidays
+- [x] Dodaj real-time kalkulaciju u formu
+- [x] Implementiraj BR-VAL-001 (date validation)
 
-Dan 2:
-- [ ] Implementiraj BR-VAL-002 (overlap detection)
-- [ ] Implementiraj BR-VAL-003 (balance validation)
-- [ ] Dodaj toast notifications
+~~Dan 2:~~
+- [x] Implementiraj BR-VAL-002 (overlap detection)
+- [x] Implementiraj BR-VAL-003 (balance validation)
+- [x] Dodaj toast notifications
 
-Dan 3:
-- [ ] Kreiraj useBalance() hook
-- [ ] Refaktoriraj balance kalkulacije
-- [ ] Testiranje
+~~Dan 3:~~
+- [x] Kreiraj useBalance() hook
+- [x] Refaktoriraj balance kalkulacije
+- [x] Testiranje
 
-**Sprint 2: Tablični kalendar (5-7 dana)**
+**Status:** ✅ Sve funkcionalnosti Faze 1 implementirane!
+
+---
+
+**Sprint 2: Tablični kalendar (5-7 dana)** ⏳ **SLJEDEĆI**
 
 Dan 1-2:
 - [ ] PlanningGrid komponenta - osnovna struktura
@@ -1364,6 +1536,9 @@ Dan 5-7:
 
 **Pripremio:** AI Assistant  
 **Datum:** 20.12.2024  
-**Verzija:** 1.0  
-**Status:** Kompletna analiza za nastavak razvoja  
+**Verzija:** 2.0  
+**Status:** Ažurirano nakon implementacije Faze 1 (Validacije i kalkulacije)
 
+**Changelog:**
+- **v2.0 (20.12.2024):** Ažurirano nakon implementacije validacija, kalkulacija, toast notifikacija i mock API-ja
+- **v1.0 (20.12.2024):** Inicijalna analiza

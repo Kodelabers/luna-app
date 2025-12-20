@@ -14,10 +14,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  mockApplications,
   mockEmployees,
   mockUnavailabilityReasons,
 } from "@/lib/mock-data/generator";
+import { useMockApplications } from "@/lib/mock-data/api";
 import { formatDateRange } from "@/lib/utils/dates";
 import {
   Dialog,
@@ -33,13 +33,14 @@ import { Label } from "@/components/ui/label";
 
 export default function ManagerRequestsPage() {
   const { currentUser } = useMockAuth();
+  const { applications } = useMockApplications();
   const [selectedApp, setSelectedApp] = useState<number | null>(null);
   const [actionType, setActionType] = useState<"approve" | "reject" | null>(null);
   const [comment, setComment] = useState("");
 
   if (!currentUser || !currentUser.departmentId) return null;
 
-  const departmentApplications = mockApplications.filter(
+  const departmentApplications = applications.filter(
     (app) => app.departmentId === currentUser.departmentId
   );
 
