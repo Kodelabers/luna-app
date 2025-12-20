@@ -101,13 +101,12 @@ Razviti potpuno funkcionalan, siguran i skalabilan sustav za upravljanje godišn
 ```
 ┌─────────────────────┐
 │   Web Browser       │  ← Korisnici pristupaju aplikaciji
-│   (Flutter Web)     │
+│   (Next.js App)     │
 └──────────┬──────────┘
-           │ HTTPS / REST API
            │
 ┌──────────▼──────────┐
-│   Backend API       │  ← Business logika i validacije
-│   (Node.js)         │
+│   Next.js           │  ← Frontend + Backend u jednom
+│   (Full-Stack)      │     Business logika i validacije
 └──────────┬──────────┘
            │
 ┌──────────▼──────────┐
@@ -118,12 +117,14 @@ Razviti potpuno funkcionalan, siguran i skalabilan sustav za upravljanje godišn
 
 ### Tehnologije
 
-**Frontend:**
-- Flutter Web (cross-platform, moderan UI)
+**Full-Stack:**
+- Next.js 14+ (React framework)
+- TypeScript (type safety)
+- Server Components i API Routes
 - Pristupačno sa desktop, tablet, mobile
 
-**Backend:**
-- Node.js + TypeScript (brz razvoj, skalabilnost)
+**Backend (Next.js API Routes):**
+- Next.js API Routes (REST API)
 - PostgreSQL (pouzdana, enterprise-grade baza)
 - Redis (performanse, caching)
 

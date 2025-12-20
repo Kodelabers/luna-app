@@ -68,8 +68,8 @@ Ova dokumentacija definira kompletan razvoj produkcijske verzije sustava za upra
 **Sadržaj:**
 - Arhitekturni stil (Client-Server, REST API)
 - Tehnološki stack:
-  - Frontend: Flutter Web, Provider/Riverpod
-  - Backend: Node.js + Express + TypeScript
+  - Full-Stack: Next.js 14+, React, TypeScript
+  - Backend: Next.js API Routes + TypeScript
   - Database: PostgreSQL + Redis
   - Storage: AWS S3 / Azure Blob
 - Layered arhitektura (frontend i backend)
@@ -99,16 +99,18 @@ Ova dokumentacija definira kompletan razvoj produkcijske verzije sustava za upra
 - Views (employee_vacation_summary, pending_approvals_view)
 - Stored procedures i functions
 - Triggers (auto-update timestamps, audit logging)
-- Prisma schema (za Node.js backend)
+- Prisma schema (za Next.js backend)
 
 **Za koga:** Backend developeri, Database administratori, Tech Lead
 
 ---
 
 ### 6. [API specifikacija](./06_API_Specifikacija.md)
-**Svrha:** Detaljna dokumentacija REST API endpointa
+**Svrha:** Detaljna dokumentacija API kontrakata (Server Actions i API Routes)
 
 **Sadržaj:**
+- Next.js pristupi: Server Components, Server Actions, API Routes
+- Kada koristiti koji pristup
 - Base URL i autentifikacija (JWT)
 - Response formati i error kodovi
 - Endpoints po kategorijama:
@@ -122,10 +124,13 @@ Ova dokumentacija definira kompletan razvoj produkcijske verzije sustava za upra
   - Statistics (overview, department, employee)
   - Planning (calendar)
 - Request/Response primjeri za svaki endpoint
+- Server Actions primjeri
 - Rate limiting i pagination
-- OpenAPI/Swagger dokumentacija
+- OpenAPI/Swagger dokumentacija (za API Routes)
 
 **Za koga:** Frontend developeri, Backend developeri, QA, Integration team
+
+**Napomena:** U Next.js-u većina operacija koristi Server Components i Server Actions umjesto REST API poziva. API Routes se koriste samo za vanjski pristup i webhook-ove.
 
 ---
 
@@ -251,20 +256,16 @@ Ova dokumentacija definira kompletan razvoj produkcijske verzije sustava za upra
 
 ### Development tim (preporučeno)
 
-**Backend:** 1-2 developera
+**Next.js Full-Stack:** 1-2 developera
 - Database setup i migracije
-- REST API implementacija
+- Next.js API Routes implementacija
+- React Server Components i Client Components
 - Business logika
 - Autentifikacija i autorizacija
-
-**Frontend:** 1-2 developera
-- Flutter Web app
-- State management
-- API integracija
 - UI/UX implementacija
 
 **Full-stack:** 1 developer (alternativa - za manji tim)
-- Svi backend i frontend taskovi
+- Svi backend i frontend taskovi u jednom projektu
 
 **QA:** 1 tester
 - Test case kreiranje
@@ -288,20 +289,17 @@ Ova dokumentacija definira kompletan razvoj produkcijske verzije sustava za upra
 
 ## 🔧 Tehnologije (sažetak)
 
-### Frontend
-- **Framework:** Flutter Web 3.9+
-- **State Management:** Provider / Riverpod
-- **HTTP Client:** Dio
-- **Dodatno:** table_calendar, fl_chart, flutter_secure_storage
-
-### Backend
-- **Runtime:** Node.js 20 LTS
-- **Framework:** Express.js
+### Full-Stack Framework
+- **Framework:** Next.js 14+
 - **Language:** TypeScript
+- **Frontend:** React 18+ (Server Components + Client Components)
+- **Backend:** Next.js API Routes
+- **State Management:** Zustand / React Query
+- **UI Library:** shadcn/ui + Tailwind CSS
 - **ORM:** Prisma
-- **Auth:** JWT + bcrypt
-- **Validation:** Joi / Zod
-- **Logging:** Winston
+- **Auth:** JWT + bcrypt (ili NextAuth.js)
+- **Validation:** Zod
+- **Charts:** recharts
 
 ### Database
 - **Primary:** PostgreSQL 15+
@@ -330,7 +328,7 @@ Ova dokumentacija definira kompletan razvoj produkcijske verzije sustava za upra
 
 **Code:**
 - Backend (TypeScript): camelCase za varijable, PascalCase za klase
-- Frontend (Dart): camelCase za varijable, PascalCase za klase i widgeti
+- Frontend (TypeScript/React): camelCase za varijable, PascalCase za komponente
 
 ### Git workflow
 
@@ -387,7 +385,7 @@ test: Add tests for vacation validation
 
 **Unit tests:** 60% coverage minimum
 - Backend: Jest
-- Frontend: Flutter test
+- Frontend: Jest + React Testing Library
 
 **Integration tests:** 30% coverage
 - API endpoint testing
@@ -395,7 +393,7 @@ test: Add tests for vacation validation
 
 **E2E tests:** 10% coverage
 - Kritični user flowovi
-- Flutter integration tests
+- Playwright / Cypress E2E tests
 
 **Performance tests:**
 - Load testing (100 concurrent users)
@@ -471,15 +469,17 @@ Dokumentacija je living document. Za izmjene ili dopune:
 
 ### Tehnološki resursi
 
-**Flutter:**
-- [Flutter Documentation](https://flutter.dev/docs)
-- [Provider Package](https://pub.dev/packages/provider)
-- [Dio HTTP Client](https://pub.dev/packages/dio)
+**Next.js:**
+- [Next.js Documentation](https://nextjs.org/docs)
+- [React Documentation](https://react.dev)
+- [shadcn/ui Components](https://ui.shadcn.com)
+- [Tailwind CSS](https://tailwindcss.com/docs)
 
-**Node.js + Express:**
-- [Node.js Best Practices](https://github.com/goldbergyoni/nodebestpractices)
-- [Express.js Guide](https://expressjs.com/en/guide/routing.html)
+**Next.js:**
+- [Next.js Best Practices](https://nextjs.org/docs/app/building-your-application/routing)
+- [Next.js API Routes](https://nextjs.org/docs/app/building-your-application/routing/route-handlers)
 - [TypeScript Handbook](https://www.typescriptlang.org/docs/handbook/intro.html)
+- [React Server Components](https://react.dev/blog/2023/03/22/react-labs-what-we-have-been-working-on-march-2023#react-server-components)
 
 **PostgreSQL:**
 - [PostgreSQL Documentation](https://www.postgresql.org/docs/)

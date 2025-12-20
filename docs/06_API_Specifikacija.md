@@ -11,20 +11,77 @@
 ## 1. UVOD
 
 ### 1.1 Svrha dokumenta
-Ovaj dokument opisuje REST API za sustav upravljanje godišnjim odmorima. API omogućava:
+Ovaj dokument opisuje API kontrakte za sustav upravljanje godišnjim odmorima. U Next.js aplikaciji koristimo tri pristupa:
+
+1. **Server Components** - direktno pristupaju bazi podataka (nema HTTP poziva)
+2. **Server Actions** - server funkcije pozvane iz Client Components
+3. **API Routes** - REST API endpoints (za vanjski pristup, webhook-ove, integracije)
+
+Ovaj dokument fokusira na **API Routes** i **Server Actions** jer oni definiraju kontrakte između frontenda i backend-a.
+
+**Kada koristiti koji pristup:**
+- **Server Components**: Za čitanje podataka (GET operacije) - najbrže, direktan pristup bazi
+- **Server Actions**: Za mutacije (POST, PUT, DELETE) iz Client Components - type-safe, bez HTTP overhead-a
+- **API Routes**: Za vanjski pristup, webhook-ove, integracije s drugim sistemima
+
+API omogućava:
 - Autentifikaciju i autorizaciju korisnika
 - Upravljanje zaposlenicima, odjelima i praznicima
 - Kreiranje i odobravanje zahtjeva za godišnji odmor
 - Evidenciju bolovanja
 - Izvještavanje i statistike
 
-### 1.2 Base URL
+### 1.2 API Pristupi u Next.js
 
+#### 1.2.1 API Routes (REST API)
+**Base URL:**
 ```
-Development:  http://localhost:3000/api/v1
-Staging:      https://staging-api.vacation-system.com/api/v1
-Production:   https://api.vacation-system.com/api/v1
+Development:  http://localhost:3000/api
+Staging:      https://staging.vacation-system.com/api
+Production:   https://vacation-system.com/api
 ```
+
+**Napomena:** Next.js API Routes koriste `/api` prefix. Koriste se za vanjski pristup, webhook-ove i integracije.
+
+#### 1.2.2 Server Actions
+**Korištenje:**
+```typescript
+// lib/actions/vacation-requests.ts
+'use server'
+
+export async function createVacationRequest(data: CreateRequestInput) {
+  // Server-side logika
+  return { success: true, data: {...} }
+}
+
+// U Client Component:
+import { createVacationRequest } from '@/lib/actions/vacation-requests'
+
+await createVacationRequest({ startDate, endDate, notes })
+```
+
+**Prednosti:**
+- Type-safe (TypeScript)
+- Nema HTTP overhead
+- Automatska validacija
+- Direktan pristup bazi
+
+#### 1.2.3 Server Components
+**Korištenje:**
+```typescript
+// app/employees/page.tsx (Server Component)
+import { prisma } from '@/lib/prisma/client'
+
+export default async function EmployeesPage() {
+  const employees = await prisma.employee.findMany()
+  return <EmployeesList employees={employees} />
+}
+```
+
+**Prednosti:**
+- Najbrže (direktan pristup bazi)
+- Server-side rendering
+- Automatski caching
 
 ### 1.3 Autentifikacija
 
@@ -97,13 +154,42 @@ Authorization: Bearer {access_token}
 
 **Request:**
 ```http
-POST /api/v1/auth/login
+POST /api/auth/login
 Content-Type: application/json
 
 {
   "email": "user@example.com",
   "password": "password123"
 }
+```
+
+**Next.js Implementacije:**
+
+**1. API Route (za vanjski pristup):**
+```typescript
+// app/api/auth/login/route.ts
+import { NextRequest, NextResponse } from 'next/server'
+
+export async function POST(request: NextRequest) {
+  const body = await request.json()
+  // ... login logic
+  return NextResponse.json({ success: true, data: {...} })
+}
+```
+
+**2. Server Action (preporučeno za interni pristup):**
+```typescript
+// lib/actions/auth.ts
+'use server'
+
+export async function login(email: string, password: string) {
+  // ... login logic
+  return { success: true, data: {...} }
+}
+
+// U Client Component:
+import { login } from '@/lib/actions/auth'
+const result = await login(email, password)
 ```
 
 **Response (200 OK):**
@@ -140,7 +226,7 @@ Content-Type: application/json
 
 **Request:**
 ```http
-POST /api/v1/auth/refresh
+POST /api/auth/refresh
 Content-Type: application/json
 
 {
@@ -168,7 +254,7 @@ Content-Type: application/json
 
 **Request:**
 ```http
-POST /api/v1/auth/logout
+POST /api/auth/logout
 Authorization: Bearer {token}
 ```
 
@@ -188,7 +274,7 @@ Authorization: Bearer {token}
 
 **Request:**
 ```http
-POST /api/v1/auth/forgot-password
+POST /api/auth/forgot-password
 Content-Type: application/json
 
 {
@@ -214,7 +300,7 @@ Content-Type: application/json
 
 **Request:**
 ```http
-POST /api/v1/auth/reset-password
+POST /api/auth/reset-password
 Content-Type: application/json
 
 {
@@ -244,7 +330,7 @@ Content-Type: application/json
 
 **Request:**
 ```http
-PUT /api/v1/auth/change-password
+PUT /api/auth/change-password
 Authorization: Bearer {token}
 Content-Type: application/json
 
@@ -284,7 +370,7 @@ Content-Type: application/json
 
 **Request:**
 ```http
-GET /api/v1/employees?page=1&limit=20&departmentId=uuid&isActive=true
+GET /api/employees?page=1&limit=20&departmentId=uuid&isActive=true
 Authorization: Bearer {token}
 ```
 
@@ -325,7 +411,7 @@ Authorization: Bearer {token}
 
 **Request:**
 ```http
-GET /api/v1/employees/{id}
+GET /api/employees/{id}
 Authorization: Bearer {token}
 ```
 
@@ -363,7 +449,7 @@ Authorization: Bearer {token}
 
 **Request:**
 ```http
-POST /api/v1/employees
+POST /api/employees
 Authorization: Bearer {token}
 Content-Type: application/json
 
@@ -408,7 +494,7 @@ Content-Type: application/json
 
 **Request:**
 ```http
-PUT /api/v1/employees/{id}
+PUT /api/employees/{id}
 Authorization: Bearer {token}
 Content-Type: application/json
 
@@ -448,7 +534,7 @@ Content-Type: application/json
 
 **Request:**
 ```http
-DELETE /api/v1/employees/{id}
+DELETE /api/employees/{id}
 Authorization: Bearer {token}
 ```
 
@@ -473,7 +559,7 @@ Authorization: Bearer {token}
 
 **Request:**
 ```http
-GET /api/v1/employees/{id}/allocations?year=2025
+GET /api/employees/{id}/allocations?year=2025
 Authorization: Bearer {token}
 ```
 
@@ -509,7 +595,7 @@ Authorization: Bearer {token}
 
 **Request:**
 ```http
-POST /api/v1/employees/{id}/allocations
+POST /api/employees/{id}/allocations
 Authorization: Bearer {token}
 Content-Type: application/json
 
@@ -556,7 +642,7 @@ Content-Type: application/json
 
 **Request:**
 ```http
-GET /api/v1/vacation-requests?status=pending&year=2025
+GET /api/vacation-requests?status=pending&year=2025
 Authorization: Bearer {token}
 ```
 
@@ -603,7 +689,7 @@ Authorization: Bearer {token}
 
 **Request:**
 ```http
-GET /api/v1/vacation-requests/my-requests?year=2025
+GET /api/vacation-requests/my-requests?year=2025
 Authorization: Bearer {token}
 ```
 
@@ -619,7 +705,7 @@ Authorization: Bearer {token}
 
 **Request:**
 ```http
-GET /api/v1/vacation-requests/{id}
+GET /api/vacation-requests/{id}
 Authorization: Bearer {token}
 ```
 
@@ -659,7 +745,7 @@ Authorization: Bearer {token}
 
 **Request:**
 ```http
-POST /api/v1/vacation-requests
+POST /api/vacation-requests
 Authorization: Bearer {token}
 Content-Type: application/json
 
@@ -704,7 +790,7 @@ Content-Type: application/json
 
 **Request:**
 ```http
-PUT /api/v1/vacation-requests/{id}
+PUT /api/vacation-requests/{id}
 Authorization: Bearer {token}
 Content-Type: application/json
 
@@ -745,7 +831,7 @@ Content-Type: application/json
 
 **Request:**
 ```http
-DELETE /api/v1/vacation-requests/{id}
+DELETE /api/vacation-requests/{id}
 Authorization: Bearer {token}
 ```
 
@@ -771,7 +857,7 @@ Authorization: Bearer {token}
 
 **Request:**
 ```http
-POST /api/v1/vacation-requests/{id}/submit
+POST /api/vacation-requests/{id}/submit
 Authorization: Bearer {token}
 ```
 
@@ -798,7 +884,7 @@ Authorization: Bearer {token}
 
 **Request:**
 ```http
-POST /api/v1/vacation-requests/{id}/validate
+POST /api/vacation-requests/{id}/validate
 Authorization: Bearer {token}
 Content-Type: application/json
 
@@ -857,7 +943,7 @@ Content-Type: application/json
 
 **Request:**
 ```http
-GET /api/v1/approvals/pending?departmentId=uuid
+GET /api/approvals/pending?departmentId=uuid
 Authorization: Bearer {token}
 ```
 
@@ -915,7 +1001,7 @@ Authorization: Bearer {token}
 
 **Request:**
 ```http
-POST /api/v1/approvals/{requestId}/approve
+POST /api/approvals/{requestId}/approve
 Authorization: Bearer {token}
 Content-Type: application/json
 
@@ -961,7 +1047,7 @@ Content-Type: application/json
 
 **Request:**
 ```http
-POST /api/v1/approvals/{requestId}/reject
+POST /api/approvals/{requestId}/reject
 Authorization: Bearer {token}
 Content-Type: application/json
 
@@ -1007,7 +1093,7 @@ Content-Type: application/json
 
 **Request:**
 ```http
-GET /api/v1/sick-leaves?status=active&departmentId=uuid
+GET /api/sick-leaves?status=active&departmentId=uuid
 Authorization: Bearer {token}
 ```
 
@@ -1057,7 +1143,7 @@ Authorization: Bearer {token}
 
 **Request:**
 ```http
-GET /api/v1/sick-leaves/my-sick-leaves
+GET /api/sick-leaves/my-sick-leaves
 Authorization: Bearer {token}
 ```
 
@@ -1073,7 +1159,7 @@ Authorization: Bearer {token}
 
 **Request:**
 ```http
-GET /api/v1/sick-leaves/{id}
+GET /api/sick-leaves/{id}
 Authorization: Bearer {token}
 ```
 
@@ -1130,7 +1216,7 @@ Authorization: Bearer {token}
 
 **Request:**
 ```http
-POST /api/v1/sick-leaves
+POST /api/sick-leaves
 Authorization: Bearer {token}
 Content-Type: application/json
 
@@ -1179,7 +1265,7 @@ Content-Type: application/json
 
 **Request:**
 ```http
-PUT /api/v1/sick-leaves/{id}
+PUT /api/sick-leaves/{id}
 Authorization: Bearer {token}
 Content-Type: application/json
 
@@ -1216,7 +1302,7 @@ Content-Type: application/json
 
 **Request:**
 ```http
-POST /api/v1/sick-leaves/{id}/close
+POST /api/sick-leaves/{id}/close
 Authorization: Bearer {token}
 Content-Type: application/json
 
@@ -1249,7 +1335,7 @@ Content-Type: application/json
 
 **Request:**
 ```http
-POST /api/v1/sick-leaves/{id}/documents
+POST /api/sick-leaves/{id}/documents
 Authorization: Bearer {token}
 Content-Type: multipart/form-data
 
@@ -1281,7 +1367,7 @@ file: [binary file data]
 
 **Request:**
 ```http
-GET /api/v1/sick-leaves/{id}/documents/{documentId}
+GET /api/sick-leaves/{id}/documents/{documentId}
 Authorization: Bearer {token}
 ```
 
@@ -1308,7 +1394,7 @@ Content-Disposition: attachment; filename="medical_certificate.pdf"
 
 **Request:**
 ```http
-GET /api/v1/departments?isActive=true
+GET /api/departments?isActive=true
 Authorization: Bearer {token}
 ```
 
@@ -1342,7 +1428,7 @@ Authorization: Bearer {token}
 
 **Request:**
 ```http
-GET /api/v1/departments/{id}
+GET /api/departments/{id}
 Authorization: Bearer {token}
 ```
 
@@ -1387,7 +1473,7 @@ Authorization: Bearer {token}
 
 **Request:**
 ```http
-POST /api/v1/departments
+POST /api/departments
 Authorization: Bearer {token}
 Content-Type: application/json
 
@@ -1424,7 +1510,7 @@ Content-Type: application/json
 
 **Request:**
 ```http
-PUT /api/v1/departments/{id}
+PUT /api/departments/{id}
 Authorization: Bearer {token}
 Content-Type: application/json
 
@@ -1461,7 +1547,7 @@ Content-Type: application/json
 
 **Request:**
 ```http
-DELETE /api/v1/departments/{id}
+DELETE /api/departments/{id}
 Authorization: Bearer {token}
 ```
 
@@ -1488,7 +1574,7 @@ Authorization: Bearer {token}
 
 **Request:**
 ```http
-GET /api/v1/holidays?year=2025
+GET /api/holidays?year=2025
 Authorization: Bearer {token}
 ```
 
@@ -1527,7 +1613,7 @@ Authorization: Bearer {token}
 
 **Request:**
 ```http
-POST /api/v1/holidays
+POST /api/holidays
 Authorization: Bearer {token}
 Content-Type: application/json
 
@@ -1564,7 +1650,7 @@ Content-Type: application/json
 
 **Request:**
 ```http
-PUT /api/v1/holidays/{id}
+PUT /api/holidays/{id}
 Authorization: Bearer {token}
 Content-Type: application/json
 
@@ -1600,7 +1686,7 @@ Content-Type: application/json
 
 **Request:**
 ```http
-DELETE /api/v1/holidays/{id}
+DELETE /api/holidays/{id}
 Authorization: Bearer {token}
 ```
 
@@ -1624,7 +1710,7 @@ Authorization: Bearer {token}
 
 **Request:**
 ```http
-GET /api/v1/statistics/overview
+GET /api/statistics/overview
 Authorization: Bearer {token}
 ```
 
@@ -1670,7 +1756,7 @@ Authorization: Bearer {token}
 
 **Request:**
 ```http
-GET /api/v1/statistics/department/{id}?year=2025
+GET /api/statistics/department/{id}?year=2025
 Authorization: Bearer {token}
 ```
 
@@ -1732,7 +1818,7 @@ Authorization: Bearer {token}
 
 **Request:**
 ```http
-GET /api/v1/statistics/employee/{id}?year=2025
+GET /api/statistics/employee/{id}?year=2025
 Authorization: Bearer {token}
 ```
 
@@ -1799,7 +1885,7 @@ Authorization: Bearer {token}
 
 **Request:**
 ```http
-GET /api/v1/planning/calendar?departmentId=uuid&startDate=2025-01-01&endDate=2025-01-31
+GET /api/planning/calendar?departmentId=uuid&startDate=2025-01-01&endDate=2025-01-31
 Authorization: Bearer {token}
 ```
 
@@ -1867,12 +1953,16 @@ Authorization: Bearer {token}
 
 ### 12.1 API Verzioniranje
 
-API koristi URL path verzioniranje: `/api/v1/`, `/api/v2/`
+API koristi Next.js API Routes bez verzioniranja po defaultu: `/api/...`
+
+Verzioniranje se može dodati ako je potrebno: `/api/v1/...`, `/api/v2/...`
 
 Nove verzije API-ja se kreiraju kada:
 - Dolazi do breaking changes
 - Mijenja se struktura response-a
 - Mijenjaju se required parametri
+
+**Napomena:** Za Next.js projekte, verzioniranje nije obavezno jer se može koristiti feature flags i gradual rollout.
 
 ### 12.2 Rate Limiting
 
@@ -1901,14 +1991,59 @@ Max: `limit=100`
 
 ### 12.4 OpenAPI dokumentacija
 
-API će imati auto-generated OpenAPI (Swagger) dokumentaciju dostupnu na:
+API Routes će imati auto-generated OpenAPI (Swagger) dokumentaciju dostupnu na:
 ```
 /api/docs
+```
+
+**Napomena:** Server Actions nemaju HTTP endpoint, ali se mogu dokumentirati kroz TypeScript tipove i JSDoc komentare.
+
+### 12.5 Preporuka: Kada koristiti koji pristup
+
+**Server Components (preporučeno za čitanje):**
+- ✅ Lista zaposlenika
+- ✅ Dashboard podaci
+- ✅ Statistike
+- ✅ Pregled zahtjeva
+
+**Server Actions (preporučeno za mutacije):**
+- ✅ Kreiranje zahtjeva
+- ✅ Odobravanje/odbijanje
+- ✅ Uređivanje podataka
+- ✅ Brisanje
+
+**API Routes (za vanjski pristup):**
+- ✅ Webhook-ovi
+- ✅ Integracije s vanjskim sistemima
+- ✅ Mobile aplikacije (ako se razvijaju)
+- ✅ Public API (ako je potrebno)
+
+**Primjer hibridnog pristupa:**
+```typescript
+// Server Component - čitanje
+// app/employees/page.tsx
+export default async function EmployeesPage() {
+  const employees = await prisma.employee.findMany()
+  return <EmployeesList employees={employees} />
+}
+
+// Server Action - mutacija
+// lib/actions/employees.ts
+'use server'
+export async function createEmployee(data: CreateEmployeeInput) {
+  // ... create logic
+}
+
+// Client Component koristi Server Action
+// components/employee-form.tsx
+'use client'
+import { createEmployee } from '@/lib/actions/employees'
+await createEmployee(formData)
 ```
 
 ---
 
 **Dokument pripremljen:** 12.12.2024  
-**Verzija:** 1.0  
-**Status:** Draft za review
+**Verzija:** 1.1  
+**Status:** Ažurirano za Next.js pristup
 

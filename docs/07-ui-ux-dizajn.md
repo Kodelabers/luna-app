@@ -2,7 +2,7 @@
 
 ## Pregled
 
-Ovaj dokument opisuje dizajn principe, UI komponente i korisničko iskustvo za multi-tenant admin aplikaciju.
+Ovaj dokument opisuje dizajn principe, UI komponente i korisničko iskustvo za Luna sustav - aplikaciju za upravljanje godišnjim odmorima, bolovanja i planiranje rasporeda zaposlenika.
 
 ## 1. Dizajn Principi
 
@@ -40,7 +40,7 @@ Ovaj dokument opisuje dizajn principe, UI komponente i korisničko iskustvo za m
 
 **Baza:**
 - Tailwind CSS utility classes
-- Component library: shadcn
+- Component library: shadcn/ui ili Material-UI
 - Icons: Lucide Icons / Heroicons / Material Icons
 - Fonts: Inter / Roboto / System fonts
 
@@ -65,19 +65,19 @@ Ovaj dokument opisuje dizajn principe, UI komponente i korisničko iskustvo za m
 --secondary-500: #8b5cf6;  /* Purple */
 --secondary-600: #7c3aed;
 
-/* Success */
+/* Success (Odobreni zahtjevi, Active status) */
 --success-500: #10b981;
 --success-600: #059669;
 
-/* Warning */
+/* Warning (Pending zahtjevi, Draft) */
 --warning-500: #f59e0b;
 --warning-600: #d97706;
 
-/* Error/Danger */
+/* Error/Danger (Odbijeni zahtjevi, Bolovanje) */
 --error-500: #ef4444;
 --error-600: #dc2626;
 
-/* Info */
+/* Info (Praznici, Vikendi) */
 --info-500: #06b6d4;
 --info-600: #0891b2;
 ```
@@ -199,61 +199,31 @@ Caption: 0.75rem (12px), Normal, Leading Normal
 
 ### 5.3 Sidebar Navigation
 
-**Struktura po ulogama:**
-
-**Employee (Zaposlenik):**
+**Struktura:**
 ```
-┌─────────────────┐
-│ 📊 Dashboard    │
-│ 📝 Moji zahtjevi│
-│ 📅 Kalendar     │
-│ 👤 Moj profil   │
-└─────────────────┘
-```
-
-**Department Manager (Voditelj odjela):**
-```
-┌─────────────────┐
-│ 📊 Dashboard    │
-│ ✅ Odobravanja  │  (badge: broj na čekanju)
-│ 📝 Zahtjevi     │
-│ 👥 Zaposlenici  │  (samo njegov odjel)
-│ 🏥 Bolovanja    │
-│ 📊 Alokacije    │
-│ 📅 Planiranje   │
-│ 👤 Moj profil   │
-└─────────────────┘
-```
-
-**General Manager (Opći voditelj):**
-```
-┌─────────────────┐
-│ 📊 Dashboard    │
-│ ✅ Odobravanja  │  (badge: broj na čekanju)
-│ 📝 Zahtjevi     │  (svi odjeli)
-│ 👥 Zaposlenici  │  (svi odjeli)
-│ 🏥 Bolovanja    │  (svi odjeli)
-│ 📊 Alokacije    │  (svi odjeli)
-│ 📅 Planiranje   │  (svi odjeli)
-│ 👤 Moj profil   │
-└─────────────────┘
-```
-
-**Admin (Administrator):**
-```
-┌─────────────────┐
-│ 📊 Dashboard    │
-│ ✅ Odobravanja  │  (badge: broj na čekanju)
-│ 📝 Zahtjevi     │
-│ 👥 Zaposlenici  │
-│ 🏢 Odjeli       │
-│ 🏥 Bolovanja    │
-│ 📊 Alokacije    │
-│ 📅 Planiranje   │
-│ 🎉 Praznici     │
-│ ⚙️  Postavke    │
-│ 👤 Moj profil   │
-└─────────────────┘
+┌─────────────────────┐
+│ 🏠 Dashboard        │
+├─────────────────────┤
+│ MY REQUESTS         │
+│ 📝 New Request      │
+│ 📋 My Requests      │
+│ 📅 My Calendar      │
+├─────────────────────┤
+│ TEAM (ako Manager)  │
+│ 👥 Team Overview    │
+│ ✓  Pending Approvals│ (badge)
+│ 📊 Team Planning    │
+│ 📈 Team Reports     │
+├─────────────────────┤
+│ ADMIN (ako Admin)   │
+│ 👤 Employees        │
+│ 🏢 Departments      │
+│ 🎯 Managers         │
+│ 📆 Holidays         │
+│ 🔧 Settings         │
+├─────────────────────┤
+│ 💬 Help & Support   │
+└─────────────────────┘
 ```
 
 **Features:**
@@ -262,7 +232,7 @@ Caption: 0.75rem (12px), Normal, Leading Normal
 - Active state highlighting
 - Badge counts (npr. broj zahtjeva na čekanju)
 - Grouped items s collapsible sections
-- Role-based visibility (prikaz ovisno o ulozi)
+- Role-based visibility (zaposlenici vide samo MY REQUESTS)
 
 ### 5.4 Main Content Area
 
@@ -310,17 +280,22 @@ Caption: 0.75rem (12px), Normal, Leading Normal
 ```tsx
 // Primary
 <Button variant="primary" size="medium">
-  Save Changes
+  Approve Request
 </Button>
 
 // With icon
 <Button variant="primary" icon={<PlusIcon />}>
-  Create User
+  New Request
 </Button>
 
 // Loading state
 <Button variant="primary" loading>
-  Saving...
+  Approving...
+</Button>
+
+// Danger
+<Button variant="danger" icon={<XIcon />}>
+  Reject Request
 </Button>
 ```
 
@@ -411,9 +386,9 @@ Caption: 0.75rem (12px), Normal, Leading Normal
 
 **Empty State:**
 - Illustration / Icon
-- Title: "No users yet"
-- Description: "Get started by creating your first user"
-- Action button: "Create User"
+- Title: "No requests yet"
+- Description: "Get started by creating your first leave request"
+- Action button: "Create Request"
 
 ### 6.4 Cards
 
@@ -467,11 +442,11 @@ Caption: 0.75rem (12px), Normal, Leading Normal
 **Example - Confirmation:**
 ```tsx
 <ConfirmDialog
-  title="Delete User"
-  message="Are you sure you want to delete John Doe? This action cannot be undone."
-  confirmText="Delete"
+  title="Reject Request"
+  message="Are you sure you want to reject this leave request from John Doe? Please provide a reason."
+  confirmText="Reject"
   confirmVariant="danger"
-  onConfirm={handleDelete}
+  onConfirm={handleReject}
   onCancel={handleCancel}
 />
 ```
@@ -494,28 +469,36 @@ Caption: 0.75rem (12px), Normal, Leading Normal
 
 **Example:**
 ```tsx
-toast.success("User created successfully")
-toast.error("Failed to delete user")
-toast.warning("Your trial ends in 3 days")
-toast.info("New features available")
+toast.success("Request approved successfully")
+toast.error("Failed to create request")
+toast.warning("You have only 5 days remaining")
+toast.info("New holiday added to calendar")
 ```
 
 ### 6.7 Badges & Status Indicators
 
 **Use Cases:**
-- User status (Active, Inactive, Suspended)
-- Subscription status (Trial, Active, Cancelled)
-- Notification counts
-- Feature tags
+- Application status (Draft, Submitted, Approved, Rejected)
+- Employee status (Active, Inactive)
+- Leave type indicators
+- Day counts
 
 **Variants:**
 ```tsx
-<Badge variant="success">Active</Badge>
-<Badge variant="danger">Suspended</Badge>
-<Badge variant="warning">Trial</Badge>
-<Badge variant="info">New</Badge>
+<Badge variant="success">Approved</Badge>
+<Badge variant="danger">Rejected</Badge>
+<Badge variant="warning">Pending</Badge>
+<Badge variant="info">First Level Approved</Badge>
 <Badge variant="neutral">Draft</Badge>
 ```
+
+**Application Status Colors:**
+- DRAFT → Gray (neutral)
+- SUBMITTED → Yellow (warning)
+- APPROVED_FIRST_LEVEL → Blue (info)
+- APPROVED → Green (success)
+- REJECTED → Red (danger)
+- CANCELLED → Gray (neutral)
 
 ### 6.8 Loading States
 
@@ -552,367 +535,468 @@ toast.info("New features available")
 │                        │
 │     [Illustration]     │
 │                        │
-│   No users yet         │
+│   No requests yet      │
 │   Get started by       │
-│   adding your first    │
-│   team member          │
+│   creating your first  │
+│   leave request        │
 │                        │
-│   [Create User Btn]    │
+│   [New Request Btn]    │
 │                        │
 └────────────────────────┘
 ```
 
+### 6.10 Calendar Component
+
+**Ključna komponenta za Luna aplikaciju**
+
+**Tipovi:**
+
+**1. Monthly Calendar (Employee View)**
+- Standard mjesečni pogled
+- Označavanje:
+  - Zeleno: Odobreni godišnji
+  - Žuto: Zahtjevi na čekanju
+  - Crveno/Narančasto: Bolovanje
+  - Sivo: Vikendi
+  - Plavo: Praznici
+- Tooltip on hover s detaljima
+- Click to view details
+
+**2. Team Planning Calendar (Manager View)**
+- Tablični format (redci = zaposlenici, stupci = dani)
+- Quick overview koliko ljudi je available
+- Color-coded status per person per day
+- Export funkcionalnost
+- Zoom nivoi: Week / Month / Custom range
+
+**3. Date Range Picker (za forme)**
+- range calendar
+- Real-time calculation radnih dana
+- Označavanje vikenda i praznika
+- Validacija preklapanja
+- Visual feedback za selected range
+
+**Calendar Legend:**
+```
+✓ Working         🏖️ Annual Leave    🤒 Sick Leave
+⏳ Pending        🎉 Holiday         - Weekend
+```
+
+**Interakcije:**
+- Drag to select range (gdje applicable)
+- Click to view details
+- Double-click za quick actions
+- Keyboard navigation (arrow keys)
+- Touch-friendly za mobile
+
+### 6.11 Status Flow Indicator
+
+**Vizualni prikaz toka zahtjeva**
+
+**Timeline Component:**
+```tsx
+<StatusTimeline>
+  <TimelineItem status="completed" timestamp="Jan 5, 10:30">
+    Created by John Doe
+  </TimelineItem>
+  <TimelineItem status="completed" timestamp="Jan 5, 10:32">
+    Submitted by John Doe
+  </TimelineItem>
+  <TimelineItem status="current" timestamp="Jan 6, 2:15">
+    Waiting for approval
+  </TimelineItem>
+  <TimelineItem status="pending">
+    Final approval
+  </TimelineItem>
+</StatusTimeline>
+```
+
+**Statusi:**
+- Completed: ✓ zeleni checkmark
+- Current: 🔵 plavi dot, animated
+- Pending: ⚪ sivi dot
+- Rejected: ✗ crveni X
+
+**Use Cases:**
+- Request detail page
+- Approval flow visualization
+- Audit trail prikaz
+
 ## 7. Page Designs
 
-### 7.1 Dashboard
-
-**Layout po ulogama:**
-
-**Employee Dashboard:**
-```
-┌──────────────────────────────────────────────┐
-│  Dashboard                                   │
-├──────────────────────────────────────────────┤
-│  ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐│
-│  │ Ukupno │ │Iskoriš.│ │Na ček. │ │Preost. ││
-│  │  dana  │ │  dana  │ │  dana  │ │  dana  ││
-│  │   20   │ │   12   │ │    3   │ │    5   ││
-│  └────────┘ └────────┘ └────────┘ └────────┘│
-├──────────────────────────────────────────────┤
-│  ┌────────────────────┐ ┌──────────────────┐ │
-│  │ Kalendar odmora    │ │ Aktivni zahtjevi │ │
-│  │                    │ │                  │ │
-│  │   [Calendar View]  │ │  - 10-15.01.2025 │ │
-│  │                    │ │    Status: Odobren│ │
-│  └────────────────────┘ └──────────────────┘ │
-└──────────────────────────────────────────────┘
-```
-
-**Department Manager / General Manager Dashboard:**
-```
-┌──────────────────────────────────────────────┐
-│  Dashboard                           [Filter]│
-├──────────────────────────────────────────────┤
-│  ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐│
-│  │Zahtjevi│ │Odobreni│ │Odbijeni│ │Bolovanja││
-│  │na ček. │ │  (mjes)│ │  (mjes)│ │ aktivna││
-│  │   5    │ │   12   │ │    2   │ │    3   ││
-│  └────────┘ └────────┘ └────────┘ └────────┘│
-├──────────────────────────────────────────────┤
-│  ┌────────────────────┐ ┌──────────────────┐ │
-│  │ Zahtjevi na čekanju│ │ Kritična razdoblja│ │
-│  │                    │ │                  │ │
-│  │  [Lista zahtjeva]  │ │  - 15.01: 8/25   │ │
-│  │                    │ │    ljudi na odmoru│ │
-│  └────────────────────┘ └──────────────────┘ │
-├──────────────────────────────────────────────┤
-│  ┌────────────────────────────────────────┐  │
-│  │ Planiranje odmora (tablični prikaz)   │  │
-│  │  [Tablični kalendar - tjedan/mjesec]  │  │
-│  └────────────────────────────────────────┘  │
-└──────────────────────────────────────────────┘
-```
-
-**Admin Dashboard:**
-```
-┌──────────────────────────────────────────────┐
-│  Dashboard                           [Filter]│
-├──────────────────────────────────────────────┤
-│  ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐│
-│  │Zaposl. │ │ Odjeli │ │Zahtjevi│ │Bolovanja││
-│  │ukupno  │ │ukupno  │ │na ček. │ │ aktivna││
-│  │  150   │ │    8   │ │   12   │ │    5   ││
-│  └────────┘ └────────┘ └────────┘ └────────┘│
-├──────────────────────────────────────────────┤
-│  ┌────────────────────┐ ┌──────────────────┐ │
-│  │ Statistika korištenja│ │ Aktivnosti sustava│ │
-│  │                    │ │                  │ │
-│  │   [Bar Chart]      │ │  - Novi zaposlenik│ │
-│  │                    │ │  - Zahtjev odobren│ │
-│  └────────────────────┘ └──────────────────┘ │
-└──────────────────────────────────────────────┘
-```
-
-### 7.2 List Page - Zahtjevi (Applications)
+### 7.1 Dashboard - Zaposlenik
 
 **Layout:**
 ```
 ┌──────────────────────────────────────────────┐
-│  Zahtjevi                    [Novi zahtjev]  │
+│  My Dashboard                                │
 ├──────────────────────────────────────────────┤
-│  [Search] [Filter: Status ▼] [Filter: Godina ▼]│
-│  [Filter: Odjel ▼] [Filter: Zaposlenik ▼]   │
+│  ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐│
+│  │ Total  │ │ Used   │ │ Pending│ │ Remain.││
+│  │ Days   │ │ Days   │ │ Days   │ │ Days   ││
+│  │  20    │ │   8    │ │   3    │ │   9    ││
+│  └────────┘ └────────┘ └────────┘ └────────┘│
 ├──────────────────────────────────────────────┤
+│  My Requests                    [New Request]│
 │  ┌────────────────────────────────────────┐  │
-│  │ Status  │ Zaposlenik │ Razdoblje │ Dana │  │
-│  │─────────┼────────────┼───────────┼──────│  │
-│  │ 🟡 Čeka │ John Doe   │ 10-15.01  │  4   │  │
-│  │ 🟢 Odob│ Jane Smith │ 20-25.01  │  4   │  │
-│  │ 🔴 Odbij│ Bob Wilson │ 05-10.01  │  4   │  │
-│  │ ...                                    │  │
+│  │ Status    Date Range      Days  Actions│  │
+│  │ Approved  Jan 15-19       5     View   │  │
+│  │ Pending   Feb 10-14       5     View   │  │
+│  │ Draft     Mar 05-08       4     Edit   │  │
 │  └────────────────────────────────────────┘  │
 ├──────────────────────────────────────────────┤
-│  Showing 1-20 of 150    [< 1 2 3 ... 8 >]    │
+│  ┌────────────────────────────────────────┐  │
+│  │ Calendar - My Leave                    │  │
+│  │                                        │  │
+│  │  [Monthly Calendar View]               │  │
+│  │  - Green: Approved leave               │  │
+│  │  - Yellow: Pending leave               │  │
+│  │  - Red: Sick leave                     │  │
+│  │  - Gray: Holidays/Weekends             │  │
+│  └────────────────────────────────────────┘  │
 └──────────────────────────────────────────────┘
 ```
 
-**Status badge-ovi:**
-- 🟡 SUBMITTED / APPROVED_FIRST_LEVEL (na čekanju)
-- 🟢 APPROVED (odobren)
-- 🔴 REJECTED (odbijen)
-- ⚪ DRAFT (nacrt)
-- ⚫ CANCELLED (otkazan)
-
-**Features:**
-- Quick search (po zaposleniku, datumu)
-- Advanced filters (status, odjel, godina, razlog nedostupnosti)
-- Column sorting
-- Quick actions (Pregledaj, Odobri/Odbij) per row
-- Pagination
-- Export u Excel/PDF (za managere)
-
-### 7.2.1 List Page - Zaposlenici (Employees)
+### 7.2 Dashboard - Manager/Odobravatelj
 
 **Layout:**
 ```
 ┌──────────────────────────────────────────────┐
-│  Zaposlenici              [Dodaj zaposlenika]│
+│  Team Dashboard                [Team Filter ▼]│
 ├──────────────────────────────────────────────┤
-│  [Search] [Filter: Odjel ▼] [Filter: Status ▼]│
+│  ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐│
+│  │ Pending│ │ On     │ │ Team   │ │ This   ││
+│  │ Appr.  │ │ Leave  │ │ Members│ │ Month  ││
+│  │   5    │ │   3    │ │   15   │ │   8    ││
+│  └────────┘ └────────┘ └────────┘ └────────┘│
 ├──────────────────────────────────────────────┤
+│  Pending Approvals                [Approve All]│
 │  ┌────────────────────────────────────────┐  │
-│  │ Ime      │ Email        │ Odjel │ Status│  │
-│  │──────────┼──────────────┼───────┼───────│  │
-│  │ John Doe │ john@...     │ IT    │ Akt. │  │
-│  │ Jane S.  │ jane@...     │ HR    │ Akt. │  │
-│  │ ...                                    │  │
+│  │ Employee   Date Range    Days  Actions │  │
+│  │ John Doe   Jan 15-19     5     [✓][✗] │  │
+│  │ Jane Smith Feb 10-14     5     [✓][✗] │  │
 │  └────────────────────────────────────────┘  │
 ├──────────────────────────────────────────────┤
-│  Showing 1-20 of 150    [< 1 2 3 ... 8 >]    │
+│  Team Planning                 [Week][Month]  │
+│  ┌────────────────────────────────────────┐  │
+│  │      Mon  Tue  Wed  Thu  Fri  Sat  Sun │  │
+│  │ John    ✓    ✓    🏖️   🏖️   🏖️   -    - │  │
+│  │ Jane    ✓    ✓    ✓    ✓    ✓    -    - │  │
+│  │ Mike    🤒   🤒   ✓    ✓    ✓    -    - │  │
+│  │ Sara    ✓    ✓    ✓    ✓    ✓    -    - │  │
+│  │ Tom     ✓    ✓    ✓    🏖️   🏖️   -    - │  │
+│  └────────────────────────────────────────┘  │
+│  Legend: ✓ Working | 🏖️ On Leave | 🤒 Sick  │
+└──────────────────────────────────────────────┘
+```
+
+### 7.3 List Page - Zahtjevi (Employee)
+
+**Layout:**
+```
+┌──────────────────────────────────────────────┐
+│  My Requests                    [New Request]│
+├──────────────────────────────────────────────┤
+│  [Search] [Status ▼] [Year ▼] [Type ▼]       │
+├──────────────────────────────────────────────┤
+│  ┌────────────────────────────────────────┐  │
+│  │ Status     Date Range    Days   Type   │  │
+│  │ [APPROVED] Jan 15-19     5      GO     │  │
+│  │ [PENDING]  Feb 10-14     5      GO     │  │
+│  │ [DRAFT]    Mar 05-08     4      GO     │  │
+│  │ [REJECTED] Apr 01-03     3      GO     │  │
+│  │ [APPROVED] May 20-24     5      SD     │  │
+│  └────────────────────────────────────────┘  │
+├──────────────────────────────────────────────┤
+│  Showing 1-5 of 12         [< 1 2 3 >]       │
 └──────────────────────────────────────────────┘
 ```
 
 **Features:**
-- Quick search (po imenu, prezimenu, emailu)
-- Advanced filters (odjel, status)
-- Column sorting
-- Quick actions (Uredi, Alokacije, Deaktiviraj) per row
-- Pagination
+- Quick search
+- Filter po statusu (Draft, Pending, Approved, Rejected)
+- Filter po godini
+- Filter po tipu nedostupnosti
+- Color-coded status badges
+- Quick actions (View, Edit za Draft)
 
-### 7.3 Detail/View Page - Zahtjev (Application Detail)
+### 7.4 List Page - Zahtjevi (Manager)
 
 **Layout:**
 ```
 ┌──────────────────────────────────────────────┐
-│  ← Natrag na zahtjeve              [Uredi]   │
+│  Team Requests                                │
 ├──────────────────────────────────────────────┤
-│  Zahtjev #1234                    [🟡 Čeka] │
-│  Zaposlenik: John Doe                        │
-│  Odjel: IT                                   │
+│  [Search] [Status: Pending ▼] [Employee ▼]   │
 ├──────────────────────────────────────────────┤
-│  [Detalji] [Povijest] [Komentari]            │
+│  [✓] Select All    [Bulk Approve]             │
 ├──────────────────────────────────────────────┤
-│  Detalji zahtjeva                            │
 │  ┌────────────────────────────────────────┐  │
-│  │ Razlog:     Godišnji odmor             │  │
-│  │ Početak:    10.01.2025                 │  │
-│  │ Završetak:  15.01.2025                 │  │
-│  │ Radnih dana: 4                         │  │
-│  │ Status:     SUBMITTED                  │  │
-│  │ Napomena:   Obiteljski odmor           │  │
+│  │ ☐ Employee    Date         Days Status │  │
+│  │ ☐ John Doe    Jan 15-19    5    PEND. │  │
+│  │              Remaining: 12/20           │  │
+│  │              [Approve] [Reject]         │  │
+│  │                                        │  │
+│  │ ☐ Jane Smith  Feb 10-14    5    PEND. │  │
+│  │              Remaining: 8/20            │  │
+│  │              [Approve] [Reject]         │  │
 │  └────────────────────────────────────────┘  │
-│                                              │
-│  Povijest promjena                           │
-│  ┌────────────────────────────────────────┐  │
-│  │ 12.12.2024 - Kreiran (DRAFT)           │  │
-│  │ 13.12.2024 - Poslan na odobrenje       │  │
-│  └────────────────────────────────────────┘  │
-│                                              │
-│  [Odobri] [Odbij] [Vrati na doradu]         │
+├──────────────────────────────────────────────┤
+│  Showing 1-5 of 15         [< 1 2 3 >]       │
 └──────────────────────────────────────────────┘
 ```
 
-### 7.3.1 Detail/View Page - Zaposlenik (Employee Detail)
+**Features:**
+- Vidi zahtjeve za svoj odjel
+- Bulk selection i odobravanje
+- Brzi uvid u preostale dane zaposlenika
+- Inline approve/reject akcije
+
+### 7.5 Detail Page - Request Detail
 
 **Layout:**
 ```
 ┌──────────────────────────────────────────────┐
-│  ← Natrag na zaposlenike           [Uredi]   │
+│  ← Back to Requests                [Edit]    │
 ├──────────────────────────────────────────────┤
-│  ┌────┐ John Doe                   [Aktivan]│
-│  │ JD │ john@example.com                     │
-│  └────┘ Odjel: IT                            │
-├──────────────────────────────────────────────┤
-│  [Profil] [Alokacije] [Zahtjevi] [Bolovanja] │
-├──────────────────────────────────────────────┤
-│  Osnovni podaci                              │
+│  Leave Request                   [APPROVED ▼]│
+│                                              │
+│  Request Information                         │
 │  ┌────────────────────────────────────────┐  │
-│  │ Ime:       John                        │  │
-│  │ Prezime:   Doe                         │  │
-│  │ Email:     john@example.com            │  │
-│  │ Odjel:     IT                          │  │
-│  │ Status:    Aktivan                     │  │
+│  │ Employee:      John Doe                │  │
+│  │ Type:          Annual Leave (GO)       │  │
+│  │ Date Range:    Jan 15 - Jan 19, 2025  │  │
+│  │ Working Days:  5 days                  │  │
+│  │ Note:          Family vacation         │  │
 │  └────────────────────────────────────────┘  │
 │                                              │
-│  Alokacije za 2025                           │
+│  Status Timeline                             │
 │  ┌────────────────────────────────────────┐  │
-│  │ Ukupno:    20 dana                     │  │
-│  │ Iskorišteno: 12 dana                   │  │
-│  │ Na čekanju: 3 dana                     │  │
-│  │ Preostalo:  5 dana                     │  │
+│  │ ✓ Created        Jan 5, 10:30 AM       │  │
+│  │   by John Doe                          │  │
+│  │                                        │  │
+│  │ ✓ Submitted      Jan 5, 10:32 AM       │  │
+│  │   by John Doe                          │  │
+│  │                                        │  │
+│  │ ✓ First Approved Jan 6, 2:15 PM        │  │
+│  │   by Mike Manager                      │  │
+│  │                                        │  │
+│  │ ✓ Approved       Jan 6, 3:45 PM        │  │
+│  │   by Sara Admin                        │  │
+│  │   Comment: Approved                    │  │
+│  └────────────────────────────────────────┘  │
+│                                              │
+│  Calendar Preview                            │
+│  ┌────────────────────────────────────────┐  │
+│  │  Mon  Tue  Wed  Thu  Fri  Sat  Sun    │  │
+│  │   13   14  [15] [16] [17]  18   19    │  │
+│  │                                        │  │
+│  │  [Green] = Approved leave days         │  │
 │  └────────────────────────────────────────┘  │
 └──────────────────────────────────────────────┘
 ```
 
-### 7.4 Create/Edit Form Page - Novi zahtjev
+### 7.6 Create/Edit Form - New Request
 
 **Layout:**
 ```
 ┌──────────────────────────────────────────────┐
-│  ← Natrag         Novi zahtjev                │
+│  ← Back         New Leave Request            │
 ├──────────────────────────────────────────────┤
 │  ┌────────────────────────────────────────┐  │
-│  │ Podaci zahtjeva                        │  │
+│  │ Request Details                        │  │
 │  │                                        │  │
-│  │ Razlog nedostupnosti *                 │  │
-│  │ [Godišnji odmor        ▼]              │  │
+│  │ Leave Type *                           │  │
+│  │ [Godišnji odmor (GO)    ▼]            │  │
 │  │                                        │  │
-│  │ Datum početka *                        │  │
-│  │ [📅 10.01.2025        ]                │  │
+│  │ Date Range *                           │  │
+│  │ Start: [📅 Select date]                │  │
+│  │ End:   [📅 Select date]                │  │
 │  │                                        │  │
-│  │ Datum završetka *                      │  │
-│  │ [📅 15.01.2025        ]                │  │
+│  │ Working Days: 5                        │  │
+│  │ (Excluding weekends and holidays)      │  │
 │  │                                        │  │
-│  │ Broj radnih dana: 4                    │  │
-│  │ (automatski izračunato)                │  │
+│  │ Your Remaining Days: 15/20             │  │
+│  │ After this request: 10                 │  │
 │  │                                        │  │
-│  │ Napomena                               │  │
-│  │ [                          ]           │  │
-│  │ [                          ]           │  │
+│  │ Note (optional)                        │  │
+│  │ [                              ]       │  │
+│  │ [                              ]       │  │
 │  └────────────────────────────────────────┘  │
 │                                              │
 │  ┌────────────────────────────────────────┐  │
-│  │ Pregled                                │  │
+│  │ Preview                                │  │
+│  │  Mon  Tue  Wed  Thu  Fri  Sat  Sun    │  │
+│  │   13   14  [15] [16] [17]  18   19    │  │
 │  │                                        │  │
-│  │ Preostali dani: 5                      │  │
-│  │ Traženi dani: 4                        │  │
-│  │ Preostalo nakon: 1                     │  │
-│  │                                        │  │
-│  │ ⚠️ Upozorenje: Uključuje vikend        │  │
+│  │  [Yellow] = Selected days              │  │
 │  └────────────────────────────────────────┘  │
 │                                              │
-│        [Odustani]  [Spremi kao draft]        │
-│                    [Pošalji na odobrenje]    │
+│         [Save as Draft]  [Submit Request]    │
 └──────────────────────────────────────────────┘
 ```
 
 **Validation:**
-- Real-time validation on blur
-- Inline error messages (preklapanje, nedovoljno dana)
-- Automatska kalkulacija radnih dana (isključujući vikende i praznike)
-- Prikaz preostalih dana u real-time
-- Disable submit dok nema validan form
-- Show loading state na button pri submitu
+- Real-time calculation of working days
+- Check preklapanja s postojećim zahtjevima
+- Check dostupnosti dana
+- Real-time validation on date change
+- Show warning ako nedovoljno dana
+- Disable submit ako invalid
 
-### 7.4.1 Create/Edit Form Page - Dodaj zaposlenika (Admin)
-
-**Layout:**
-```
-┌──────────────────────────────────────────────┐
-│  ← Natrag         Dodaj zaposlenika          │
-├──────────────────────────────────────────────┤
-│  ┌────────────────────────────────────────┐  │
-│  │ Osnovni podaci                         │  │
-│  │                                        │  │
-│  │ Ime *                                  │  │
-│  │ [                    ]                 │  │
-│  │                                        │  │
-│  │ Prezime *                              │  │
-│  │ [                    ]                 │  │
-│  │                                        │  │
-│  │ Email *                                │  │
-│  │ [                    ]                 │  │
-│  │                                        │  │
-│  │ Odjel                                  │  │
-│  │ [Odaberi odjel        ▼]               │  │
-│  └────────────────────────────────────────┘  │
-│                                              │
-│  ┌────────────────────────────────────────┐  │
-│  │ Godišnja alokacija                     │  │
-│  │                                        │  │
-│  │ Broj dana za 2025 *                    │  │
-│  │ [20                    ]               │  │
-│  │ (default: 20)                          │  │
-│  └────────────────────────────────────────┘  │
-│                                              │
-│              [Odustani]  [Spremi]            │
-└──────────────────────────────────────────────┘
-```
-
-### 7.5 Planning Page - Tablični kalendar (Manager/Admin)
+### 7.7 Admin - Employees List
 
 **Layout:**
 ```
 ┌──────────────────────────────────────────────┐
-│  Planiranje odmora        [Tjedan ▼] [Filter]│
+│  Employees                    [Add Employee] │
 ├──────────────────────────────────────────────┤
-│  [← Prethodni] 10.01.2025 - 16.01.2025 [Sljedeći →]│
+│  [Search] [Department ▼] [Status ▼]          │
 ├──────────────────────────────────────────────┤
-│  ┌──────────┬─────┬─────┬─────┬─────┬─────┬─────┐│
-│  │Zaposlenik│ 10  │ 11  │ 12  │ 13  │ 14  │ 15  ││
-│  ├──────────┼─────┼─────┼─────┼─────┼─────┼─────┤│
-│  │John Doe  │ 🟢  │ 🟢  │ 🟢  │ 🟢  │     │     ││
-│  │Jane Smith│     │     │ 🟡  │ 🟡  │ 🟡  │ 🟡  ││
-│  │Bob Wilson│ 🟠  │ 🟠  │     │     │     │     ││
-│  │...       │     │     │     │     │     │     ││
-│  └──────────┴─────┴─────┴─────┴─────┴─────┴─────┘│
+│  ┌────────────────────────────────────────┐  │
+│  │ Name        Dept      Days   Status    │  │
+│  │ John Doe    IT        12/20  Active    │  │
+│  │ Jane Smith  HR        8/20   Active    │  │
+│  │ Mike Brown  Finance   15/22  Active    │  │
+│  │ Sara White  IT        20/20  Active    │  │
+│  └────────────────────────────────────────┘  │
 ├──────────────────────────────────────────────┤
-│  Legenda:                                    │
-│  🟢 Odobren godišnji odmor                    │
-│  🟡 Zahtjev na čekanju                       │
-│  🟠 Bolovanje                                │
-│  ⚪ Vikend/Praznik                           │
+│  Showing 1-20 of 85     [< 1 2 3 ... 5 >]    │
 └──────────────────────────────────────────────┘
 ```
 
 **Features:**
-- Tjedni/mjesečni/custom prikaz
-- Klik na ćeliju → prikaz detalja zahtjeva
-- Vizualni indikatori kritičnih razdoblja (previše ljudi na odmoru)
-- Export u Excel/PDF
+- Quick search po imenu ili emailu
+- Filter po odjelu
+- Filter po statusu (Active/Inactive)
+- Quick view preostalih dana
+- Quick actions (Edit, Deactivate, View)
 
-### 7.5.1 Settings Page (Admin)
+### 7.8 Admin - Department Management
+
+**Layout:**
+```
+┌──────────────────────────────────────────────┐
+│  Departments                 [Add Department]│
+├──────────────────────────────────────────────┤
+│  ┌────────────────────────────────────────┐  │
+│  │ IT Department                          │  │
+│  │ 15 employees | 2 managers              │  │
+│  │                                        │  │
+│  │ Managers: Mike Manager, Sara Admin     │  │
+│  │                                        │  │
+│  │ [View Team] [Edit] [Manage Managers]   │  │
+│  └────────────────────────────────────────┘  │
+│                                              │
+│  ┌────────────────────────────────────────┐  │
+│  │ HR Department                          │  │
+│  │ 8 employees | 1 manager                │  │
+│  │                                        │  │
+│  │ Managers: Jane Lead                    │  │
+│  │                                        │  │
+│  │ [View Team] [Edit] [Manage Managers]   │  │
+│  └────────────────────────────────────────┘  │
+└──────────────────────────────────────────────┘
+```
+
+### 7.9 Admin - Holiday Calendar
+
+**Layout:**
+```
+┌──────────────────────────────────────────────┐
+│  Holidays Calendar 2025         [Add Holiday]│
+├──────────────────────────────────────────────┤
+│  [Year: 2025 ▼]      [Import from Template] │
+├──────────────────────────────────────────────┤
+│  ┌────────────────────────────────────────┐  │
+│  │ Date          Name           Recurring │  │
+│  │ Jan 1         New Year       ✓         │  │
+│  │ Jan 6         Epiphany       ✓         │  │
+│  │ Apr 18        Good Friday    -         │  │
+│  │ Apr 21        Easter Monday  -         │  │
+│  │ May 1         Labour Day     ✓         │  │
+│  │ May 30        Statehood Day  ✓         │  │
+│  │ Jun 22        Anti-Fascist   ✓         │  │
+│  │ Aug 5         Victory Day    ✓         │  │
+│  │ Aug 15        Assumption     ✓         │  │
+│  │ Oct 8         Independence   ✓         │  │
+│  │ Nov 1         All Saints     ✓         │  │
+│  │ Dec 25-26     Christmas      ✓         │  │
+│  └────────────────────────────────────────┘  │
+└──────────────────────────────────────────────┘
+```
+
+### 7.10 Manager - Team Planning (Tablični prikaz)
+
+**Layout:**
+```
+┌──────────────────────────────────────────────────────────────┐
+│  Team Planning                [Week][Month][Custom]  [Export]│
+├──────────────────────────────────────────────────────────────┤
+│  February 2025                              [◀ Prev  Next ▶] │
+├──────────────────────────────────────────────────────────────┤
+│  Employee      10  11  12  13  14  15  16  17  18  19  20... │
+│               Mon Tue Wed Thu Fri Sat Sun Mon Tue Wed Thu    │
+│  ─────────────────────────────────────────────────────────── │
+│  John Doe       ✓   ✓   ✓   ✓   ✓   -   -   🏖️  🏖️  🏖️  🏖️│
+│  Jane Smith     ✓   ✓   ✓   ✓   ✓   -   -   ✓   ✓   ✓   ✓ │
+│  Mike Brown     🤒  🤒  ✓   ✓   ✓   -   -   ✓   ✓   ✓   ✓ │
+│  Sara White     ✓   ✓   🏖️  🏖️  🏖️  -   -   ✓   ✓   ✓   ✓ │
+│  Tom Green      ✓   ✓   ✓   ✓   ✓   -   -   ✓   ⏳  ⏳  ⏳ │
+│  Amy Blue       ✓   ✓   ✓   ✓   ✓   -   -   ✓   ✓   ✓   ✓ │
+│  ─────────────────────────────────────────────────────────── │
+│  On Leave       1   1   2   2   2   -   -   1   2   2   2  │
+│  Available      5   5   4   4   4   -   -   5   4   4   4  │
+└──────────────────────────────────────────────────────────────┘
+
+Legend:
+✓ Working    🏖️ On Leave    🤒 Sick Leave    ⏳ Pending    - Weekend/Holiday
+```
+
+**Features:**
+- Scroll horizontalno za duža razdoblja
+- Color-coded cells za brzi pregled
+- Bottom row pokazuje availability count
+- Klik na cell pokazuje details
+- Warning indicator ako previše ljudi na leave
+- Export opcije (PDF, Excel)
+
+### 7.11 Settings Page
 
 **Layout: Tab-based**
 ```
 ┌──────────────────────────────────────────────┐
-│  Postavke                                    │
+│  Settings                                    │
 ├──────────────────────────────────────────────┤
-│  [Organizacija] [Razlozi nedostupnosti]     │
+│  [Organisation] [Leave Types] [Notifications]│
 ├──────────────────────────────────────────────┤
-│  Organizacija                                │
+│  Organisation Settings                       │
 │                                              │
 │  ┌────────────────────────────────────────┐  │
-│  │ Osnovni podaci                         │  │
+│  │ Company Information                    │  │
 │  │                                        │  │
-│  │ Naziv organizacije                     │  │
+│  │ Organisation Name                      │  │
 │  │ [                    ]                 │  │
 │  │                                        │  │
-│  │ Logo                                   │  │
+│  │ Organisation Logo                      │  │
 │  │ [Upload or drag & drop]               │  │
+│  │                                        │  │
+│  │ Timezone                               │  │
+│  │ [Europe/Zagreb      ▼]                 │  │
 │  └────────────────────────────────────────┘  │
 │                                              │
 │  ┌────────────────────────────────────────┐  │
-│  │ Razlozi nedostupnosti                  │  │
+│  │ Leave Policies                         │  │
 │  │                                        │  │
-│  │ [Lista razloga s opcijama]             │  │
-│  │ - Godišnji odmor                       │  │
-│  │ - Bolovanje                            │  │
-│  │ - Edukacija                            │  │
-│  │ [+ Dodaj novi razlog]                  │  │
+│  │ Default Annual Leave Days              │  │
+│  │ [20                  ]                 │  │
+│  │                                        │  │
+│  │ Carry Over Policy                      │  │
+│  │ ☐ Allow carry over to next year       │  │
+│  │ ☐ Auto-transfer unused days           │  │
 │  └────────────────────────────────────────┘  │
 │                                              │
-│                       [Spremi promjene]      │
+│                       [Save Changes]         │
 └──────────────────────────────────────────────┘
 ```
 
@@ -1093,34 +1177,46 @@ xl: 1280px  /* Desktops */
 - Success badges/icons
 
 **Examples:**
-- "User created successfully"
+- "Request submitted successfully"
+- "Request approved"
+- "Request rejected"
+- "Employee added successfully"
+- "Department created"
+- "Holiday added to calendar"
 - "Settings saved"
-- "Password changed"
-- "Email sent"
+- "Allocation updated"
 
 ## 14. Onboarding & First-Run Experience
 
-### 14.1 Initial Setup Wizard
+### 14.1 Initial Setup Wizard (Admin)
 
 **Steps:**
 1. Welcome screen
-2. Company information
-3. Invite team members
-4. Choose subscription plan
-5. Success screen
+2. Organisation information (name, logo, timezone)
+3. Add departments
+4. Add first employees
+5. Configure leave types
+6. Add holidays for current year
+7. Success screen
 
 **Design:**
 - Progress indicator (steps)
 - Clear next/back buttons
 - Skip option (za kasnije)
-- Helpful tips/hints
+- Helpful tips/hints per step
 
-### 14.2 Product Tours
+### 14.2 First Login - Employee
 
 **When to show:**
-- First login
-- New feature releases
-- On-demand (Help menu)
+- First login nakon što je admin kreirao račun
+- Brief introduction to key features
+
+**Flow:**
+1. Welcome message
+2. Quick tour of dashboard
+3. How to create a leave request
+4. How to check remaining days
+5. Done
 
 **Implementation:**
 - Spotlight on feature
@@ -1128,132 +1224,89 @@ xl: 1280px  /* Desktops */
 - Next/Skip buttons
 - Dot indicator (step 1 of 5)
 
-### 14.3 Empty States
+### 14.3 First Login - Manager
 
-**First-time states:**
-- Friendly illustration
-- Encouraging message
-- Clear call-to-action
-- Link do documentation
+**Additional steps za managere:**
+1. Welcome + role explanation
+2. Pending approvals location
+3. Team planning view
+4. How to approve/reject requests
+5. Done
 
-## 15. Specifične komponente za Luna projekt
+### 14.4 Empty States
 
-### 15.1 Status Badge-ovi za zahtjeve
+**Zaposlenici - No requests yet:**
+- Illustration: Calendar with checkmark
+- Heading: "No leave requests yet"
+- Description: "Create your first leave request to get started"
+- CTA: "Create Request" button
+- Link: "Learn more about leave policies"
 
-**Statusi:**
-```tsx
-// DRAFT - Nacrt
-<Badge variant="neutral">Nacrt</Badge>
+**Manager - No pending approvals:**
+- Illustration: Checkmark with celebration
+- Heading: "All caught up!"
+- Description: "No pending approvals at the moment"
+- Alternative: "View all requests" link
 
-// SUBMITTED - Poslan na odobrenje
-<Badge variant="warning">Na čekanju</Badge>
+**Admin - No employees:**
+- Illustration: Team/people icon
+- Heading: "No employees yet"
+- Description: "Add your first employee to get started"
+- CTA: "Add Employee" button
+- Link: "Import from CSV"
 
-// APPROVED_FIRST_LEVEL - Odobren prvi nivo
-<Badge variant="info">Odobren (1. nivo)</Badge>
-
-// APPROVED - Konačno odobren
-<Badge variant="success">Odobren</Badge>
-
-// REJECTED - Odbijen
-<Badge variant="danger">Odbijen</Badge>
-
-// CANCELLED - Otkazan
-<Badge variant="neutral">Otkazan</Badge>
-```
-
-### 15.2 Kalendarski prikaz zahtjeva
-
-**Komponenta:** Calendar Widget
-- Mjesečni/tjedni prikaz
-- Boje za različite statuse:
-  - Zeleno: Odobreni zahtjevi
-  - Žuto: Zahtjevi na čekanju
-  - Narančasto: Bolovanja
-  - Sivo: Vikendi/praznici
-- Klik na dan → prikaz detalja zahtjeva
-- Hover → tooltip s informacijama
-
-### 15.3 Tablični prikaz planiranja
-
-**Komponenta:** Planning Table
-- Retci: Zaposlenici
-- Stupci: Dani u razdoblju
-- Ćelije: Status za svaki dan
-- Boje:
-  - 🟢 Zeleno: Odobren godišnji odmor
-  - 🟡 Žuto: Zahtjev na čekanju
-  - 🟠 Narančasto: Bolovanje
-  - ⚪ Sivo: Vikend/praznik
-- Klik na ćeliju → popup s detaljima
-- Scrollable horizontalno za duža razdoblja
-
-### 15.4 Alokacije prikaz
-
-**Komponenta:** Allocation Card
-- Prikaz za svaku godinu
-- Metrike:
-  - Ukupno dodijeljeno
-  - Iskorišteno
-  - Na čekanju
-  - Preostalo
-- Progress bar za vizualni prikaz
-- Povijest ledger entries (opciono expandable)
-
-### 15.5 Odobravanje zahtjeva - Quick Actions
-
-**Komponenta:** Approval Actions
-- Inline akcije u listi zahtjeva
-- Gumbi: [Odobri] [Odbij] [Vrati]
-- Modal za unos komentara (obavezno za odbijanje)
-- Confirmation dialog za kritične akcije
-
-## 16. Wireframes (Text-based)
+## 15. Wireframes (Text-based)
 
 ### Employee Dashboard - Desktop
 ```
 +----------------------------------------------------------+
-| 🏠 Dashboard    🔍 Search    🔔 3    👤 Admin ▼          |
-+--------+------------------------------------------------+
-| 📊 Dash|  Dashboard                        📅 Filter  |
-| 👥 User+------------------------------------------------+
-| 👔 Team|  📊 1,234      👥 1,089    🆕 15    💰 $5.2K |
-| 🔐 Role|   Total        Active    New Today  Revenue   |
-| 📄 Bill+-------------------+---------------------------+
-| 📊 Anal|  📈 User Growth  |  📋 Recent Activity      |
-| 📢 Noti|                  |  • User X joined         |
-| 🔧 Sett|  [Line Chart]    |  • Invoice paid          |
-|        |                  |  • User Y updated        |
-+--------+------------------+--------------+-------------+
-         |  Recent Users                   |             |
-         |  Name      Email      Status    | Actions     |
-         |  John      j@ex.com   Active    | ⋮          |
-         |  Jane      jane@...   Active    | ⋮          |
-         +----------------------------------+-------------+
+| 🏠 Dashboard    🔍 Search    🔔 2    👤 John Doe ▼       |
++--------+-------------------------------------------------+
+| 📝 New |  My Dashboard                    2025          |
+| 📋 Requ+------------------+-----------------------------+
+| 📅 Cal | 📊 Total: 20     | 📉 Used: 8   | ⏳ Pend: 3 |
+| ─────  |                  |              | ✅ Rem: 9  |
+| 👥 Team+------------------+--------------+--------------+
+| ✓ Pend | My Requests                      [New Request]|
+| 📊 Plan+--------------------------------------------------+
+| 📈 Rep | Status     Date Range     Days    Actions      |
+|        | [APPROVED] Jan 15-19      5       [View]       |
+|        | [PENDING]  Feb 10-14      5       [View]       |
+|        | [DRAFT]    Mar 05-08      4       [Edit]       |
++--------+--------------------------------------------------+
+         | Calendar - My Leave             [Month View ▼] |
+         |  S  M  T  W  T  F  S                           |
+         |        1  2  3  4  5   Jan 2025                |
+         |  6  7  8  9 10 11 12                           |
+         | 13 14 [15][16][17]18 19  [15-17] = Approved   |
+         | 20 21 22 23 24 25 26                           |
+         +------------------------------------------------+
 ```
 
 ### Manager Dashboard - Desktop
 ```
 +----------------------------------------------------------+
-|| 🏠 Luna    🔍 Search    🔔 5    👤 Manager ▼           |
-+--------+------------------------------------------------+
-|| 📊 Dash|  Dashboard                           [Filter]|
-|| ✅ Odob+------------------------------------------------+
-|| 📝 Zaht|  ┌────────┐ ┌────────┐ ┌────────┐ ┌────────┐|
-|| 👥 Zap |  │Zahtjevi│ │Odobreni│ │Odbijeni│ │Bolovanja│|
-|| 🏥 Bol |  │na ček. │ │  (mjes)│ │  (mjes)│ │ aktivna│|
-|| 📊 Alok|  │   5    │ │   12   │ │    2   │ │    3   │|
-|| 📅 Plan+--+--------+----------+----------+----------+
-|| 👤 Prof|  ┌────────────────────┐ ┌──────────────────┐ |
-||        |  │ Zahtjevi na čekanju│ │ Kritična razdoblja│ |
-||        |  │                    │ │                  │ |
-||        |  │  [Lista zahtjeva]  │ │  - 15.01: 8/25   │ |
-||        |  │                    │ │    ljudi na odmoru│ |
-||        +--+--------------------+---------------------+
-||        |  ┌────────────────────────────────────────┐  |
-||        |  │ Planiranje odmora (tablični prikaz)   │  |
-||        |  │  [Tablični kalendar - tjedan/mjesec]  │  |
-||        +--+----------------------------------------+
-+--------+------------------------------------------------+
+| 🏠 Team Dashboard    🔍        🔔 5    👤 Manager ▼       |
++--------+-------------------------------------------------+
+| 📝 New |  Team Dashboard        [Department: IT ▼]      |
+| 📋 Requ+------------------+-----------------------------+
+| 📅 Cal | 📊 Pending: 5    | 👥 On Leave: 3 | Total: 15|
+| ─────  +------------------+-----------------------------+
+| 👥 Team| Pending Approvals              [Approve All ▼] |
+| ✓ Pend +--------------------------------------------------+
+| 📊 Plan| Employee      Date Range    Days   Actions      |
+| 📈 Rep | John Doe      Jan 15-19     5      [✓][✗]      |
+|        | Remaining: 12/20                               |
+|        | Jane Smith    Feb 10-14     5      [✓][✗]      |
++--------| Remaining: 8/20         +----------------------+
+         |                                                |
+         | Team Planning                   [Week][Month] |
+         | Employee   Mon Tue Wed Thu Fri Sat Sun        |
+         | John       ✓   ✓   🏖️  🏖️  🏖️  -   -         |
+         | Jane       ✓   ✓   ✓   ✓   ✓   -   -         |
+         | Mike       🤒  🤒  ✓   ✓   ✓   -   -         |
+         | Sara       ✓   ✓   ✓   ✓   ✓   -   -         |
+         +------------------------------------------------+
 ```
 
 ### Mobile View - Employee
@@ -1262,37 +1315,235 @@ xl: 1280px  /* Desktops */
 | ☰  Dashboard    🔔 👤  |
 +------------------------+
 |                        |
-| 📊 Total Users         |
-| 1,234                  |
-| +12% from last month   |
+| 📊 Total Days          |
+| 20 days                |
++------------------------+
+| 📉 Used Days           |
+| 8 days                 |
++------------------------+
+| ⏳ Pending             |
+| 3 days                 |
++------------------------+
+| ✅ Remaining           |
+| 9 days                 |
 +------------------------+
 |                        |
-| 👥 Active Users        |
-| 1,089                  |
-| +5% from last month    |
-+------------------------+
-| ... more cards ...     |
-+------------------------+
-| Recent Users           |
+| [➕ New Request]       |
 |                        |
-| [Card View]            |
-| John Doe               |
-| john@example.com       |
-| Status: Active         |
-| [View]                 |
++------------------------+
+| My Requests            |
+|                        |
+| ┌────────────────────┐ |
+| │ APPROVED           │ |
+| │ Jan 15-19, 2025    │ |
+| │ 5 days             │ |
+| │ [View Details]     │ |
+| └────────────────────┘ |
+|                        |
+| ┌────────────────────┐ |
+| │ PENDING            │ |
+| │ Feb 10-14, 2025    │ |
+| │ 5 days             │ |
+| │ [View Details]     │ |
+| └────────────────────┘ |
++------------------------+
+```
+
+### Mobile View - Manager
+```
++------------------------+
+| ☰  Team Dashboard 🔔 👤|
++------------------------+
+|                        |
+| 📊 Pending Approvals   |
+| 5 requests             |
++------------------------+
+| 👥 Team On Leave       |
+| 3 employees            |
++------------------------+
+|                        |
+| Pending Approvals      |
+|                        |
+| ┌────────────────────┐ |
+| │ John Doe           │ |
+| │ Jan 15-19 (5 days) │ |
+| │ Remaining: 12/20   │ |
+| │                    │ |
+| │ [Approve] [Reject] │ |
+| └────────────────────┘ |
+|                        |
+| ┌────────────────────┐ |
+| │ Jane Smith         │ |
+| │ Feb 10-14 (5 days) │ |
+| │ Remaining: 8/20    │ |
+| │                    │ |
+| │ [Approve] [Reject] │ |
+| └────────────────────┘ |
++------------------------+
+| [View All Requests]    |
++------------------------+
+```
+
+### New Request Form - Mobile
+```
++------------------------+
+| ← Back  New Request    |
++------------------------+
+|                        |
+| Leave Type *           |
+| [Godišnji odmor ▼]    |
+|                        |
+| Start Date *           |
+| [📅 Jan 15, 2025]      |
+|                        |
+| End Date *             |
+| [📅 Jan 19, 2025]      |
+|                        |
+| ┌────────────────────┐ |
+| │ Working Days: 5    │ |
+| │ Remaining: 15/20   │ |
+| │ After: 10 days     │ |
+| └────────────────────┘ |
+|                        |
+| Note (optional)        |
+| [                   ]  |
+| [                   ]  |
+|                        |
+| Preview                |
+| Mon Tue Wed Thu Fri    |
+| [15][16][17][18][19]   |
+|                        |
++------------------------+
+| [Save Draft]           |
+| [Submit Request]       |
 +------------------------+
 ```
 
 ## 16. UI Component Library Recommendation
 
-**Option A: shadcn/ui + Tailwind**
+**Option A: shadcn/ui + Tailwind** ⭐ PREPORUČENO
 - Pros: Highly customizable, modern, copy-paste components
 - Best for: Custom designs, full control
+- Luna specifics: Odlično za custom calendar komponente i complex forms
 
+**Option B: Material-UI (MUI)**
+- Pros: Comprehensive, battle-tested, great documentation
+- Best for: Faster development, enterprise feel
+- Luna specifics: Dobar built-in date picker, ali manje fleksibilan za custom calendar view
 
-**Preporuka za ovaj projekt: shadcn/ui + Tailwind**
-- Maximum flexibility
-- Modern aesthetics
+**Option C: Ant Design**
+- Pros: Rich component set, good for admin panels, excellent table components
+- Best for: Data-heavy applications
+- Luna specifics: Odličan za tablične preglede (Team Planning), ali veći bundle size
+
+**Preporuka za Luna projekt: shadcn/ui + Tailwind**
+
+**Razlozi:**
+- Maximum flexibility za custom calendar komponente
+- Modern aesthetics koji odgovara modernoj admin aplikaciji
 - Great developer experience
-- Easy customization
+- Easy customization za team planning view
+- Lightweight - brzi load timovi
+- Excellent TypeScript support
 
+**Dodatne biblioteke za razmotriti:**
+- **Date/Calendar:** `react-day-picker` ili `date-fns` za date manipulaciju
+- **Tables:** `@tanstack/react-table` za napredne table features (sorting, filtering)
+- **Forms:** `react-hook-form` + `zod` za validation
+- **Charts** (ako potrebno): `recharts` ili `chart.js`
+- **Export:** `xlsx` za Excel export, `jspdf` za PDF
+
+## 17. Luna-Specific UX Considerations
+
+### 17.1 Leave Request Validation
+
+**Real-time feedback:**
+- Dok korisnik odabire datume, odmah show:
+  - Broj radnih dana
+  - Preostali dani nakon ovog zahtjeva
+  - Upozorenja ako ima preklapanja
+  - Warning ako nedovoljno dana
+
+**Visual indicators:**
+- ✓ Zeleno: Sve OK, može submitati
+- ⚠️ Žuto: Upozorenje (npr. overlap warning)
+- ✗ Crveno: Error, ne može submitati
+
+### 17.2 Approval Workflow UX
+
+**Efficient approvals:**
+- Bulk approve opcija
+- Quick approve s jednim klikom
+- Inline reject s required reason
+- Keyboard shortcuts (A = approve, R = reject)
+
+**Context pri odobrenju:**
+- Vidi preostale dane zaposlenika
+- Vidi team calendar (koliko ljudi je već na odmoru)
+- Vidi history (da li zaposlenik često traži last-minute)
+
+### 17.3 Calendar Interactions
+
+**Navigation:**
+- Smooth transitions između mjeseci
+- Quick jump to today
+- Jump to specific date
+- Week numbers opciono
+
+**Mobile considerations:**
+- Swipe between months
+- Tap to select dates
+- Long press for details
+- Bottom sheet za details umjesto modala
+
+### 17.4 Notifications Strategy
+
+**Priority levels:**
+- 🔴 High: Zahtjev odbijen, Important system message
+- 🟡 Medium: Zahtjev odobren, Pending approval reminder
+- 🟢 Low: Draft saved, General updates
+
+**Channels:**
+- In-app notifications (real-time)
+- Email (digest ili immediate, user preference)
+- Optional: Push notifications za mobile
+
+### 17.5 Performance Considerations
+
+**Critical paths:**
+- Dashboard load < 1s
+- Calendar render < 500ms
+- Form interactions < 100ms latency
+
+**Optimization strategies:**
+- Lazy load team planning za velike timove
+- Virtual scrolling za long employee lists
+- Infinite scroll za request history
+- Cache frequently accessed data (holidays, employee list)
+
+### 17.6 Accessibility for Luna
+
+**Specific considerations:**
+- Calendar navigation mora biti fully keyboard accessible
+- Screen reader announcements za status changes
+- Color blindness: Ne samo color coding, use icons/patterns
+- High contrast mode support
+- Text alternatives za sve status indicators
+
+**ARIA labels primjeri:**
+```tsx
+<button aria-label="Approve leave request for John Doe, 5 days">
+  Approve
+</button>
+
+<div role="status" aria-live="polite">
+  Request approved successfully
+</div>
+```
+
+---
+
+**Dokument pripremljen za:** Luna - Sustav za godišnji odmor  
+**Verzija:** 1.0  
+**Datum:** 2024  
+**Status:** Za development reference
