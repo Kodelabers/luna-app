@@ -131,6 +131,8 @@ export interface Application {
   createdById: number;
   updatedAt: Date;
   lastUpdatedById?: number;
+  managerComment?: string; // Komentar managera (za odobrenje ili odbijanje)
+  rejectionComment?: string; // Razlog odbijanja (ako je odbijen)
 }
 
 export interface UnavailabilityLedgerEntry {

@@ -7,14 +7,19 @@ import {
   UnavailabilityLedgerEntry,
   LedgerEntryType,
   MockUser,
+  DaySchedule,
+  DayCode,
+  EmployeeStatus,
 } from "@/lib/types";
 import {
   mockApplications,
   mockLedgerEntries,
   mockUnavailabilityReasons,
+  mockDaySchedules,
+  mockHolidays,
 } from "@/lib/mock-data/generator";
-import { calculateWorkingDays } from "@/lib/utils/workdays";
-import { mockHolidays } from "@/lib/mock-data/generator";
+import { generateDateRange, isWeekend, isDateInRange } from "@/lib/utils/dates";
+import { isHoliday, calculateWorkingDays } from "@/lib/utils/workdays";
 import {
   canApprove,
   canReject,
@@ -25,6 +30,7 @@ import { formatDateRange } from "@/lib/utils/dates";
 
 const STORAGE_KEY_APPLICATIONS = "luna_mock_applications";
 const STORAGE_KEY_LEDGER = "luna_mock_ledger";
+const STORAGE_KEY_DAYSCHEDULE = "luna_mock_dayschedule";
 
 /**
  * Hook for managing applications with state
@@ -127,14 +133,15 @@ export function useMockApplications() {
 
 /**
  * Hook that provides approval functions
- * Must be used together with useMockApplications and useMockLedgerEntries
+ * Must be used together with useMockApplications, useMockLedgerEntries, and useMockDaySchedules
  */
 export function useApprovalActions(
   applications: Application[],
   updateApplication: (id: number, data: Partial<Application>) => void,
   createLedgerEntry: (
     data: Omit<UnavailabilityLedgerEntry, "id" | "createdAt">
-  ) => UnavailabilityLedgerEntry
+  ) => UnavailabilityLedgerEntry,
+  createDaySchedulesForApplication?: (application: Application) => DaySchedule[]
 ) {
   const approveApplication = useCallback(
     (
@@ -171,13 +178,14 @@ export function useApprovalActions(
         manager.role as "DEPARTMENT_MANAGER" | "GENERAL_MANAGER"
       );
 
-      // Update application
+      // Update application with manager comment if provided
       updateApplication(applicationId, {
         status: newStatus,
         lastUpdatedById: manager.employeeId,
+        managerComment: comment || undefined,
       });
 
-      // Create ledger entry if needed
+      // Create ledger entry if needed (only for APPROVED status with hasPlanning=true)
       if (shouldCreateLedgerEntry(newStatus, reason)) {
         const year = new Date(application.startDate).getFullYear();
         createLedgerEntry({
@@ -194,11 +202,21 @@ export function useApprovalActions(
           )}`,
           createdById: manager.employeeId,
         });
+
+        // Create DaySchedule entries for APPROVED applications with hasPlanning=true
+        // DaySchedule is only created for final approval (APPROVED), not for APPROVED_FIRST_LEVEL
+        if (
+          newStatus === ApplicationStatus.APPROVED &&
+          reason.hasPlanning &&
+          createDaySchedulesForApplication
+        ) {
+          createDaySchedulesForApplication(application);
+        }
       }
 
       return { success: true };
     },
-    [applications, updateApplication, createLedgerEntry]
+    [applications, updateApplication, createLedgerEntry, createDaySchedulesForApplication]
   );
 
   const rejectApplication = useCallback(
@@ -229,10 +247,12 @@ export function useApprovalActions(
         };
       }
 
-      // Update application
+      // Update application with rejection comment
       updateApplication(applicationId, {
         status: ApplicationStatus.REJECTED,
         lastUpdatedById: manager.employeeId,
+        rejectionComment: comment,
+        managerComment: comment, // Also store in managerComment for consistency
       });
 
       return { success: true };
@@ -305,6 +325,157 @@ export function useMockLedgerEntries() {
   return {
     ledgerEntries,
     createLedgerEntry,
+  };
+}
+
+/**
+ * Helper function to get DayCode from date
+ */
+function getDayCode(date: Date): DayCode {
+  const day = date.getDay();
+  switch (day) {
+    case 0:
+      return DayCode.SUN;
+    case 1:
+      return DayCode.MON;
+    case 2:
+      return DayCode.TUE;
+    case 3:
+      return DayCode.WED;
+    case 4:
+      return DayCode.THU;
+    case 5:
+      return DayCode.FRI;
+    case 6:
+      return DayCode.SAT;
+    default:
+      return DayCode.MON;
+  }
+}
+
+/**
+ * Hook for managing DaySchedule entries with state
+ */
+export function useMockDaySchedules() {
+  const [daySchedules, setDaySchedules] = useState<DaySchedule[]>(() => {
+    if (typeof window === "undefined") {
+      return mockDaySchedules;
+    }
+
+    const stored = localStorage.getItem(STORAGE_KEY_DAYSCHEDULE);
+    if (stored) {
+      try {
+        const parsed = JSON.parse(stored);
+        // Convert date strings back to Date objects
+        return parsed.map((entry: any) => ({
+          ...entry,
+          date: new Date(entry.date),
+          createdAt: new Date(entry.createdAt),
+          updatedAt: new Date(entry.updatedAt),
+        }));
+      } catch {
+        return mockDaySchedules;
+      }
+    }
+    return mockDaySchedules;
+  });
+
+  // Save to localStorage whenever day schedules change
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem(STORAGE_KEY_DAYSCHEDULE, JSON.stringify(daySchedules));
+    }
+  }, [daySchedules]);
+
+  const createDaySchedule = useCallback(
+    (
+      data: Omit<DaySchedule, "id" | "createdAt" | "updatedAt">
+    ): DaySchedule => {
+      const newId =
+        daySchedules.length > 0
+          ? Math.max(...daySchedules.map((ds) => ds.id), 0) + 1
+          : 1;
+
+      const newEntry: DaySchedule = {
+        ...data,
+        id: newId,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      setDaySchedules((prev) => [...prev, newEntry]);
+      return newEntry;
+    },
+    [daySchedules]
+  );
+
+  const createDaySchedulesForApplication = useCallback(
+    (application: Application): DaySchedule[] => {
+      const dates = generateDateRange(application.startDate, application.endDate);
+      const entries: DaySchedule[] = [];
+
+      for (const date of dates) {
+        const weekend = isWeekend(date);
+        const holiday = isHoliday(date, mockHolidays);
+
+        // Only create entries for working days (not weekends or holidays)
+        // But we still create entries for all days to track the full period
+        // The status will be NOT_AVAILABLE for all days in the range
+        const entry = createDaySchedule({
+          organisationId: application.organisationId,
+          employeeId: application.employeeId,
+          applicationId: application.id,
+          unavailabilityReasonId: application.unavailabilityReasonId,
+          date: new Date(date),
+          dayCode: getDayCode(date),
+          isWeekend: weekend,
+          isHoliday: holiday,
+          status: EmployeeStatus.NOT_AVAILABLE,
+          active: true,
+        });
+
+        entries.push(entry);
+      }
+
+      return entries;
+    },
+    [createDaySchedule]
+  );
+
+  const deleteDaySchedulesForApplication = useCallback(
+    (applicationId: number): void => {
+      setDaySchedules((prev) =>
+        prev.filter((ds) => ds.applicationId !== applicationId)
+      );
+    },
+    []
+  );
+
+  const findOverlappingDaySchedules = useCallback(
+    (
+      employeeId: number,
+      startDate: Date,
+      endDate: Date,
+      excludeApplicationId?: number
+    ): DaySchedule[] => {
+      return daySchedules.filter(
+        (ds) =>
+          ds.employeeId === employeeId &&
+          ds.active &&
+          ds.status === EmployeeStatus.NOT_AVAILABLE &&
+          ds.applicationId !== excludeApplicationId &&
+          isDateInRange(ds.date, startDate, endDate)
+      );
+    },
+    [daySchedules]
+  );
+
+  return {
+    daySchedules,
+    createDaySchedule,
+    createDaySchedulesForApplication,
+    deleteDaySchedulesForApplication,
+    findOverlappingDaySchedules,
   };
 }
 

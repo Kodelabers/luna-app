@@ -139,7 +139,17 @@ export default function EmployeeRequestsPage() {
                         <TableCell className="font-medium">
                           {app.requestedWorkdays}
                         </TableCell>
-                        <TableCell>{getStatusBadge(app.status)}</TableCell>
+                        <TableCell>
+                          <div className="flex flex-col gap-1">
+                            {getStatusBadge(app.status)}
+                            {app.status === ApplicationStatus.REJECTED &&
+                              app.rejectionComment && (
+                                <p className="text-xs text-muted-foreground italic">
+                                  Razlog: {app.rejectionComment}
+                                </p>
+                              )}
+                          </div>
+                        </TableCell>
                         <TableCell className="text-muted-foreground">
                           {new Date(app.createdAt).toLocaleDateString("hr-HR")}
                         </TableCell>

@@ -20,6 +20,7 @@ import {
 import {
   useMockApplications,
   useMockLedgerEntries,
+  useMockDaySchedules,
   useApprovalActions,
 } from "@/lib/mock-data/api";
 import { formatDateRange } from "@/lib/utils/dates";
@@ -45,10 +46,13 @@ export default function ManagerRequestsPage() {
   const { currentUser } = useMockAuth();
   const { applications, updateApplication } = useMockApplications();
   const { createLedgerEntry } = useMockLedgerEntries();
+  const { createDaySchedulesForApplication, findOverlappingDaySchedules } =
+    useMockDaySchedules();
   const { approveApplication, rejectApplication } = useApprovalActions(
     applications,
     updateApplication,
-    createLedgerEntry
+    createLedgerEntry,
+    createDaySchedulesForApplication
   );
 
   const [selectedApp, setSelectedApp] = useState<number | null>(null);
@@ -100,6 +104,15 @@ export default function ManagerRequestsPage() {
   const overlappingApps = selectedApplication
     ? findOverlappingApps(selectedApplication, applications).filter(
         (app) => app.id !== selectedApplication.id
+      )
+    : [];
+
+  // Find overlapping DaySchedule entries
+  const overlappingDaySchedules = selectedApplication
+    ? findOverlappingDaySchedules(
+        selectedApplication.employeeId,
+        selectedApplication.startDate,
+        selectedApplication.endDate
       )
     : [];
 
@@ -370,6 +383,18 @@ export default function ManagerRequestsPage() {
                           {employeeBalance.allocated}
                         </p>
                       </div>
+                      <div>
+                        <Label className="text-muted-foreground">Iskorišteno</Label>
+                        <p className="text-lg font-medium">
+                          {employeeBalance.used}
+                        </p>
+                      </div>
+                      <div>
+                        <Label className="text-muted-foreground">Na čekanju</Label>
+                        <p className="text-lg font-medium">
+                          {employeeBalance.pending}
+                        </p>
+                      </div>
                     </div>
                     {employeeBalance.available <
                       (selectedApplication.requestedWorkdays || 0) && (
@@ -390,7 +415,7 @@ export default function ManagerRequestsPage() {
                   <CardHeader>
                     <CardTitle className="text-lg flex items-center gap-2">
                       <AlertCircle className="h-5 w-5 text-orange-600" />
-                      Preklapanja
+                      Preklapanja s aktivnim zahtjevima
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -424,6 +449,35 @@ export default function ManagerRequestsPage() {
                   </CardContent>
                 </Card>
               )}
+
+              {/* Overlapping DaySchedule Warning */}
+              {actionType === "approve" &&
+                overlappingDaySchedules.length > 0 &&
+                selectedReason?.hasPlanning && (
+                  <Card className="border-red-200 bg-red-50">
+                    <CardHeader>
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        <AlertCircle className="h-5 w-5 text-red-600" />
+                        Upozorenje: Preklapanje s odobrenim zahtjevima
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-sm text-red-800 mb-3">
+                        Ovaj zahtjev se preklapa s {overlappingDaySchedules.length}{" "}
+                        dan/dana iz odobrenih zahtjeva u DaySchedule-u.
+                      </p>
+                      <p className="text-sm text-red-800 font-medium mb-2">
+                        Pri odobrenju će se automatski izvršiti korekcija:
+                      </p>
+                      <ul className="text-sm text-red-800 list-disc list-inside space-y-1">
+                        <li>Vraćanje SVIH preostalih dana iz preklopljenih zahtjeva</li>
+                        <li>Brisanje DaySchedule zapisa originalnih zahtjeva</li>
+                        <li>Kreiranje novih DaySchedule zapisa za ovaj zahtjev</li>
+                        <li>Pregazivanje postojećeg plana</li>
+                      </ul>
+                    </CardContent>
+                  </Card>
+                )}
 
               {/* Second Level Approval Info */}
               {actionType === "approve" &&
