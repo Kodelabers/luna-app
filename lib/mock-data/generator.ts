@@ -12,7 +12,12 @@ import {
   ApplicationStatus,
   UserRole,
   LedgerEntryType,
+  DaySchedule,
+  DayCode,
+  EmployeeStatus,
 } from "@/lib/types";
+import { generateDateRange, isWeekend } from "@/lib/utils/dates";
+import { isHoliday } from "@/lib/utils/workdays";
 
 // Organisation
 export const mockOrganisation: Organisation = {
@@ -826,4 +831,82 @@ export const mockLedgerEntries: UnavailabilityLedgerEntry[] = [
     createdById: 1,
   },
 ];
+
+/**
+ * Helper function to get DayCode from date
+ */
+function getDayCode(date: Date): DayCode {
+  const day = date.getDay();
+  switch (day) {
+    case 0:
+      return DayCode.SUN;
+    case 1:
+      return DayCode.MON;
+    case 2:
+      return DayCode.TUE;
+    case 3:
+      return DayCode.WED;
+    case 4:
+      return DayCode.THU;
+    case 5:
+      return DayCode.FRI;
+    case 6:
+      return DayCode.SAT;
+    default:
+      return DayCode.MON;
+  }
+}
+
+/**
+ * Generate DaySchedule entries for an APPROVED application
+ */
+function generateDayScheduleEntries(
+  application: Application,
+  startId: number
+): DaySchedule[] {
+  const entries: DaySchedule[] = [];
+  const dates = generateDateRange(application.startDate, application.endDate);
+  let currentId = startId;
+
+  for (const date of dates) {
+    const weekend = isWeekend(date);
+    const holiday = isHoliday(date, mockHolidays);
+
+    entries.push({
+      id: currentId++,
+      organisationId: application.organisationId,
+      employeeId: application.employeeId,
+      applicationId: application.id,
+      unavailabilityReasonId: application.unavailabilityReasonId,
+      date: new Date(date),
+      dayCode: getDayCode(date),
+      isWeekend: weekend,
+      isHoliday: holiday,
+      status: EmployeeStatus.NOT_AVAILABLE,
+      active: true,
+      createdAt: new Date(application.updatedAt || application.createdAt),
+      updatedAt: new Date(application.updatedAt || application.createdAt),
+    });
+  }
+
+  return entries;
+}
+
+// DaySchedule - Only for APPROVED applications
+// Generate DaySchedule entries for all APPROVED applications
+export const mockDaySchedules: DaySchedule[] = (() => {
+  const approvedApps = mockApplications.filter(
+    (app) => app.status === ApplicationStatus.APPROVED && app.active
+  );
+  let idCounter = 1;
+  const allEntries: DaySchedule[] = [];
+
+  for (const app of approvedApps) {
+    const entries = generateDayScheduleEntries(app, idCounter);
+    allEntries.push(...entries);
+    idCounter += entries.length;
+  }
+
+  return allEntries;
+})();
 

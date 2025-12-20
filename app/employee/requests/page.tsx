@@ -15,19 +15,44 @@ import {
 } from "@/components/ui/table";
 import { mockUnavailabilityReasons } from "@/lib/mock-data/generator";
 import Link from "next/link";
-import { Plus } from "lucide-react";
+import { Plus, Pencil, Trash2 } from "lucide-react";
 import { formatDateRange } from "@/lib/utils/dates";
 import { useMockApplications } from "@/lib/mock-data/api";
+import { ApplicationStatus } from "@/lib/types";
+import { toast } from "@/lib/utils/toast";
+import { useRouter } from "next/navigation";
 
 export default function EmployeeRequestsPage() {
   const { currentUser } = useMockAuth();
-  const { applications } = useMockApplications();
+  const { applications, deleteApplication } = useMockApplications();
+  const router = useRouter();
 
   if (!currentUser) return null;
 
   const employeeApplications = applications.filter(
     (app) => app.employeeId === currentUser.employeeId
   );
+
+  const handleEdit = (appId: number) => {
+    // Navigate to edit mode using query param
+    router.push(`/employee/requests/new?edit=${appId}`);
+  };
+
+  const handleDelete = (appId: number, appStatus: ApplicationStatus) => {
+    // Only allow deletion of DRAFT applications
+    if (appStatus !== ApplicationStatus.DRAFT) {
+      toast.error(
+        "Greška",
+        "Ne možete obrisati zahtjev u statusu: " + appStatus
+      );
+      return;
+    }
+
+    if (confirm("Jeste li sigurni da želite obrisati ovaj zahtjev?")) {
+      deleteApplication(appId);
+      toast.success("Uspjeh", "Zahtjev je uspješno obrisan");
+    }
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -89,6 +114,7 @@ export default function EmployeeRequestsPage() {
                     <TableHead>Dana</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Kreirano</TableHead>
+                    <TableHead className="text-right">Akcije</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -116,6 +142,35 @@ export default function EmployeeRequestsPage() {
                         <TableCell>{getStatusBadge(app.status)}</TableCell>
                         <TableCell className="text-muted-foreground">
                           {new Date(app.createdAt).toLocaleDateString("hr-HR")}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            {app.status === ApplicationStatus.DRAFT && (
+                              <>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleEdit(app.id)}
+                                  className="h-8 w-8 p-0"
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDelete(app.id, app.status)}
+                                  className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </>
+                            )}
+                            {app.status !== ApplicationStatus.DRAFT && (
+                              <span className="text-xs text-muted-foreground">
+                                Nije moguće uređivati
+                              </span>
+                            )}
+                          </div>
                         </TableCell>
                       </TableRow>
                     );

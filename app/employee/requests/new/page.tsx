@@ -19,9 +19,10 @@ import {
   mockUnavailabilityReasons,
   mockHolidays,
   mockLedgerEntries,
+  mockDaySchedules,
 } from "@/lib/mock-data/generator";
 import { calculateWorkingDays } from "@/lib/utils/workdays";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, AlertCircle } from "lucide-react";
 import Link from "next/link";
 import { toast } from "@/lib/utils/toast";
@@ -34,17 +35,45 @@ import { calculateBalance, calculatePendingDays } from "@/lib/utils/ledger";
 export default function CreateRequestPage() {
   const { currentUser } = useMockAuth();
   const router = useRouter();
-  const { applications, createApplication, submitApplication } =
+  const searchParams = useSearchParams();
+  const editId = searchParams.get("edit");
+  const { applications, createApplication, updateApplication, submitApplication } =
     useMockApplications();
   const { ledgerEntries } = useMockLedgerEntries();
 
+  // Find application to edit if editId is provided
+  const editingApplication = editId
+    ? applications.find(
+        (app) => app.id === parseInt(editId) && app.employeeId === currentUser?.employeeId
+      )
+    : null;
+
+  // Check if editing non-DRAFT application
+  useEffect(() => {
+    if (editingApplication && editingApplication.status !== ApplicationStatus.DRAFT) {
+      toast.error(
+        "Greška",
+        `Ne možete uređivati zahtjev u statusu: ${editingApplication.status}`
+      );
+      router.push("/employee/requests");
+    }
+  }, [editingApplication, router]);
+
   const [formData, setFormData] = useState({
-    unavailabilityReasonId: "",
-    startDate: "",
-    endDate: "",
-    description: "",
+    unavailabilityReasonId: editingApplication
+      ? editingApplication.unavailabilityReasonId.toString()
+      : "",
+    startDate: editingApplication
+      ? editingApplication.startDate.toISOString().split("T")[0]
+      : "",
+    endDate: editingApplication
+      ? editingApplication.endDate.toISOString().split("T")[0]
+      : "",
+    description: editingApplication?.description || "",
   });
-  const [workingDays, setWorkingDays] = useState<number | null>(null);
+  const [workingDays, setWorkingDays] = useState<number | null>(
+    editingApplication?.requestedWorkdays || null
+  );
   const [validationErrors, setValidationErrors] = useState<
     Array<{ field?: string; message: string }>
   >([]);
@@ -128,7 +157,9 @@ export default function CreateRequestPage() {
     const errors = validateApplication(
       newApp,
       applications,
-      availableBalance
+      availableBalance,
+      undefined, // excludeApplicationId
+      mockDaySchedules // daySchedules
     );
 
     setValidationErrors(errors);
@@ -147,6 +178,15 @@ export default function CreateRequestPage() {
   const handleSubmit = async (isDraft: boolean) => {
     if (!currentUser) {
       toast.error("Greška", "Niste prijavljeni");
+      return;
+    }
+
+    // If editing, check status
+    if (editingApplication && editingApplication.status !== ApplicationStatus.DRAFT) {
+      toast.error(
+        "Greška",
+        `Ne možete uređivati zahtjev u statusu: ${editingApplication.status}`
+      );
       return;
     }
 
@@ -205,7 +245,9 @@ export default function CreateRequestPage() {
     const errors = validateApplication(
       newApp,
       applications,
-      reasonBalance.available
+      availableBalance,
+      editingApplication?.id, // excludeApplicationId when editing
+      mockDaySchedules // daySchedules
     );
 
     if (errors.length > 0) {
@@ -218,15 +260,28 @@ export default function CreateRequestPage() {
     setIsSubmitting(true);
 
     try {
-      // Create application
-      const created = createApplication(newApp as any);
-
-      if (isDraft) {
-        toast.success("Uspjeh", "Zahtjev spremljen kao draft");
+      if (editingApplication) {
+        // Update existing application
+        updateApplication(editingApplication.id, newApp as any);
+        
+        if (isDraft) {
+          toast.success("Uspjeh", "Zahtjev ažuriran");
+        } else {
+          // Submit updated application
+          submitApplication(editingApplication.id, ApplicationStatus.SUBMITTED);
+          toast.success("Uspjeh", "Zahtjev ažuriran i poslan na odobrenje");
+        }
       } else {
-        // If not draft, submit it
-        submitApplication(created.id, ApplicationStatus.SUBMITTED);
-        toast.success("Uspjeh", "Zahtjev poslan na odobrenje");
+        // Create new application
+        const created = createApplication(newApp as any);
+
+        if (isDraft) {
+          toast.success("Uspjeh", "Zahtjev spremljen kao draft");
+        } else {
+          // If not draft, submit it
+          submitApplication(created.id, ApplicationStatus.SUBMITTED);
+          toast.success("Uspjeh", "Zahtjev poslan na odobrenje");
+        }
       }
 
       // Navigate back to requests list
@@ -234,7 +289,7 @@ export default function CreateRequestPage() {
         router.push("/employee/requests");
       }, 1000);
     } catch (error) {
-      toast.error("Greška", "Neuspješno kreiranje zahtjeva");
+      toast.error("Greška", editingApplication ? "Neuspješno ažuriranje zahtjeva" : "Neuspješno kreiranje zahtjeva");
       setIsSubmitting(false);
     }
   };
@@ -253,7 +308,9 @@ export default function CreateRequestPage() {
             </Button>
           </Link>
           <div>
-            <h1 className="text-3xl font-bold">Novi Zahtjev</h1>
+            <h1 className="text-3xl font-bold">
+              {editingApplication ? "Uredi Zahtjev" : "Novi Zahtjev"}
+            </h1>
             <p className="text-muted-foreground">
               Kreirajte zahtjev za godišnji odmor ili drugu vrstu nedostupnosti
             </p>
