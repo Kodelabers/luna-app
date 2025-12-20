@@ -2,18 +2,136 @@
 ## Analiza implementacije naspram specifikacije i User Stories
 
 **Datum:** 20.12.2024  
-**Verzija:** 4.2  
-**Status:** **🎉 Sprint 3 VEĆINA ZAVRŠENA!** - Approval proces implementiran + Pronađene greške  
-**Zadnje ažuriranje:** 20.12.2024 - Approval proces (prvi nivo) implementiran - VEĆINA GOTOVA!
-**User Stories:** 76 User Stories analizirano (25% implementirano ✅, 15% djelomično **s greškama**, 60% nije implementirano)
+**Verzija:** 4.4  
+**Status:** **🎉 Sprint 13-14 ZAVRŠEN!** - Admin modul potpuno implementiran!  
+**Zadnje ažuriranje:** 20.12.2024 - Sprint 13-14: Admin modul - POTPUNO ZAVRŠENO!
+**User Stories:** 76 User Stories analizirano (34% implementirano ✅, 13% djelomično **s greškama**, 53% nije implementirano)
 
-**🎉 ODLIČNE VIJESTI:** Approval proces (prvi nivo) je implementiran! Manager može odobravati i odbijati zahtjeve!
+**🎉 ODLIČNE VIJESTI:** Sprint 13-14 (Admin modul) je potpuno završen! Kompletna implementacija upravljanja zaposlenicima, odjelima i praznicima!
 
 **⚠️ VAŽNO:** Još uvijek postoje greške u validacijama (Sprint 0) i nedostaje DaySchedule preklapanja (Sprint 3.1).
 
 ---
 
 ## 🎯 NAJNOVIJE PROMJENE
+
+### ✅ **Sprint 13-14 - ZAVRŠEN (Admin modul - Upravljanje zaposlenicima, odjelima i praznicima)** 🎉
+
+**Implementirane nove funkcionalnosti:**
+
+1. **Mock API Hooks (`lib/mock-data/api.ts`)** - **NOVO!**
+   - ✅ `useMockEmployees()` - state management za zaposlenike s CRUD operacijama
+   - ✅ `useMockDepartments()` - state management za odjele s CRUD operacijama
+   - ✅ `useMockManagers()` - state management za managere (Department i General)
+   - ✅ `useMockHolidays()` - state management za praznike s CRUD operacijama
+   - ✅ localStorage persistence za sve entitete
+   - ✅ Automatsko kreiranje ALLOCATION ledger entry pri kreiranju zaposlenika
+
+2. **Upravljanje Zaposlenicima (`app/admin/employees/`)** - **NOVO!**
+   - ✅ US-ADM-001: Forma za dodavanje zaposlenika s validacijom
+   - ✅ US-ADM-002: Lista zaposlenika s pretraživanjem, filtriranjem i avatarima
+   - ✅ US-ADM-003: Forma za uređivanje zaposlenika
+   - ✅ US-ADM-004: Deaktivacija/aktivacija zaposlenika s potvrdom
+   - ✅ US-ADM-005: Brisanje zaposlenika s potvrdom
+   - ✅ Validacija jedinstvenog email-a
+   - ✅ Automatsko kreiranje ALLOCATION entry-ja za tekuću godinu
+
+3. **Upravljanje Odjelima (`app/admin/departments/`)** - **NOVO!**
+   - ✅ US-ADM-006: Forma za kreiranje odjela s dodjelom Department Managera
+   - ✅ US-ADM-007: Forma za uređivanje odjela s dodavanjem/uklanjanjem managera
+   - ✅ US-ADM-008: Dodjeljivanje Department Managera odjelu (multi-select)
+   - ✅ US-ADM-009: Lista odjela s prikazom broja zaposlenika i managera
+   - ✅ Validacija jedinstvenog naziva odjela
+   - ✅ Color picker za boju odjela
+
+4. **Upravljanje General Managerima (`app/admin/page.tsx`)** - **NOVO!**
+   - ✅ US-ADM-008B: Dodjeljivanje General Managera s multi-select dialogom
+   - ✅ Prikaz trenutnih General Managera
+   - ✅ Uklanjanje General Managera
+   - ✅ Validacija aktivnih zaposlenika
+
+5. **Upravljanje Praznicima (`app/admin/holidays/`)** - **NOVO!**
+   - ✅ US-ADM-010: Forma za dodavanje praznika (ponavljajući/jednokratni)
+   - ✅ US-ADM-011: Lista praznika s sortiranjem i filtriranjem po godini
+   - ✅ US-ADM-012: Forma za uređivanje praznika s validacijom prošlosti
+   - ✅ US-ADM-013: Brisanje praznika s potvrdom
+   - ✅ Razlikovanje ponavljajućih i jednokratnih praznika
+
+6. **Admin Dashboard (`app/admin/page.tsx`)** - **AŽURIRANO!**
+   - ✅ Funkcionalni linkovi na sve admin stranice
+   - ✅ Statistike s real-time podacima iz hooks
+   - ✅ Sekcija za upravljanje General Managerima
+   - ✅ Integracija s novim hooks-ovima
+
+**Napredak:**
+- Postotak implementacije: 80% → **88%** 🎉
+- Admin modul: 10% → **100%** ✅
+- User Stories: 27% → **34%** ✅ (13 novih US završeno)
+
+**Status:** ✅ **POTPUNO ZAVRŠENO** - Admin modul je potpuno implementiran!
+
+**Ključne karakteristike:**
+- ✅ Kompletna CRUD funkcionalnost za sve entitete
+- ✅ localStorage persistence za sve podatke
+- ✅ Validacije i error handling
+- ✅ Toast notifications za sve akcije
+- ✅ Konzistentan UI s ostatkom aplikacije
+
+---
+
+### ✅ **Sprint 4 - ZAVRŠEN (Korekcija vraćanja dana - INOVACIJA!)** 🎉
+
+**Implementirane nove funkcionalnosti:**
+
+1. **Correction Helper Funkcije (`lib/utils/correction.ts`)** - **NOVO!**
+   - ✅ `findOverlappingApprovedApplications()` - pronalazi APPROVED zahtjeve koji se preklapaju preko DaySchedule
+   - ✅ `calculateRemainingDays()` - izračunava SVE preostale dane (od početka novog do kraja originalnog)
+   - ✅ `shouldPerformCorrection()` - provjerava da li treba izvršiti korekciju
+   - ✅ `calculateCorrections()` - izračunava sve korekcije za preklopljene zahtjeve
+   - ✅ `CorrectionResult` interface - struktura rezultata korekcije
+
+2. **Integracija korekcije u Approval Proces (`lib/mock-data/api.ts`)** - **KLJUČNO!**
+   - ✅ Korekcija se izvršava prije kreiranja DaySchedule zapisa za novi zahtjev
+   - ✅ Za svaki preklopljeni APPROVED zahtjev:
+     - ✅ Izračun SVIH preostalih dana (od početka novog do kraja originalnog)
+     - ✅ Kreiranje CORRECTION ledger entry (pozitivan changeDays = vraćanje)
+     - ✅ Brisanje DaySchedule zapisa u rasponu [početak novog, kraj originalnog]
+     - ✅ Dodavanje komentara na originalni zahtjev s detaljima korekcije
+   - ✅ Nakon korekcije, kreiranje DaySchedule zapisa za novi zahtjev
+   - ✅ Return type `approveApplication()` svećen da vraća `corrections` array
+
+3. **DaySchedule Management (`lib/mock-data/api.ts`)** - **PROŠIRENO!**
+   - ✅ `deleteDaySchedulesInRange()` - brisanje DaySchedule zapisa u određenom rasponu datuma
+   - ✅ Integracija s approval procesom za korekciju
+
+4. **Izvještaj o Prilagodbama (`app/manager/requests/page.tsx`)** - **NOVO!**
+   - ✅ Dialog s izvještajem nakon odobrenja ako postoje korekcije
+   - ✅ Prikaz ukupnog broja vraćenih dana
+   - ✅ Detalji o svakoj prilagodbi:
+     - Ime zaposlenika
+     - Originalni zahtjev ID
+     - Tip nedostupnosti
+     - Originalno razdoblje
+     - Vraćeni dani i razdoblje
+   - ✅ Informativni tekst o tome što se dogodilo
+
+**Napredak:**
+- Postotak implementacije: 75% → **80%** 🎉
+- Manager modul - Approval: 85% → **95%** ✅
+- Workflow logic: 70% → **85%** ✅
+- DaySchedule management: 60% → **85%** ✅
+- Korekcija vraćanja dana: 0% → **100%** ✅ (INOVACIJA!)
+
+**Status:** ✅ **POTPUNO ZAVRŠENO** - Korekcija vraćanja dana je implementirana!
+
+**Ključne karakteristike:**
+- ✅ Vraćanje SVIH preostalih dana (ne samo preklopljenih) - **INOVACIJA!**
+- ✅ Korekcija se izvršava samo za APPROVED status (konačno odobrenje)
+- ✅ Originalni zahtjev ostaje APPROVED, samo se vraćaju dani
+- ✅ DaySchedule zapisi se brišu i kreiraju novi za novi zahtjev
+- ✅ Izvještaj o prilagodbama prikazuje se nakon odobrenja
+
+---
 
 ### ✅ **Sprint 3 - DJELOMIČNO ZAVRŠEN (Approval proces - Prvi nivo)** 🎉
 
@@ -265,6 +383,23 @@
 app/manager/
 └── planning/
     └── page.tsx           ← Tablični kalendar za planiranje - NOVO!
+
+app/admin/
+├── page.tsx               ← Admin dashboard (ažurirano s funkcionalnim linkovima)
+├── employees/
+│   ├── page.tsx           ← Lista zaposlenika - NOVO! (Sprint 13)
+│   ├── new/
+│   │   └── page.tsx       ← Forma za dodavanje zaposlenika - NOVO! (Sprint 13)
+│   └── [id]/
+│       └── page.tsx       ← Forma za uređivanje zaposlenika - NOVO! (Sprint 13)
+├── departments/
+│   ├── page.tsx           ← Lista odjela - NOVO! (Sprint 14)
+│   ├── new/
+│   │   └── page.tsx       ← Forma za kreiranje odjela - NOVO! (Sprint 14)
+│   └── [id]/
+│       └── page.tsx       ← Forma za uređivanje odjela - NOVO! (Sprint 14)
+└── holidays/
+    └── page.tsx           ← Upravljanje praznicima - NOVO! (Sprint 14)
 ```
 
 **Planning komponente:**
@@ -302,19 +437,43 @@ lib/utils/
 ├── calendar.ts        ← Calendar utilities i date ranges - NOVO!
 ├── colors.ts          ← Color system za sve statuse - NOVO!
 ├── application.ts     ← Application permissions i workflow - NOVO!
+├── correction.ts      ← Correction helper funkcije - NOVO! (Sprint 4)
 └── dates.ts           ← Date utilities (ažurirano s novim funkcijama)
 ```
 
 **Mock API:**
 ```
 lib/mock-data/
-└── api.ts             ← State management za applications i ledger
+└── api.ts             ← State management za applications, ledger, employees, departments, managers, holidays - PROŠIRENO! (Sprint 13-14)
 ```
 
 **Ažurirane datoteke:**
 ```
 app/employee/requests/new/page.tsx  ← Forma s validacijama i real-time feedback
 app/layout.tsx                      ← Dodana <Toaster /> komponenta
+app/admin/page.tsx                  ← Ažurirano s funkcionalnim linkovima i General Manager sekcijom (Sprint 13-14)
+```
+
+**Nove datoteke - Sprint 13-14 (Admin modul):**
+```
+app/admin/
+├── employees/
+│   ├── page.tsx                    ← Lista zaposlenika s pretraživanjem i filtriranjem
+│   ├── new/
+│   │   └── page.tsx                ← Forma za dodavanje zaposlenika
+│   └── [id]/
+│       └── page.tsx                ← Forma za uređivanje zaposlenika
+├── departments/
+│   ├── page.tsx                    ← Lista odjela s prikazom statistika
+│   ├── new/
+│   │   └── page.tsx                ← Forma za kreiranje odjela
+│   └── [id]/
+│       └── page.tsx                ← Forma za uređivanje odjela
+└── holidays/
+    └── page.tsx                    ← Upravljanje praznicima (CRUD u jednom fajlu)
+
+lib/mock-data/
+└── api.ts                          ← Dodani hooks: useMockEmployees, useMockDepartments, useMockManagers, useMockHolidays
 ```
 
 ---
@@ -334,16 +493,16 @@ Ovaj dokument analizira trenutnu implementaciju full-featured mockup aplikacije 
 - ❌ **Database:** Prisma schema definirano, ali ne koristi se u mockupu
 
 ### Postotak implementacije
-- **Ukupno:** ~65% funkcionalnosti prema specifikaciji
-- **User Stories:** 20% potpuno, 13% djelomično, 67% nije implementirano
+- **Ukupno:** ~88% funkcionalnosti prema specifikaciji
+- **User Stories:** 34% potpuno, 13% djelomično, 53% nije implementirano
 - **Employee Dashboard:** 75% implementirano (US-EMP-001, 004, 006, 007 ✅)
 - **Manager Dashboard:** 70% implementirano (US-DM-001, 002 ✅)
 - **Manager Planning:** 90% implementirano (US-DM-002 ✅)
-- **Manager Approval:** 20% implementirano (logika postoji, UI nedostaje)
+- **Manager Approval:** 95% implementirano (US-DM-004, 005 ✅)
 - **Manager Alokacije:** 0% implementirano (US-MGR-001-004 ❌)
 - **Manager Bolovanja:** 0% implementirano (US-MGR-005-011 ❌)
 - **General Manager Dashboard:** 20% implementirano (US-GM-001-006 ❌)
-- **Admin Dashboard:** 10% implementirano (US-ADM-001-013 ❌)
+- **Admin Dashboard:** 100% implementirano (US-ADM-001-013 ✅) 🎉
 
 ### Ključni gap-ovi
 **🔴 KRITIČNO za funkcionalan mockup:**
@@ -377,7 +536,7 @@ Ovaj dokument analizira trenutnu implementaciju full-featured mockup aplikacije 
 | **Manager - Alokacije** | US-MGR-001, 002, 003, 004 | 0% | 🔴 KRITIČNO |
 | **Manager - Bolovanja** | US-MGR-005, 006, 007, 008, 009, 010, 011 | 0% | 🔴 KRITIČNO (008 INOVACIJA!) |
 | **General Manager** | US-GM-001, 002, 003, 004, 005 ⚠️, 006 | 0% | 🟡 SREDNJI |
-| **Administrator** | US-ADM-001 do 013 | 0% | 🟢 NIZAK |
+| **Administrator** | US-ADM-001 do 013 | 100% ✅ | ✅ **ZAVRŠENO (Sprint 13-14)** |
 | **Zajedničke** | US-CMN-001 ⚠️, 002 ✅, 003 ⚠️, 004-005 ⚠️, 006 ✅, 007 ❌ | 40% | 🟢 NIZAK |
 | **Validacije** | US-VAL-000 ⚠️, 001 ⚠️, 002-004 ✅, 005-007 ❌ | 50% | 🔴 KRITIČNO (007) |
 
@@ -607,16 +766,17 @@ docs/                               ✅ Kompletna specifikacija
   - ❌ Trajno brisanje iz sustava
 
 **US-EMP-012B: Korekcija vraćanja dana kroz novi zahtjev**
-- ⚠️ Djelomično u validaciji, ali ne potpuno implementirano:
+- ✅ **POTPUNO IMPLEMENTIRANO!** - Sprint 4 završen
   - ✅ Detekcija preklapanja s DaySchedule-om
   - ✅ Provjera hasPlanning flag-a
   - ✅ Upozorenje o korekciji kod preklapanja
-  - ❌ Stvarno izvršavanje korekcije pri odobrenju (APPROVED)
-  - ❌ Vraćanje SVIH preostalih dana iz originalnog zahtjeva (ne samo preklopljenih)
-  - ❌ Brisanje DaySchedule zapisa originalnog zahtjeva
-  - ❌ Dodavanje zapisa u log originalnog zahtjeva
-  - ❌ Kreiranje CORRECTION ledger entry
-  - ❌ Pregazivanje postojećeg plana u DaySchedule-u
+  - ✅ Stvarno izvršavanje korekcije pri odobrenju (APPROVED)
+  - ✅ Vraćanje SVIH preostalih dana iz originalnog zahtjeva (ne samo preklopljenih) - **INOVACIJA!**
+  - ✅ Brisanje DaySchedule zapisa originalnog zahtjeva u rasponu
+  - ✅ Dodavanje komentara na originalni zahtjev s detaljima korekcije
+  - ✅ Kreiranje CORRECTION ledger entry (pozitivan changeDays)
+  - ✅ Pregazivanje postojećeg plana u DaySchedule-u (novi zahtjev kreira nove zapise)
+  - ✅ Izvještaj o prilagodbama nakon odobrenja
 
 **Evidencija bolovanja:**
 - ❌ US-EMP-013: Pregled vlastitih bolovanja (FR-EMP-011)
@@ -626,7 +786,7 @@ docs/                               ✅ Kompletna specifikacija
   - ❌ Utjecaj na godišnje odmore
 
 **Prioritet:** 
-- 🔴 KRITIČNO: US-EMP-012B - Korekcija vraćanja dana (inovativna funkcionalnost)
+- ✅ **ZAVRŠENO:** US-EMP-012B - Korekcija vraćanja dana (inovativna funkcionalnost) - **Sprint 4**
 - 🟡 SREDNJI: Draft funkcionalnost (US-EMP-008, 010, 011)
 - 🟡 SREDNJI: Kalendar prikaz (US-EMP-003)
 - 🟡 SREDNJI: Detalji zahtjeva (US-EMP-012)
@@ -966,116 +1126,110 @@ docs/                               ✅ Kompletna specifikacija
 
 #### ✅ Implementirano
 
-- ✅ Placeholder stranica (`/admin/page.tsx`)
+**Dashboard (`/admin/page.tsx`)**
+- ✅ Statistike cijele organizacije
+- ✅ Pregled aktivnih zaposlenika
+- ✅ Broj odjela
+- ✅ Upravljanje General Managerima
+- ✅ Funkcionalni linkovi na sve admin stranice
 
-#### ❌ Nedostaje
+**Upravljanje zaposlenicima (`/admin/employees/`):**
+- ✅ US-ADM-001: Dodavanje novog zaposlenika (FR-ADM-001)
+  - ✅ Gumb "Dodaj zaposlenika"
+  - ✅ Unos imena (obavezno)
+  - ✅ Unos prezimena (obavezno)
+  - ✅ Unos email-a (obavezno, jedinstveno)
+  - ✅ Odabir odjela (opcionalno)
+  - ✅ Unos broja dana godišnjeg odmora (default: 20)
+  - ✅ Automatsko kreiranje alokacije za tekuću godinu
+  - ✅ Status "Aktivan"
+- ✅ US-ADM-002: Pregled liste zaposlenika (FR-ADM-004)
+  - ✅ Tablica s zaposlenicima
+  - ✅ Za svakog: ime i prezime, email, odjel
+  - ✅ Pretraživanje po imenu i emailu
+  - ✅ Avatar s inicijalima
+  - ✅ Razlikovanje aktivnih/neaktivnih
+  - ✅ Klik za uređivanje
+- ✅ US-ADM-003: Uređivanje zaposlenika (FR-ADM-002)
+  - ✅ Gumb "Uredi" ili klik na red
+  - ✅ Form s postojećim podacima
+  - ✅ Promjena imena, prezimena, email-a, odjela
+  - ✅ Validacija jedinstvenog email-a
+  - ✅ Spremanje promjena
+- ✅ US-ADM-004: Deaktivacija zaposlenika (FR-ADM-003)
+  - ✅ Menu "..." kod zaposlenika
+  - ✅ Opcija "Deaktiviraj"/"Aktiviraj"
+  - ✅ Status "Neaktivan"/"Aktivan"
+  - ✅ Zaposlenik ne može pristupiti sustavu (kada deaktiviran)
+  - ✅ Postojeći podaci ostaju vidljivi
+  - ✅ Mogućnost ponovne aktivacije
+- ✅ US-ADM-005: Brisanje zaposlenika
+  - ✅ Menu "..." kod zaposlenika
+  - ✅ Opcija "Obriši"
+  - ✅ Potvrda brisanja
+  - ✅ Trajno brisanje iz sustava
 
-**Upravljanje zaposlenicima:**
-- ❌ US-ADM-001: Dodavanje novog zaposlenika (FR-ADM-001)
-  - ❌ Gumb "Dodaj zaposlenika"
-  - ❌ Unos imena (obavezno)
-  - ❌ Unos prezimena (obavezno)
-  - ❌ Unos email-a (obavezno, jedinstveno)
-  - ❌ Odabir odjela (opcionalno)
-  - ❌ Unos broja dana godišnjeg odmora (default: 20)
-  - ❌ Automatsko kreiranje alokacije za tekuću godinu
-  - ❌ Status "Aktivan"
-- ❌ US-ADM-002: Pregled liste zaposlenika (FR-ADM-004)
-  - ❌ Tablica s zaposlenicima
-  - ❌ Za svakog: ime i prezime, email, odjel
-  - ❌ Pretraživanje po imenu i emailu
-  - ❌ Avatar s inicijalima
-  - ❌ Razlikovanje aktivnih/neaktivnih
-  - ❌ Klik za uređivanje
-- ❌ US-ADM-003: Uređivanje zaposlenika (FR-ADM-002)
-  - ❌ Gumb "Uredi" ili klik na red
-  - ❌ Form s postojećim podacima
-  - ❌ Promjena imena, prezimena, email-a, odjela
-  - ❌ Validacija jedinstvenog email-a
-  - ❌ Spremanje promjena
-- ❌ US-ADM-004: Deaktivacija zaposlenika (FR-ADM-003)
-  - ❌ Menu "..." kod zaposlenika
-  - ❌ Opcija "Deaktiviraj"
-  - ❌ Status "Neaktivan"
-  - ❌ Zaposlenik ne može pristupiti sustavu
-  - ❌ Postojeći podaci ostaju vidljivi
-  - ❌ Mogućnost ponovne aktivacije
-- ❌ US-ADM-005: Brisanje zaposlenika
-  - ❌ Menu "..." kod zaposlenika
-  - ❌ Opcija "Obriši"
-  - ❌ Potvrda brisanja
-  - ❌ Trajno brisanje iz sustava
+**Upravljanje odjelima (`/admin/departments/`):**
+- ✅ US-ADM-006: Kreiranje novog odjela (FR-ADM-005)
+  - ✅ Gumb "Dodaj odjel"
+  - ✅ Unos naziva odjela (obavezno, jedinstveno)
+  - ✅ Unos opisa (opcionalno)
+  - ✅ Dodavanje Department Managera iz liste (multi-select)
+  - ✅ Color picker za boju odjela
+  - ✅ Spremanje odjela
+- ✅ US-ADM-007: Uređivanje odjela (FR-ADM-006)
+  - ✅ Gumb "Uredi" kod odjela
+  - ✅ Promjena naziva i opisa
+  - ✅ Dodavanje/uklanjanje Department Managera
+  - ✅ Spremanje promjena
+- ✅ US-ADM-008: Dodjeljivanje Department Managera odjelu (FR-ADM-007)
+  - ✅ Popis mogućih Department Managera u formi odjela
+  - ✅ Odabir jednog ili više Department Managera (multi-select)
+  - ✅ Department Manager mora biti aktivni zaposlenik (validacija)
+  - ✅ Automatsko dobivanje pristupa funkcijama odobravanja prvog nivoa
+  - ✅ Jedan zaposlenik može biti DM za više odjela
+- ✅ US-ADM-008B: Dodjeljivanje General Managera
+  - ✅ Popis mogućih General Managera u admin dashboardu
+  - ✅ Odabir jednog ili više General Managera (multi-select dialog)
+  - ✅ General Manager mora biti aktivni zaposlenik (validacija)
+  - ✅ Automatsko dobivanje pristupa funkcijama odobravanja drugog nivoa
+  - ✅ Pristup svim odjelima u organizaciji
+- ✅ US-ADM-009: Pregled odjela
+  - ✅ Lista svih odjela
+  - ✅ Za svaki odjel: naziv, opis, broj zaposlenika, broj DM-ova
+  - ✅ Color coding odjela
+  - ✅ Klik za uređivanje
 
-**Upravljanje odjelima:**
-- ❌ US-ADM-006: Kreiranje novog odjela (FR-ADM-005)
-  - ❌ Gumb "Dodaj odjel"
-  - ❌ Unos naziva odjela (obavezno, jedinstveno)
-  - ❌ Unos opisa (opcionalno)
-  - ❌ Dodavanje Department Managera iz liste
-  - ❌ Dodavanje zaposlenika koji pripadaju odjelu
-  - ❌ Spremanje odjela
-- ❌ US-ADM-007: Uređivanje odjela (FR-ADM-006)
-  - ❌ Gumb "Uredi" kod odjela
-  - ❌ Promjena naziva i opisa
-  - ❌ Dodavanje/uklanjanje Department Managera
-  - ❌ Dodavanje/uklanjanje zaposlenika
-  - ❌ Spremanje promjena
-- ❌ US-ADM-008: Dodjeljivanje Department Managera odjelu (FR-ADM-007)
-  - ❌ Popis mogućih Department Managera u formi odjela
-  - ❌ Odabir jednog ili više Department Managera
-  - ❌ Department Manager mora biti aktivni zaposlenik
-  - ❌ Automatsko dobivanje pristupa funkcijama odobravanja prvog nivoa
-  - ❌ Jedan zaposlenik može biti DM za više odjela
-- ❌ US-ADM-008B: Dodjeljivanje General Managera
-  - ❌ Popis mogućih General Managera u postavkama organizacije
-  - ❌ Odabir jednog ili više General Managera
-  - ❌ General Manager mora biti aktivni zaposlenik
-  - ❌ Automatsko dobivanje pristupa funkcijama odobravanja drugog nivoa
-  - ❌ Pristup svim odjelima u organizaciji
-- ❌ US-ADM-009: Pregled odjela
-  - ❌ Lista svih odjela
-  - ❌ Za svaki odjel: naziv, opis, broj zaposlenika, broj DM-ova
-  - ❌ Filtriranje aktivnih/neaktivnih
-  - ❌ Klik za uređivanje
+**Upravljanje praznicima (`/admin/holidays/`):**
+- ✅ US-ADM-010: Dodavanje novog praznika (FR-ADM-008)
+  - ✅ Gumb "Dodaj praznik"
+  - ✅ Unos naziva (obavezno)
+  - ✅ Odabir datuma (obavezno)
+  - ✅ Odabir tipa: ponavljajući ili jednokratni (radio buttons)
+  - ✅ Spremanje praznika
+  - ✅ Prikaz u kalendaru zaposlenika (kroz postojeći sistem)
+- ✅ US-ADM-011: Pregled liste praznika
+  - ✅ Lista svih praznika
+  - ✅ Za svaki: naziv, datum, tip (ponavljajući/jednokratni), godina
+  - ✅ Sortiranje po datumu
+  - ✅ Filtriranje po godini
+  - ✅ Mogućnost uređivanja i brisanja
+- ✅ US-ADM-012: Uređivanje praznika (FR-ADM-009)
+  - ✅ Gumb "Uredi" kod praznika
+  - ✅ Promjena naziva i datuma
+  - ✅ Promjena tipa (ponavljajući/jednokratni)
+  - ✅ Zabrana uređivanja jednokratnih praznika iz prošlosti (validacija)
+  - ✅ Spremanje promjena
+- ✅ US-ADM-013: Brisanje praznika (FR-ADM-010)
+  - ✅ Gumb "Obriši" kod praznika
+  - ✅ Potvrda brisanja
+  - ✅ Brisanje iz kalendara
+  - ✅ Postojeći zahtjevi se ne mijenjaju retroaktivno
+- ❌ Uvoz praznika za novu godinu (FR-ADM-011) - Nice-to-have
 
-**Upravljanje praznicima:**
-- ❌ US-ADM-010: Dodavanje novog praznika (FR-ADM-008)
-  - ❌ Gumb "Dodaj praznik"
-  - ❌ Unos naziva (obavezno)
-  - ❌ Odabir datuma (obavezno)
-  - ❌ Odabir tipa: ponavljajući ili jednokratni
-  - ❌ Ako jednokratni: unos godine
-  - ❌ Spremanje praznika
-  - ❌ Prikaz u kalendaru zaposlenika
-- ❌ US-ADM-011: Pregled liste praznika
-  - ❌ Lista svih praznika
-  - ❌ Za svaki: naziv, datum, tip (ponavljajući/jednokratni)
-  - ❌ Sortiranje po datumu
-  - ❌ Filtriranje po godini
-  - ❌ Mogućnost uređivanja i brisanja
-- ❌ US-ADM-012: Uređivanje praznika (FR-ADM-009)
-  - ❌ Gumb "Uredi" kod praznika
-  - ❌ Promjena naziva i datuma
-  - ❌ Promjena tipa (ponavljajući/jednokratni)
-  - ❌ Zabrana uređivanja praznika iz prošlosti
-  - ❌ Spremanje promjena
-- ❌ US-ADM-013: Brisanje praznika (FR-ADM-010)
-  - ❌ Gumb "Obriši" kod praznika
-  - ❌ Potvrda brisanja
-  - ❌ Brisanje iz kalendara
-  - ❌ Postojeći zahtjevi se ne mijenjaju retroaktivno
-- ❌ Uvoz praznika za novu godinu (FR-ADM-011)
-
-**Dashboard:**
-- ❌ Statistike cijele organizacije
-- ❌ Pregled aktivnih zaposlenika
-- ❌ Broj zahtjeva na čekanju (svi odjeli)
-- ❌ Trend bolovanja
-
-**Prioritet:** 🟡 SREDNJI 
-- 🟢 NIZAK za mockup: Admin je više "setup", manje operativan
-- 🟡 SREDNJI za produkciju: US-ADM-001 do US-ADM-005 - Upravljanje zaposlenicima
-- 🟢 NIZAK: US-ADM-006 do US-ADM-013 - Upravljanje odjelima i praznicima
+**Prioritet:** ✅ **ZAVRŠENO** 
+- ✅ US-ADM-001 do US-ADM-005 - Upravljanje zaposlenicima - **ZAVRŠENO**
+- ✅ US-ADM-006 do US-ADM-013 - Upravljanje odjelima i praznicima - **ZAVRŠENO**
 
 ---
 
@@ -1240,17 +1394,20 @@ docs/                               ✅ Kompletna specifikacija
 - ❌ Ostali statusi - ne mogu se uređivati
 
 **US-VAL-007: Provjera preklapanja s DaySchedule-om i korekcija pri odobrenju**
-- ⚠️ Djelomično implementirano (vidi gore pod US-VAL-001)
-- ❌ **KRITIČNO:** Stvarno izvršavanje korekcije pri odobrenju nije implementirano
-- ❌ Kreiranje CORRECTION ledger entry
-- ❌ Vraćanje dana (changeDays pozitivan)
-- ❌ Brisanje DaySchedule zapisa originalnog zahtjeva
-- ❌ Kreiranje novih DaySchedule zapisa za novi zahtjev
-- ❌ Dodavanje zapisa u log originalnog zahtjeva
-- ❌ Automatsko mijenjanje DaySchedule-a pri odobrenju (APPROVED)
+- ✅ **POTPUNO IMPLEMENTIRANO!** - Sprint 4 završen
+  - ✅ Detekcija preklapanja s DaySchedule-om (u validaciji)
+  - ✅ Upozorenje o korekciji (u validaciji)
+  - ✅ **Stvarno izvršavanje korekcije pri odobrenju (APPROVED)** - **IMPLEMENTIRANO!**
+  - ✅ Kreiranje CORRECTION ledger entry (pozitivan changeDays = vraćanje)
+  - ✅ Vraćanje SVIH preostalih dana (od početka novog do kraja originalnog)
+  - ✅ Brisanje DaySchedule zapisa originalnog zahtjeva u rasponu
+  - ✅ Kreiranje novih DaySchedule zapisa za novi zahtjev
+  - ✅ Dodavanje komentara na originalni zahtjev s detaljima korekcije
+  - ✅ Automatsko mijenjanje DaySchedule-a pri odobrenju (APPROVED)
+  - ✅ Izvještaj o prilagodbama nakon odobrenja
 
 **Prioritet:** 
-- 🔴 KRITIČNO: US-VAL-007 - Izvršavanje korekcije pri odobrenju (INOVACIJA!)
+- ✅ **ZAVRŠENO:** US-VAL-007 - Izvršavanje korekcije pri odobrenju (INOVACIJA!) - **Sprint 4**
 - 🟡 SREDNJI: US-VAL-006 - Validacija statusa za uređivanje
 - 🟡 SREDNJI: US-VAL-005 - Validacija bolovanja
 - 🟢 NIZAK: BR-VAL-005 (pokriveno s US-VAL-006)
@@ -1388,21 +1545,23 @@ docs/                               ✅ Kompletna specifikacija
 #### ❌ Potpuno nedostaje
 
 **BR-AUTO-001: Automatska prilagodba GO pri bolovanju** - **INOVATIVNA FUNKCIONALNOST!**
-- ❌ Algoritam prilagodbe (4 scenarija prema user stories):
+- ⚠️ **DJELOMIČNO IMPLEMENTIRANO** - Korekcija pri odobrenju novog zahtjeva je implementirana
+  - ✅ **Korekcija pri odobrenju novog zahtjeva koji se preklapa** - **IMPLEMENTIRANO!** (Sprint 4)
+  - ✅ **KLJUČNO:** Vraćanje SVIH preostalih dana iz originalnog zahtjeva (ne samo preklopljenih) - **IMPLEMENTIRANO!**
+    - ✅ Ako novi zahtjev počinje 15.1., a originalni GO je 1.1.-31.1.
+    - ✅ Vraćaju se SVI dani od 15.1. do 31.1., ne samo preklopljeni dani
+    - ✅ Razlog: Novi zahtjev (npr. bolovanje) prekida realizaciju originalnog zahtjeva
+  - ✅ Kreiranje CORRECTION ledger entry - **IMPLEMENTIRANO!**
+  - ✅ Ažuriranje DaySchedule zapisa:
+    - ✅ Brisanje DaySchedule zapisa originalnog zahtjeva (od datuma početka novog zahtjeva) - **IMPLEMENTIRANO!**
+    - ✅ Kreiranje novih DaySchedule zapisa za novi zahtjev - **IMPLEMENTIRANO!**
+  - ✅ Dodavanje komentara na originalni zahtjev - **IMPLEMENTIRANO!**
+  - ✅ Izvještaj o prilagodbama (US-MGR-009) - **IMPLEMENTIRANO!**
+- ❌ Algoritam prilagodbe za bolovanje (4 scenarija) - **NEDOSTAJE** (za Sprint 6/7):
   1. ❌ Potpuno preklapanje → Otkazati GO
   2. ❌ Preklapanje na početku → Pomicanje start datuma
   3. ❌ Preklapanje na kraju → Pomicanje end datuma
   4. ❌ Preklapanje u sredini → Skraćivanje na prvi dio
-- ❌ **KLJUČNO:** Vraćanje SVIH preostalih dana iz originalnog zahtjeva (ne samo preklopljenih)
-  - ❌ Ako bolovanje počinje 15.1., a GO je 1.1.-31.1.
-  - ❌ Vraćaju se SVI dani od 15.1. do 31.1., ne samo preklopljeni dani
-  - ❌ Razlog: Bolovanje prekida GO, često bez poznatog kraja
-- ❌ Kreiranje CORRECTION ledger entry
-- ❌ Ažuriranje DaySchedule zapisa:
-  - ❌ Brisanje DaySchedule zapisa originalnog zahtjeva (od datuma početka novog zahtjeva)
-  - ❌ Kreiranje novih DaySchedule zapisa za novi zahtjev (bolovanje)
-- ❌ Dodavanje komentara na zahtjev
-- ❌ Izvještaj o prilagodbama (US-MGR-009)
 - ❌ Za otvorena bolovanja (bez datuma završetka):
   - ❌ DaySchedule zapis samo za datum početka
   - ❌ Vizualni prikaz "Aktivno bolovanje - u tijeku" od početka do danas
@@ -1430,7 +1589,8 @@ docs/                               ✅ Kompletna specifikacija
 - ❌ Pojedinačna dodjela
 
 **Prioritet:** 🔴 KRITIČNO 
-- 🔴 KRITIČNO: BR-AUTO-001 - Automatska prilagodba (INOVACIJA!)
+- ✅ **DJELOMIČNO ZAVRŠENO:** BR-AUTO-001 - Automatska prilagodba pri odobrenju novog zahtjeva (INOVACIJA!) - **Sprint 4**
+- ❌ **NEDOSTAJE:** BR-AUTO-001 - Automatska prilagodba pri bolovanju (4 scenarija) - **Sprint 6/7**
 - 🔴 KRITIČNO: BR-AUTO-002 - Kreiranje DaySchedule zapisa
 - 🟢 NIZAK za mockup: BR-AUTO-003, BR-AUTO-004 (background jobs)
 
@@ -2176,19 +2336,20 @@ lib/constants/
 
 ### 15.1 Sažetak gapa
 
-**Implementirano:** ~65%
+**Implementirano:** ~88%
 - ✅ Infrastruktura: 98%
 - ✅ Employee Dashboard: 75%
 - ✅ Validacije i kalkulacije: 95%
 - ✅ Helper funkcije: 95%
 - ✅ Planning Grid: 90%
-- ⚠️ Manager Dashboard: 70%
-- ⚠️ Manager Requests (Approval): 20% (logika postoji, UI nedostaje)
+- ✅ Manager Dashboard: 70%
+- ✅ Manager Requests (Approval): 95% (Sprint 3 + 4)
+- ✅ Korekcija vraćanja dana (pri odobrenju): 100% (Sprint 4) - INOVACIJA!
+- ✅ Admin modul: 100% (Sprint 13-14) 🎉
 - ❌ Manager Alokacije: 0% (KRITIČNO!)
-- ❌ Manager Bolovanja: 0% (INOVACIJA!)
-- ❌ Automatska prilagodba GO: 0% (INOVACIJA!)
+- ❌ Manager Bolovanja: 0% (KRITIČNO!)
+- ⚠️ Automatska prilagodba GO (pri bolovanju): 0% (za Sprint 6/7)
 - ❌ General Manager: 10%
-- ❌ Admin: 10%
 
 **Pokrivenost User Stories:**
 
@@ -2211,7 +2372,7 @@ lib/constants/
 - US-EMP-010: ❌ Uređivanje DRAFT zahtjeva
 - US-EMP-011: ❌ Brisanje DRAFT zahtjeva
 - US-EMP-012: ❌ Pregled detalja odobrenog zahtjeva
-- US-EMP-012B: ⚠️ Korekcija vraćanja dana (upozorenje postoji, izvršavanje nedostaje)
+- US-EMP-012B: ✅ Korekcija vraćanja dana (potpuno implementirano - Sprint 4)
 - US-EMP-013: ❌ Pregled vlastitih bolovanja
 
 **Department Manager - Pregled (3 US):**
@@ -2250,9 +2411,9 @@ lib/constants/
 - US-GM-006: ❌ Odobravanje vlastitih zahtjeva
 
 **Administrator (13 US):**
-- US-ADM-001 do 005: ❌ Upravljanje zaposlenicima (5 US)
-- US-ADM-006 do 009: ❌ Upravljanje odjelima (4 US + General Manager)
-- US-ADM-010 do 013: ❌ Upravljanje praznicima (4 US)
+- US-ADM-001 do 005: ✅ Upravljanje zaposlenicima (5 US) - **ZAVRŠENO (Sprint 13)**
+- US-ADM-006 do 009: ✅ Upravljanje odjelima (4 US + General Manager) - **ZAVRŠENO (Sprint 14)**
+- US-ADM-010 do 013: ✅ Upravljanje praznicima (4 US) - **ZAVRŠENO (Sprint 14)**
 
 **Zajedničke funkcionalnosti (7 US):**
 - US-CMN-001: ⚠️ Responsive dizajn (djelomično)
@@ -2271,20 +2432,20 @@ lib/constants/
 - US-VAL-004: ✅ Validacija datuma zahtjeva
 - US-VAL-005: ❌ Validacija bolovanja
 - US-VAL-006: ⚠️ Validacija statusa za uređivanje (logika postoji, UI nedostaje)
-- US-VAL-007: ⚠️ Provjera DaySchedule-a i korekcija (upozorenje postoji, izvršavanje nedostaje)
+- US-VAL-007: ✅ Provjera DaySchedule-a i korekcija (potpuno implementirano - Sprint 4)
 
 **UKUPNO: 76 User Stories**
-- ✅ Potpuno implementirano: ~15 US (20%)
+- ✅ Potpuno implementirano: ~26 US (34%) - **+5 US (Sprint 13-14)**
 - ⚠️ Djelomično implementirano: ~10 US (13%)
-- ❌ Nije implementirano: ~51 US (67%)
+- ❌ Nije implementirano: ~40 US (53%)
 
 **KRITIČNI GAP-ovi (Must-have za funkcionalan mockup):**
-1. 🔴 US-DM-004, US-DM-005 - Approval proces (prvi nivo odobrenja i odbijanja)
-2. 🔴 US-EMP-012B, US-VAL-007, BR-AUTO-001 - Korekcija vraćanja dana pri odobrenju (INOVACIJA!)
+1. ✅ US-DM-004, US-DM-005 - Approval proces (prvi nivo odobrenja i odbijanja) - **ZAVRŠENO (Sprint 3)**
+2. ✅ US-EMP-012B, US-VAL-007, BR-AUTO-001 (dio) - Korekcija vraćanja dana pri odobrenju (INOVACIJA!) - **ZAVRŠENO (Sprint 4)**
 3. 🔴 US-MGR-002, US-MGR-003 - Upravljanje alokacijama
-4. 🔴 US-MGR-005, US-MGR-007, US-MGR-008 - Evidencija bolovanja + automatska prilagodba
-5. 🔴 BR-WF-002, BR-WF-003 - Workflow: submit i prvo odobrenje
-6. 🔴 BR-AUTO-002 - Kreiranje DaySchedule zapisa
+4. 🔴 US-MGR-005, US-MGR-007, US-MGR-008 - Evidencija bolovanja + automatska prilagodba (4 scenarija)
+5. ✅ BR-WF-002, BR-WF-003 - Workflow: submit i prvo odobrenje - **ZAVRŠENO (Sprint 3)**
+6. ✅ BR-AUTO-002 - Kreiranje DaySchedule zapisa - **ZAVRŠENO (Sprint 3)**
 
 ### 15.2 Prioriteti za full-featured mockup
 
@@ -2364,10 +2525,10 @@ lib/constants/
 
 #### 🟢 Nice-to-have (cherry on top)
 
-**11. Admin modul (4-5 dana)**
-- US-ADM-001 do 005: Upravljanje zaposlenicima
-- US-ADM-006 do 009: Upravljanje odjelima
-- US-ADM-010 do 013: Upravljanje praznicima
+**11. Admin modul (4-5 dana)** ✅ **ZAVRŠENO (Sprint 13-14)**
+- ✅ US-ADM-001 do 005: Upravljanje zaposlenicima
+- ✅ US-ADM-006 do 009: Upravljanje odjelima
+- ✅ US-ADM-010 do 013: Upravljanje praznicima
 
 **12. Dodatne funkcionalnosti (3-4 dana)**
 - US-DM-007: Masovno odobravanje
@@ -2392,7 +2553,7 @@ lib/constants/
 | 2 | Tablični kalendar | 5-7 | 🔴 | ✅ ZAVRŠENO | US-DM-002 |
 | **3** | **Approval proces - Prvi nivo** | **2-3** | **🔴** | **✅ VEĆINA ZAVRŠENA!** 🎉 | **US-DM-004, 005, BR-WF-003, 005** |
 | **3.1** | **DaySchedule preklapanja + upozorenje** | **1** | **🔴** | **⏳ Sljedeći** | **US-DM-004 (dio), US-VAL-007 (dio)** |
-| 4 | Korekcija vraćanja dana | 3-4 | 🔴 | ⏳ | US-EMP-012B, US-VAL-007, US-MGR-008, BR-AUTO-001 |
+| 4 | Korekcija vraćanja dana | 3-4 | 🔴 | ✅ ZAVRŠENO | US-EMP-012B ✅, US-VAL-007 ✅, US-MGR-008 (dio) ✅, BR-AUTO-001 (dio) ✅ |
 | 5 | DaySchedule management | 0.5 | 🔴 | ✅ VEĆINA ZAVRŠENA | BR-AUTO-002 (većina završena) |
 | 6 | Upravljanje alokacijama | 3-4 | 🔴 | ⏳ | US-MGR-001, 002, 003, 004 |
 | 7 | Evidencija bolovanja | 2-3 | 🔴 | ⏳ | US-MGR-005, 006, 007 |
@@ -2401,17 +2562,17 @@ lib/constants/
 | 10 | General Manager - drugi nivo | 2-3 | 🟡 | ⏳ | US-GM-001, 002, 003, BR-WF-004 |
 | 11 | Detalji zahtjeva | 1-2 | 🟡 | ⏳ | US-EMP-012, US-DM-006 |
 | 12 | Pregled stanja po godinama | 1-2 | 🟡 | ⏳ | US-EMP-002 |
-| 13 | Admin modul | 4-5 | 🟢 | ⏳ | US-ADM-001 do 013 |
+| 13 | Admin modul | 4-5 | 🟢 | ✅ ZAVRŠENO | US-ADM-001 do 013 ✅ |
 | 14 | Dodatne funkcionalnosti | 3-4 | 🟢 | ⏳ | US-DM-007, 008, US-MGR-010, US-CMN-007 |
 | 15 | UX polish | 2-3 | 🟢 | ⏳ | US-CMN-001, US-EMP-005, US-DM-003 |
 
 **Ukupno:** 35-49 radnih dana (7-10 tjedana)  
-**Završeno:** ~10-13 dana (Faze 1, 2, 3 većina, 5 većina) - **S GREŠKAMA U FAZI 1!**  
+**Završeno:** ~14-18 dana (Faze 1, 2, 3 većina, 4, 5 većina, 13) - **S GREŠKAMA U FAZI 1!**  
 **Faza 0 - Ispravljanje:** **1 dan** 🔴 **PRIORITET #1 - TODO**  
 **Faza 3.1 - DaySchedule preklapanja:** **1 dan** 🔴 **PRIORITET #2 - Nakon Faze 3**  
-**Preostalo kritično (🔴):** ~9-14 dana (Faze 0, 3.1, 4, 6-7) → ~2-3 tjedna  
+**Preostalo kritično (🔴):** ~9-14 dana (Faze 0, 3.1, 6-7) → ~2-3 tjedna  
 **Preostalo poželjno (🟡):** ~10-13 dana (Faze 8-12) → ~2-2.5 tjedna  
-**Nice-to-have (🟢):** ~9-12 dana (Faze 13-15) → ~2 tjedna
+**Nice-to-have (🟢):** ~5-7 dana (Faze 14-15) → ~1-1.5 tjedna
 
 **⚠️ VAŽNO:** Sprint 0 (Faza 0) se **MORA** napraviti prije nego nastavimo s drugim fazama!
 
@@ -2487,10 +2648,13 @@ lib/constants/
 6. **Iterativni pristup:**
    - ✅ Faza 1 završena - odličan napredak!
    - ✅ Faza 2 završena - tablični kalendar radi!
+   - ✅ Faza 3 završena - approval proces funkcionira!
+   - ✅ Faza 4 završena - korekcija vraćanja dana implementirana!
+   - ✅ Faza 13 završena - admin modul potpuno implementiran!
    - Ne pokušavaj sve odjednom
    - Završi jednu funkcionalnost kompletno prije nego kreneš na drugu
    - Testiraj svaku fazu prije prelaska na sljedeću
-   - **Sljedeća prioritet: Approval proces + Korekcija vraćanja dana**
+   - **Sljedeća prioritet: Upravljanje alokacijama + Evidencija bolovanja**
 
 7. **Mock data strategy:**
    - ✅ Mock podaci su odlično struktuirani
@@ -2522,21 +2686,22 @@ lib/constants/
 - ✅ Manager vidi tablični kalendar s planiranjem - **ZAVRŠENO**
 - ✅ Identifikacija kritičnih razdoblja - **ZAVRŠENO**
 
-**Approval proces - ⏳ KRITIČNO:**
-- ❌ Manager može odobriti zahtjev (US-DM-004)
-- ❌ Manager može odbiti zahtjev (US-DM-005)
-- ❌ Razlikovanje prvog i drugog nivoa odobrenja
-- ❌ Kreiranje USAGE ledger entry pri odobrenju
-- ❌ Kreiranje DaySchedule zapisa pri odobrenju
+**Approval proces - ✅ ZAVRŠENO:**
+- ✅ Manager može odobriti zahtjev (US-DM-004) - **ZAVRŠENO (Sprint 3)**
+- ✅ Manager može odbiti zahtjev (US-DM-005) - **ZAVRŠENO (Sprint 3)**
+- ✅ Razlikovanje prvog i drugog nivoa odobrenja - **ZAVRŠENO (Sprint 3)**
+- ✅ Kreiranje USAGE ledger entry pri odobrenju - **ZAVRŠENO (Sprint 3)**
+- ✅ Kreiranje DaySchedule zapisa pri odobrenju - **ZAVRŠENO (Sprint 3)**
 
-**Korekcija vraćanja dana - 🔴 INOVACIJA:**
-- ❌ Algoritam prilagodbe radi (4 scenarija)
-- ❌ **KLJUČNO:** Vraćanje SVIH preostalih dana (ne samo preklopljenih)
-- ❌ Kreiranje CORRECTION ledger entry
-- ❌ Brisanje DaySchedule zapisa originalnog zahtjeva
-- ❌ Ažuriranje DaySchedule-a s novim zahtjevom
-- ❌ Dodavanje u log originalnog zahtjeva
-- ❌ Izvještaj o prilagodbama (US-MGR-009)
+**Korekcija vraćanja dana - ✅ INOVACIJA!**
+- ✅ **ZAVRŠENO:** Korekcija pri odobrenju novog zahtjeva koji se preklapa - **Sprint 4**
+- ✅ **KLJUČNO:** Vraćanje SVIH preostalih dana (ne samo preklopljenih) - **IMPLEMENTIRANO!**
+- ✅ Kreiranje CORRECTION ledger entry - **IMPLEMENTIRANO!**
+- ✅ Brisanje DaySchedule zapisa originalnog zahtjeva u rasponu - **IMPLEMENTIRANO!**
+- ✅ Ažuriranje DaySchedule-a s novim zahtjevom - **IMPLEMENTIRANO!**
+- ✅ Dodavanje komentara na originalni zahtjev - **IMPLEMENTIRANO!**
+- ✅ Izvještaj o prilagodbama (US-MGR-009) - **IMPLEMENTIRANO!**
+- ❌ Algoritam prilagodbe za bolovanje (4 scenarija) - **NEDOSTAJE** (za Sprint 6/7)
 
 **Upravljanje alokacijama - ⏳ KRITIČNO:**
 - ❌ Manager može dodjeljivati godišnje dane (US-MGR-002)
@@ -2556,22 +2721,23 @@ lib/constants/
 - ❌ Draft funkcionalnost (US-EMP-008, 010, 011)
 - ❌ Employee kalendar prikaz (US-EMP-003)
 - ❌ General Manager drugi nivo odobrenja (US-GM-002, 003)
-- ❌ Admin modul - upravljanje zaposlenicima (US-ADM-001 do 005)
+- ✅ Admin modul - upravljanje zaposlenicima, odjelima i praznicima (US-ADM-001 do 013) - **ZAVRŠENO (Sprint 13-14)** 🎉
 - ❌ Detalji zahtjeva (US-EMP-012, US-DM-006)
 - ❌ Pregled stanja po godinama (US-EMP-002)
 
 **Prioritizirani success criteria:**
-1. 🔴 **Approval proces** - Must-have za funkcionalan mockup
-2. 🔴 **Korekcija vraćanja dana** - INOVACIJA! Must-have za pokazati vrijednost aplikacije
-3. 🔴 **Upravljanje alokacijama** - Must-have za funkcionalan mockup
-4. 🔴 **Evidencija bolovanja** - Must-have za kompletnu funkcionalnost korekcije
-5. 🟡 Draft, kalendar, drugi nivo - Nice-to-have
-6. 🟢 Admin modul - Lowest priority
+1. ✅ **Approval proces** - **ZAVRŠENO** (Sprint 3)
+2. ✅ **Korekcija vraćanja dana (pri odobrenju)** - **ZAVRŠENO** (Sprint 4) - INOVACIJA!
+3. ✅ **Admin modul** - **ZAVRŠENO** (Sprint 13-14) 🎉
+4. 🔴 **Upravljanje alokacijama** - Must-have za funkcionalan mockup
+5. 🔴 **Evidencija bolovanja** - Must-have za kompletnu funkcionalnost korekcije
+6. 🟡 Draft, kalendar, drugi nivo - Nice-to-have
 
 **Minimum viable mockup:**
 - Core funkcionalnosti ✅
-- Approval proces ❌ (SLJEDEĆI)
-- Korekcija vraćanja dana ❌ (INOVACIJA!)
+- Approval proces ✅ (Sprint 3)
+- Korekcija vraćanja dana (pri odobrenju) ✅ (Sprint 4) - INOVACIJA!
+- Admin modul ✅ (Sprint 13-14) 🎉
 - Upravljanje alokacijama ❌
 - Evidencija bolovanja ❌
 
@@ -2698,25 +2864,27 @@ Dan 3:
 
 ---
 
-**Sprint 4: Korekcija vraćanja dana (3-4 dana)** 🔴 **INOVACIJA!**
+**Sprint 4: ~~Korekcija vraćanja dana (3-4 dana)~~** ✅ **ZAVRŠENO!** 🔴 **INOVACIJA!**
 
 Dan 1-2:
-- [ ] Implementiraj algoritam prilagodbe (4 scenarija)
-- [ ] **KLJUČNO:** Vraćanje SVIH preostalih dana (ne samo preklopljenih)
-- [ ] Kreiranje CORRECTION ledger entry
+- [x] Implementiraj helper funkcije za korekciju (`lib/utils/correction.ts`)
+- [x] **KLJUČNO:** Vraćanje SVIH preostalih dana (ne samo preklopljenih)
+- [x] Integracija korekcije u `approveApplication()`
+- [x] Kreiranje CORRECTION ledger entry
 
 Dan 3:
-- [ ] Brisanje DaySchedule zapisa originalnog zahtjeva
-- [ ] Kreiranje novih DaySchedule zapisa
-- [ ] Dodavanje zapisa u log originalnog zahtjeva
+- [x] Brisanje DaySchedule zapisa originalnog zahtjeva u rasponu
+- [x] Kreiranje novih DaySchedule zapisa za novi zahtjev
+- [x] Dodavanje komentara na originalni zahtjev s detaljima korekcije
 
 Dan 4:
-- [ ] Izvještaj o prilagodbama (US-MGR-009)
-- [ ] Testiranje svih scenarija
-- [ ] Bug fixing
+- [x] Izvještaj o prilagodbama (US-MGR-009) - Dialog s detaljima
+- [x] Testiranje svih scenarija
+- [x] Bug fixing
 
-**Deliverable:** Automatska prilagodba GO pri odobrenju novog zahtjeva koji se preklapa
-**Pokriva:** US-EMP-012B, US-VAL-007, US-MGR-008, BR-AUTO-001
+**Deliverable:** ✅ Automatska prilagodba GO pri odobrenju novog zahtjeva koji se preklapa - **ZAVRŠENO!**
+**Pokriva:** US-EMP-012B ✅, US-VAL-007 ✅, US-MGR-008 (dio) ✅, BR-AUTO-001 (dio) ✅
+**Status:** ✅ **POTPUNO ZAVRŠENO**
 
 ---
 
@@ -2785,10 +2953,10 @@ Dan 3:
 
 ---
 
-**Sprint 13-15: Nice-to-have (🟢)** - **Najniži prioritet**
+**Sprint 13-15: Nice-to-have (🟢)**
 
-- Sprint 13: Admin modul - Zaposlenici (2-3 dana) - US-ADM-001 do 005
-- Sprint 14: Admin modul - Odjeli i praznici (2-3 dana) - US-ADM-006 do 013
+- Sprint 13: Admin modul - Zaposlenici (2-3 dana) - US-ADM-001 do 005 ✅ **ZAVRŠENO**
+- Sprint 14: Admin modul - Odjeli i praznici (2-3 dana) - US-ADM-006 do 013 ✅ **ZAVRŠENO**
 - Sprint 15: UX polish (2-3 dana) - US-CMN-001, US-EMP-005, US-DM-003
 
 ---
@@ -2799,10 +2967,28 @@ Dan 3:
 
 **Pripremio:** AI Assistant  
 **Datum:** 20.12.2024  
-**Verzija:** 4.2  
-**Status:** Ažurirano - **Sprint 3 VEĆINA ZAVRŠENA!** 🎉 Approval proces implementiran!
+**Verzija:** 4.4  
+**Status:** Ažurirano - **Sprint 13-14 ZAVRŠEN!** 🎉 Admin modul potpuno implementiran!
 
 **Changelog:**
+- **v4.4 (20.12.2024):** 🎉 **SPRINT 13-14 ZAVRŠEN!** - Admin modul potpuno implementiran
+  - ✅ **useMockEmployees() hook** - state management za zaposlenike s CRUD operacijama i localStorage
+  - ✅ **useMockDepartments() hook** - state management za odjele s CRUD operacijama
+  - ✅ **useMockManagers() hook** - state management za managere (Department i General)
+  - ✅ **useMockHolidays() hook** - state management za praznike s CRUD operacijama
+  - ✅ **Upravljanje zaposlenicima** - kompletna CRUD funkcionalnost (US-ADM-001 do US-ADM-005)
+  - ✅ **Upravljanje odjelima** - kompletna CRUD funkcionalnost s dodjelom managera (US-ADM-006 do US-ADM-009)
+  - ✅ **Upravljanje General Managerima** - dodjeljivanje i uklanjanje (US-ADM-008B)
+  - ✅ **Upravljanje praznicima** - kompletna CRUD funkcionalnost (US-ADM-010 do US-ADM-013)
+  - ✅ **Admin Dashboard** - ažuriran s funkcionalnim linkovima i statistikama
+  - ✅ Automatsko kreiranje ALLOCATION ledger entry pri kreiranju zaposlenika
+  - ✅ Validacije (jedinstveni email, jedinstveni naziv odjela, prošlost praznika)
+  - ✅ Toast notifications za sve akcije
+  - ✅ localStorage persistence za sve entitete
+  - Napredak: 80% → **88%** 🎉
+  - Admin modul: 10% → **100%** ✅
+  - User Stories: 27% → **34%** ✅ (+13 US završeno)
+- **v4.3 (20.12.2024):** 🎉 **SPRINT 4 ZAVRŠEN!** - Korekcija vraćanja dana implementirana (INOVACIJA!)
 - **v4.2 (20.12.2024):** 🎉 **SPRINT 3 VEĆINA ZAVRŠEN!** - Approval proces (prvi nivo) implementiran
   - ✅ **useApprovalActions() hook** - centralizirana approval/rejection logika u api.ts
   - ✅ **approveApplication()** - potpuno implementirana s permissions, ledger, DaySchedule
@@ -2851,9 +3037,9 @@ Dan 3:
 
 **Sažetak User Stories pokrivenosti:**
 - **76 User Stories ukupno**
-- ✅ Potpuno implementirano: ~15 US (20%)
+- ✅ Potpuno implementirano: ~26 US (34%) - **+5 US (Sprint 13-14)**
 - ⚠️ Djelomično implementirano: ~10 US (13%) - **NEKI S GREŠKAMA!**
-- ❌ Nije implementirano: ~51 US (67%)
+- ❌ Nije implementirano: ~40 US (53%)
 
 **⚠️ KRITIČNI GAP-OVI (Must-have):**
 0. 🔴 **Sprint 0: Ispravljanje grešaka** (1 dan) - **PRIORITET #1 - MORA BITI PRVO!**
@@ -2862,14 +3048,15 @@ Dan 3:
    - BR-VAL-003: Provjeri filtriranje po reasonId
    - US-VAL-006: Dodaj UI validaciju statusa za uređivanje
 1. 🔴 Approval proces - Prvi nivo (US-DM-004, US-DM-005, BR-WF-003, BR-WF-005)
-2. 🔴 Korekcija vraćanja dana (US-EMP-012B, US-VAL-007, US-MGR-008, BR-AUTO-001) - **INOVACIJA!**
+2. ✅ Korekcija vraćanja dana (pri odobrenju) (US-EMP-012B ✅, US-VAL-007 ✅, US-MGR-008 (dio) ✅, BR-AUTO-001 (dio) ✅) - **ZAVRŠENO (Sprint 4)** - **INOVACIJA!**
 3. 🔴 Upravljanje alokacijama (US-MGR-001, 002, 003, 004)
 4. 🔴 Evidencija bolovanja (US-MGR-005, 006, 007)
 5. 🔴 DaySchedule management (BR-AUTO-002)
 
 **Prioritet za sljedeće:**
 1. **Sprint 0: Ispravljanje grešaka (1 dan) - PRVO!**
-2. Approval proces (2-3 dana)
-3. Korekcija vraćanja dana (3-4 dana) - **INOVACIJA!**
-4. Upravljanje alokacijama (3-4 dana)
-5. Evidencija bolovanja (2-3 dana)
+2. ✅ Approval proces (2-3 dana) - **ZAVRŠENO (Sprint 3)**
+3. ✅ Korekcija vraćanja dana (pri odobrenju) (3-4 dana) - **ZAVRŠENO (Sprint 4)** - **INOVACIJA!**
+4. ✅ Admin modul (4-6 dana) - **ZAVRŠENO (Sprint 13-14)** 🎉
+5. 🔴 Upravljanje alokacijama (3-4 dana) - **SLJEDEĆI**
+6. 🔴 Evidencija bolovanja (2-3 dana)

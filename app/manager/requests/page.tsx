@@ -40,19 +40,26 @@ import { toast } from "@/lib/utils/toast";
 import { useBalance } from "@/hooks/useBalance";
 import { findOverlappingApps } from "@/lib/utils/overlap";
 import { Separator } from "@/components/ui/separator";
-import { AlertCircle, Info } from "lucide-react";
+import { AlertCircle, Info, CheckCircle2 } from "lucide-react";
+import { CorrectionResult } from "@/lib/utils/correction";
 
 export default function ManagerRequestsPage() {
   const { currentUser } = useMockAuth();
   const { applications, updateApplication } = useMockApplications();
   const { createLedgerEntry } = useMockLedgerEntries();
-  const { createDaySchedulesForApplication, findOverlappingDaySchedules } =
-    useMockDaySchedules();
+  const {
+    daySchedules,
+    createDaySchedulesForApplication,
+    findOverlappingDaySchedules,
+    deleteDaySchedulesInRange,
+  } = useMockDaySchedules();
   const { approveApplication, rejectApplication } = useApprovalActions(
     applications,
     updateApplication,
     createLedgerEntry,
-    createDaySchedulesForApplication
+    createDaySchedulesForApplication,
+    daySchedules,
+    deleteDaySchedulesInRange
   );
 
   const [selectedApp, setSelectedApp] = useState<number | null>(null);
@@ -61,6 +68,7 @@ export default function ManagerRequestsPage() {
   );
   const [comment, setComment] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [correctionsReport, setCorrectionsReport] = useState<CorrectionResult[] | null>(null);
 
   if (!currentUser || !currentUser.departmentId) return null;
 
@@ -125,15 +133,20 @@ export default function ManagerRequestsPage() {
       if (actionType === "approve") {
         const result = approveApplication(selectedApp, currentUser, comment);
         if (result.success) {
-          toast.success(
-            "Zahtjev odobren",
-            selectedReason?.needSecondApproval
-              ? "Zahtjev čeka drugi nivo odobrenja"
-              : "Zahtjev je konačno odobren"
-          );
-          setSelectedApp(null);
-          setActionType(null);
-          setComment("");
+          // Show corrections report if there are any
+          if (result.corrections && result.corrections.length > 0) {
+            setCorrectionsReport(result.corrections);
+          } else {
+            toast.success(
+              "Zahtjev odobren",
+              selectedReason?.needSecondApproval
+                ? "Zahtjev čeka drugi nivo odobrenja"
+                : "Zahtjev je konačno odobren"
+            );
+            setSelectedApp(null);
+            setActionType(null);
+            setComment("");
+          }
         } else {
           toast.error("Greška", result.error || "Neuspješno odobrenje");
         }
@@ -544,6 +557,164 @@ export default function ManagerRequestsPage() {
                 : actionType === "approve"
                 ? "Odobri"
                 : "Odbij"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Corrections Report Dialog */}
+      <Dialog
+        open={correctionsReport !== null}
+        onOpenChange={() => {
+          setCorrectionsReport(null);
+          setSelectedApp(null);
+          setActionType(null);
+          setComment("");
+        }}
+      >
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <CheckCircle2 className="h-5 w-5 text-green-600" />
+              Izvještaj o Prilagodbama
+            </DialogTitle>
+            <DialogDescription>
+              Zahtjev je odobren. Izvršene su sljedeće prilagodbe:
+            </DialogDescription>
+          </DialogHeader>
+
+          {correctionsReport && correctionsReport.length > 0 && (
+            <div className="space-y-4 py-4">
+              <div className="p-4 bg-green-50 border border-green-200 rounded-md">
+                <p className="text-sm font-medium text-green-800 mb-2">
+                  Ukupno vraćenih dana:{" "}
+                  <span className="text-lg font-bold">
+                    {correctionsReport.reduce(
+                      (sum, c) => sum + c.daysReturned,
+                      0
+                    )}
+                  </span>
+                </p>
+                <p className="text-xs text-green-700">
+                  Svi preostali dani iz preklopljenih zahtjeva su vraćeni u
+                  alokaciju.
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                <h3 className="font-semibold text-sm">
+                  Detalji prilagodbi ({correctionsReport.length}):
+                </h3>
+                {correctionsReport.map((correction, index) => {
+                  const originalApp = applications.find(
+                    (app) => app.id === correction.originalApplicationId
+                  );
+                  const originalEmployee = originalApp
+                    ? mockEmployees.find((e) => e.id === originalApp.employeeId)
+                    : null;
+                  const originalReason = originalApp
+                    ? mockUnavailabilityReasons.find(
+                        (r) => r.id === originalApp.unavailabilityReasonId
+                      )
+                    : null;
+
+                  return (
+                    <Card key={index} className="border-orange-200">
+                      <CardContent className="pt-4">
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="font-medium text-sm">
+                                {originalEmployee?.firstName}{" "}
+                                {originalEmployee?.lastName}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                Originalni zahtjev #{correction.originalApplicationId}
+                              </p>
+                            </div>
+                            <Badge className="bg-orange-100 text-orange-800">
+                              {correction.daysReturned} dana vraćeno
+                            </Badge>
+                          </div>
+                          <Separator />
+                          <div className="grid grid-cols-2 gap-2 text-sm">
+                            <div>
+                              <Label className="text-muted-foreground text-xs">
+                                Tip nedostupnosti
+                              </Label>
+                              <div className="flex items-center gap-2 mt-1">
+                                <div
+                                  className="h-2 w-2 rounded-full"
+                                  style={{
+                                    backgroundColor: originalReason?.colorCode,
+                                  }}
+                                />
+                                <p className="text-xs">
+                                  {originalReason?.name}
+                                </p>
+                              </div>
+                            </div>
+                            <div>
+                              <Label className="text-muted-foreground text-xs">
+                                Originalno razdoblje
+                              </Label>
+                              <p className="text-xs mt-1">
+                                {originalApp
+                                  ? formatDateRange(
+                                      originalApp.startDate,
+                                      originalApp.endDate
+                                    )
+                                  : "-"}
+                              </p>
+                            </div>
+                            <div className="col-span-2">
+                              <Label className="text-muted-foreground text-xs">
+                                Vraćeni dani
+                              </Label>
+                              <p className="text-xs mt-1 font-medium text-orange-700">
+                                {formatDateRange(
+                                  correction.correctionStartDate,
+                                  correction.correctionEndDate
+                                )}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
+                <div className="flex gap-2">
+                  <Info className="h-4 w-4 text-blue-600 flex-shrink-0 mt-0.5" />
+                  <p className="text-xs text-blue-800">
+                    Originalni zahtjevi ostaju u statusu APPROVED. Vraćeni dani
+                    su dostupni za korištenje u novim zahtjevima. DaySchedule
+                    zapisi su ažurirani.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button
+              onClick={() => {
+                setCorrectionsReport(null);
+                setSelectedApp(null);
+                setActionType(null);
+                setComment("");
+                toast.success(
+                  "Zahtjev odobren",
+                  selectedReason?.needSecondApproval
+                    ? "Zahtjev čeka drugi nivo odobrenja"
+                    : "Zahtjev je konačno odobren"
+                );
+              }}
+            >
+              Zatvori
             </Button>
           </DialogFooter>
         </DialogContent>
