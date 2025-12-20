@@ -74,7 +74,7 @@ export default function AdminDashboard() {
               <Building2 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{mockDepartments.length}</div>
+              <div className="text-2xl font-bold">{departments.filter((d) => d.active).length}</div>
               <p className="text-xs text-muted-foreground">Aktivnih odjela</p>
             </CardContent>
           </Card>
@@ -129,7 +129,7 @@ export default function AdminDashboard() {
               </TableHeader>
               <TableBody>
                 {activeEmployees.slice(0, 10).map((employee) => {
-                  const department = mockDepartments.find(
+                  const department = departments.find(
                     (d) => d.id === employee.departmentId
                   );
                   return (
@@ -177,8 +177,8 @@ export default function AdminDashboard() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {mockDepartments.map((dept) => {
-                const deptEmployees = mockEmployees.filter(
+              {departments.filter((d) => d.active).map((dept) => {
+                const deptEmployees = employees.filter(
                   (e) => e.departmentId === dept.id && e.active
                 );
                 return (

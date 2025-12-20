@@ -48,16 +48,42 @@ export default function CreateRequestPage() {
       )
     : null;
 
-  // Check if editing non-DRAFT application
+  // Check if editing non-DRAFT application or invalid editId
   useEffect(() => {
-    if (editingApplication && editingApplication.status !== ApplicationStatus.DRAFT) {
-      toast.error(
-        "Greška",
-        `Ne možete uređivati zahtjev u statusu: ${editingApplication.status}`
-      );
-      router.push("/employee/requests");
+    if (editId && currentUser) {
+      // Check if application exists
+      const app = applications.find((a) => a.id === parseInt(editId));
+      
+      if (!app) {
+        toast.error(
+          "Greška",
+          "Zahtjev nije pronađen"
+        );
+        router.push("/employee/requests");
+        return;
+      }
+
+      // Check if application belongs to current user
+      if (app.employeeId !== currentUser.employeeId) {
+        toast.error(
+          "Greška",
+          "Nemate pristup ovom zahtjevu"
+        );
+        router.push("/employee/requests");
+        return;
+      }
+
+      // Check if application is DRAFT
+      if (app.status !== ApplicationStatus.DRAFT) {
+        toast.error(
+          "Greška",
+          `Ne možete uređivati zahtjev u statusu: ${app.status}`
+        );
+        router.push("/employee/requests");
+        return;
+      }
     }
-  }, [editingApplication, router]);
+  }, [editId, editingApplication, currentUser, applications, router]);
 
   const [formData, setFormData] = useState({
     unavailabilityReasonId: editingApplication
@@ -173,6 +199,7 @@ export default function CreateRequestPage() {
     balance.available,
     reasonId,
     ledgerEntries,
+    mockDaySchedules,
   ]);
 
   const handleSubmit = async (isDraft: boolean) => {
