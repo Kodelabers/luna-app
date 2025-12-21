@@ -66,6 +66,10 @@ export function AppSidebar({
           url: `/${organisationAlias}/administration/employees`,
         },
         {
+          title: t("managers"),
+          url: `/${organisationAlias}/administration/managers`,
+        },
+        {
           title: t("members"),
           url: `/${organisationAlias}/administration/members`,
         },
