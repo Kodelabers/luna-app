@@ -151,7 +151,7 @@ export function DepartmentDialog({
       {!isControlled && (
         <DialogTrigger asChild>
           {trigger || (
-            <Button>
+            <Button variant="outline">
               <Plus className="mr-2 h-4 w-4" />
               {t("newDepartment")}
             </Button>

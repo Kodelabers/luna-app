@@ -11,36 +11,13 @@ type Props = {
 
 export default async function AdministrationLayout({ children, params }: Props) {
   const { organisationAlias } = await params;
-  const tNav = await getTranslations("nav");
   const tAdmin = await getTranslations("admin");
 
   try {
     const ctx = await resolveTenantContext(organisationAlias);
     requireAdmin(ctx);
 
-    const navItems = [
-      { href: `/${organisationAlias}/administration/departments`, label: tNav("departments") },
-      { href: `/${organisationAlias}/administration/employees`, label: tNav("employees") },
-      { href: `/${organisationAlias}/administration/members`, label: tNav("members") },
-      { href: `/${organisationAlias}/administration/unavailability-reasons`, label: tAdmin("absenceReasons") },
-      { href: `/${organisationAlias}/administration/holidays`, label: tNav("holidays") },
-    ];
-
-    return (
-      <div className="space-y-6">
-        {/* Admin navigation */}
-        <div className="flex flex-wrap gap-2 border-b pb-4">
-          {navItems.map((item) => (
-            <Button key={item.href} variant="ghost" size="sm" asChild>
-              <Link href={item.href}>{item.label}</Link>
-            </Button>
-          ))}
-        </div>
-
-        {/* Admin content */}
-        {children}
-      </div>
-    );
+    return <>{children}</>;
   } catch (error) {
     if (error instanceof ForbiddenError) {
       return (

@@ -8,6 +8,7 @@ import { DepartmentTable } from "./_components/department-table";
 import { DepartmentDialog } from "./_components/department-dialog";
 import { Pagination } from "@/components/ui/pagination";
 import { getTranslations } from "next-intl/server";
+import { PageHeader } from "@/components/page-header";
 
 const PAGE_SIZE = 20;
 
@@ -67,19 +68,15 @@ export default async function DepartmentsPage({ params, searchParams }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
-          <p className="text-muted-foreground">{t("description")}</p>
-        </div>
-        <DepartmentDialog organisationAlias={organisationAlias} />
-      </div>
+      <PageHeader
+        title={t("title")}
+        description={t("description")}
+        action={<DepartmentDialog organisationAlias={organisationAlias} />}
+      />
 
-      <div className="flex items-center justify-between">
-        <Suspense fallback={<Skeleton className="h-10 w-64" />}>
-          <DepartmentSearchBar />
-        </Suspense>
-      </div>
+      <Suspense fallback={<Skeleton className="h-10 w-full" />}>
+        <DepartmentSearchBar />
+      </Suspense>
 
       <Card>
         <CardContent className="p-0">
@@ -91,7 +88,7 @@ export default async function DepartmentsPage({ params, searchParams }: Props) {
               </div>
             </div>
           ) : (
-            <>
+            <div className="p-4">
               <DepartmentTable
                 departments={departments}
                 organisationAlias={organisationAlias}
@@ -102,7 +99,7 @@ export default async function DepartmentsPage({ params, searchParams }: Props) {
                 totalItems={totalCount}
                 pageSize={PAGE_SIZE}
               />
-            </>
+            </div>
           )}
         </CardContent>
       </Card>

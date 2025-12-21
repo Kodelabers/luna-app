@@ -71,7 +71,14 @@
     "accessDenied": "Access Denied",
     "noAdminRights": "You do not have administrator rights to access this page.",
     "backToDashboard": "Back to dashboard",
-    "absenceReasons": "Absence Reasons"
+    "absenceReasons": "Absence Reasons",
+    "title": "Administration",
+    "description": "Manage organization and settings",
+    "departmentsDescription": "Manage departments and their structure",
+    "employeesDescription": "Manage employees in the organization",
+    "membersDescription": "Users with access to the system",
+    "holidaysDescription": "Non-working days and holidays",
+    "absenceReasonsDescription": "Types of absences that employees can request"
   },
   "departments": {
     "title": "Departments",

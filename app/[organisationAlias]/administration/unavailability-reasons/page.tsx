@@ -4,6 +4,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/page-header";
+import { getTranslations } from "next-intl/server";
 
 type Props = {
   params: Promise<{ organisationAlias: string }>;
@@ -12,6 +14,7 @@ type Props = {
 export default async function UnavailabilityReasonsPage({ params }: Props) {
   const { organisationAlias } = await params;
   const ctx = await resolveTenantContext(organisationAlias);
+  const tAdmin = await getTranslations("admin");
 
   // Fetch unavailability reasons for this organisation
   const reasons = await db.unavailabilityReason.findMany({
@@ -26,15 +29,11 @@ export default async function UnavailabilityReasonsPage({ params }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Razlozi izostanka</h1>
-          <p className="text-muted-foreground">
-            Vrste izostanaka koje zaposlenici mogu zatražiti
-          </p>
-        </div>
-        <Button>Novi razlog</Button>
-      </div>
+      <PageHeader
+        title={tAdmin("absenceReasons")}
+        description="Vrste izostanaka koje zaposlenici mogu zatražiti"
+        action={<Button>Novi razlog</Button>}
+      />
 
       <Card>
         <CardContent className="p-0">

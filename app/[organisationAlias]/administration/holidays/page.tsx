@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { hr } from "date-fns/locale";
+import { PageHeader } from "@/components/page-header";
+import { getTranslations } from "next-intl/server";
 
 type Props = {
   params: Promise<{ organisationAlias: string }>;
@@ -14,6 +16,7 @@ type Props = {
 export default async function HolidaysPage({ params }: Props) {
   const { organisationAlias } = await params;
   const ctx = await resolveTenantContext(organisationAlias);
+  const tNav = await getTranslations("nav");
 
   // Fetch holidays for this organisation
   const holidays = await db.holiday.findMany({
@@ -28,15 +31,11 @@ export default async function HolidaysPage({ params }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Blagdani</h1>
-          <p className="text-muted-foreground">
-            Neradni dani i praznici u organizaciji
-          </p>
-        </div>
-        <Button>Novi blagdan</Button>
-      </div>
+      <PageHeader
+        title={tNav("holidays")}
+        description="Neradni dani i praznici u organizaciji"
+        action={<Button>Novi blagdan</Button>}
+      />
 
       <Card>
         <CardContent className="p-0">

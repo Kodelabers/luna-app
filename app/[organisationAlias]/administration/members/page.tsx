@@ -5,6 +5,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
+import { PageHeader } from "@/components/page-header";
+import { getTranslations } from "next-intl/server";
 
 type Props = {
   params: Promise<{ organisationAlias: string }>;
@@ -13,6 +15,7 @@ type Props = {
 export default async function MembersPage({ params }: Props) {
   const { organisationAlias } = await params;
   const ctx = await resolveTenantContext(organisationAlias);
+  const tNav = await getTranslations("nav");
 
   // Fetch organisation members (OrganisationUser)
   const members = await db.organisationUser.findMany({
@@ -30,15 +33,11 @@ export default async function MembersPage({ params }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Članovi</h1>
-          <p className="text-muted-foreground">
-            Korisnici s pristupom organizaciji
-          </p>
-        </div>
-        <Button>Pozovi člana</Button>
-      </div>
+      <PageHeader
+        title={tNav("members")}
+        description="Korisnici s pristupom organizaciji"
+        action={<Button>Pozovi člana</Button>}
+      />
 
       <Card>
         <CardContent className="p-0">

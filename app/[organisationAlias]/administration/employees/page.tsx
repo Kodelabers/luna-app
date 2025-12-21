@@ -4,6 +4,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { PageHeader } from "@/components/page-header";
+import { getTranslations } from "next-intl/server";
 
 type Props = {
   params: Promise<{ organisationAlias: string }>;
@@ -12,6 +14,7 @@ type Props = {
 export default async function EmployeesPage({ params }: Props) {
   const { organisationAlias } = await params;
   const ctx = await resolveTenantContext(organisationAlias);
+  const tNav = await getTranslations("nav");
 
   // Fetch employees for this organisation
   const employees = await db.employee.findMany({
@@ -34,15 +37,11 @@ export default async function EmployeesPage({ params }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Zaposlenici</h1>
-          <p className="text-muted-foreground">
-            Upravljanje zaposlenicima u organizaciji
-          </p>
-        </div>
-        <Button>Novi zaposlenik</Button>
-      </div>
+      <PageHeader
+        title={tNav("employees")}
+        description="Upravljanje zaposlenicima u organizaciji"
+        action={<Button>Novi zaposlenik</Button>}
+      />
 
       <Card>
         <CardContent className="p-0">

@@ -71,7 +71,14 @@
     "accessDenied": "Pristup odbijen",
     "noAdminRights": "Nemate administratorska prava za pristup ovoj stranici.",
     "backToDashboard": "Povratak na dashboard",
-    "absenceReasons": "Razlozi izostanka"
+    "absenceReasons": "Razlozi izostanka",
+    "title": "Administracija",
+    "description": "Upravljanje organizacijom i postavkama",
+    "departmentsDescription": "Upravljanje odjelima i njihovom strukturom",
+    "employeesDescription": "Upravljanje zaposlenicima u organizaciji",
+    "membersDescription": "Korisnici s pristupom sustavu",
+    "holidaysDescription": "Neradni dani i praznici",
+    "absenceReasonsDescription": "Vrste izostanaka koje zaposlenici mogu zatražiti"
   },
   "departments": {
     "title": "Odjeli",

@@ -5,6 +5,7 @@ import { useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -27,20 +28,38 @@ export function DepartmentSearchBar() {
 
   const hasFilters = currentSearch || currentSort !== "asc";
 
+  const updateParams = (updates: { search?: string | null; sort?: string | null }) => {
+    startTransition(() => {
+      const params = new URLSearchParams();
+      
+      // Handle search
+      const newSearch = updates.search !== undefined ? updates.search : currentSearch;
+      if (newSearch) params.set("search", newSearch);
+      
+      // Handle sort
+      const newSort = updates.sort !== undefined ? updates.sort : currentSort;
+      if (newSort && newSort !== "asc") params.set("sort", newSort);
+      
+      const queryString = params.toString();
+      router.push(queryString ? `${pathname}?${queryString}` : pathname);
+    });
+  };
+
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const search = formData.get("search") as string;
     const sort = formData.get("sort") as string;
 
-    startTransition(() => {
-      const params = new URLSearchParams();
-      if (search) params.set("search", search);
-      if (sort && sort !== "asc") params.set("sort", sort);
-      // Reset to page 1 when searching
-      const queryString = params.toString();
-      router.push(queryString ? `${pathname}?${queryString}` : pathname);
-    });
+    updateParams({ search: search || null, sort: sort || null });
+  };
+
+  const handleRemoveSearch = () => {
+    updateParams({ search: null });
+  };
+
+  const handleRemoveSort = () => {
+    updateParams({ sort: "asc" });
   };
 
   const handleReset = () => {
@@ -50,44 +69,71 @@ export function DepartmentSearchBar() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="flex items-center gap-2">
-      <div className="relative flex-1 max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          name="search"
-          placeholder={t("searchPlaceholder")}
-          defaultValue={currentSearch}
-          className="pl-9"
-        />
-      </div>
-      <Select name="sort" defaultValue={currentSort}>
-        <SelectTrigger className="w-[140px]">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="asc">{tCommon("sortAsc")}</SelectItem>
-          <SelectItem value="desc">{tCommon("sortDesc")}</SelectItem>
-        </SelectContent>
-      </Select>
-      <Button type="submit" disabled={isPending}>
-        {isPending ? (
-          <Loader2 className="h-4 w-4 animate-spin" />
-        ) : (
-          <Search className="h-4 w-4" />
-        )}
-        {tCommon("search")}
-      </Button>
-      {hasFilters && (
-        <Button
-          type="button"
-          variant="outline"
-          onClick={handleReset}
-          disabled={isPending}
-        >
-          <X className="h-4 w-4" />
-          {t("reset")}
+    <div className="space-y-3">
+      <form onSubmit={handleSubmit} className="flex items-center gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            name="search"
+            placeholder={t("searchPlaceholder")}
+            defaultValue={currentSearch}
+            className="pl-9"
+          />
+        </div>
+        <Select name="sort" defaultValue={currentSort}>
+          <SelectTrigger className="w-[140px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="asc">{tCommon("sortAsc")}</SelectItem>
+            <SelectItem value="desc">{tCommon("sortDesc")}</SelectItem>
+          </SelectContent>
+        </Select>
+        <Button type="submit" disabled={isPending}>
+          {isPending ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <Search className="h-4 w-4" />
+          )}
+          {tCommon("search")}
         </Button>
+      </form>
+
+      {hasFilters && (
+        <div className="flex items-center gap-2 flex-wrap">
+          {currentSearch && (
+            <Badge
+              variant="secondary"
+              className="cursor-pointer hover:bg-secondary/80 gap-1 pr-1"
+              onClick={handleRemoveSearch}
+            >
+              <span className="text-muted-foreground">{tCommon("search")}:</span>
+              <span>{currentSearch}</span>
+              <X className="h-3 w-3 ml-1" />
+            </Badge>
+          )}
+          {currentSort !== "asc" && (
+            <Badge
+              variant="secondary"
+              className="cursor-pointer hover:bg-secondary/80 gap-1 pr-1"
+              onClick={handleRemoveSort}
+            >
+              <span>{tCommon("sortDesc")}</span>
+              <X className="h-3 w-3 ml-1" />
+            </Badge>
+          )}
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleReset}
+            disabled={isPending}
+            className="h-6 px-2 text-xs"
+          >
+            {t("reset")}
+          </Button>
+        </div>
       )}
-    </form>
+    </div>
   );
 }
