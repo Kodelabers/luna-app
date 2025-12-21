@@ -174,7 +174,11 @@
     "noEmployeesFound": "No employees found",
     "showAll": "Show all employees",
     "backToSearch": "Search",
-    "employeesTotal": "employees"
+    "employeesTotal": "employees",
+    "filterByDepartment": "Filter by department",
+    "allDepartments": "All departments",
+    "employee": "Employee",
+    "emailColumn": "Email"
   },
   "language": {
     "select": "Language",

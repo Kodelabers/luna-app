@@ -174,7 +174,11 @@
     "noEmployeesFound": "Nema pronađenih zaposlenika",
     "showAll": "Prikaži sve zaposlenike",
     "backToSearch": "Pretraži",
-    "employeesTotal": "zaposlenika"
+    "employeesTotal": "zaposlenika",
+    "filterByDepartment": "Filtriraj po odjelu",
+    "allDepartments": "Svi odjeli",
+    "employee": "Zaposlenik",
+    "emailColumn": "Email"
   },
   "language": {
     "select": "Jezik",
