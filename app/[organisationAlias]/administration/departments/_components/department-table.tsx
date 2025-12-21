@@ -48,6 +48,7 @@ export function DepartmentTable({
     <Table>
       <TableHeader>
         <TableRow>
+        <TableHead>#</TableHead>
           <TableHead>{t("name")}</TableHead>
           <TableHead>{t("alias")}</TableHead>
           <TableHead>{t("employeesCount")}</TableHead>
@@ -56,13 +57,14 @@ export function DepartmentTable({
         </TableRow>
       </TableHeader>
       <TableBody>
-        {departments.map((dept) => (
+        {departments.map((dept, index) => (
           <TableRow key={dept.id}>
+            <TableCell className="text-xs text-muted-foreground">{index + 1}</TableCell>
             <TableCell className="font-medium">
               <div className="flex items-center gap-2">
                 {dept.colorCode && (
                   <div
-                    className="h-3 w-3 rounded-full shrink-0"
+                    className="h-3 w-3 rounded-xs shrink-0 shadow-sm"
                     style={{ backgroundColor: dept.colorCode }}
                   />
                 )}
