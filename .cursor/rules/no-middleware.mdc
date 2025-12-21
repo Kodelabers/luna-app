@@ -1,0 +1,15 @@
+---
+description: Ne koristi middleware.ts u ovom projektu
+globs: 
+alwaysApply: true
+---
+
+# Middleware pravila
+
+- **NIKADA** ne kreiraj `middleware.ts` datoteku u root direktoriju projekta
+- Ovaj projekt koristi `proxy.ts` umjesto standardnog Next.js `middleware.ts`
+- Sva middleware logika (Clerk auth, routing, itd.) ide u `proxy.ts`
+- Next.js će automatski prepoznati `proxy.ts` kao middleware datoteku
+
+## Razlog
+U Next.js 16, `middleware.ts` je preimenovan u `proxy.ts` kako bi bolje odražavao svoju svrhu.

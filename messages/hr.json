@@ -1,0 +1,109 @@
+{
+  "common": {
+    "save": "Spremi",
+    "cancel": "Odustani",
+    "create": "Kreiraj",
+    "edit": "Uredi",
+    "delete": "Obriši",
+    "search": "Pretraži",
+    "loading": "Učitavanje...",
+    "noResults": "Nema rezultata",
+    "actions": "Akcije",
+    "confirm": "Potvrdi",
+    "back": "Natrag",
+    "next": "Dalje",
+    "yes": "Da",
+    "no": "Ne",
+    "sortAsc": "Sortirano A-Z",
+    "sortDesc": "Sortirano Z-A"
+  },
+  "auth": {
+    "signOut": "Odjava",
+    "signIn": "Prijava"
+  },
+  "nav": {
+    "dashboard": "Nadzorna ploča",
+    "administration": "Administracija",
+    "departments": "Odjeli",
+    "employees": "Zaposlenici",
+    "members": "Članovi",
+    "unavailabilityReasons": "Razlozi nedostupnosti",
+    "holidays": "Praznici",
+    "management": "Upravljanje",
+    "overview": "Pregled",
+    "applications": "Zahtjevi"
+  },
+  "roles": {
+    "administrator": "Administrator",
+    "generalManager": "Generalni Manager",
+    "departmentManager": "Manager Odjela"
+  },
+  "dashboard": {
+    "welcome": "Dobrodošli, {name}!",
+    "dashboardFor": "Dashboard za {organisation}",
+    "myProfile": "Moj profil",
+    "yourDataInSystem": "Vaši podaci u sustavu",
+    "fullName": "Ime i prezime:",
+    "email": "Email:",
+    "position": "Pozicija:",
+    "notLinkedToEmployee": "Niste povezani sa zaposlenikom",
+    "contactAdmin": "Kontaktirajte administratora kako bi povezao vaš korisnički račun sa evidencijom zaposlenika.",
+    "myRequests": "Moji zahtjevi",
+    "openRequests": "Otvoreni zahtjevi za izostanak",
+    "openRequestsDescription": "Ovdje će se prikazati vaši otvoreni zahtjevi (DRAFT, SUBMITTED, APPROVED_FIRST_LEVEL).",
+    "forApproval": "Za odobrenje",
+    "requestsAwaitingDecision": "Zahtjevi koji čekaju vašu odluku",
+    "requestsAwaitingDescription": "Ovdje će se prikazati zahtjevi za odobrenje (SUBMITTED status).",
+    "finalApproval": "Finalno odobrenje",
+    "requestsForFinalApproval": "Zahtjevi za završno odobrenje",
+    "finalApprovalDescription": "Ovdje će se prikazati zahtjevi za finalno odobrenje (APPROVED_FIRST_LEVEL status).",
+    "myCalendar": "Moj kalendar",
+    "scheduleForCurrentMonth": "Raspored za trenutni mjesec",
+    "calendarDescription": "Ovdje će se prikazati kalendar s DaySchedule zapisima."
+  },
+  "admin": {
+    "accessDenied": "Pristup odbijen",
+    "noAdminRights": "Nemate administratorska prava za pristup ovoj stranici.",
+    "backToDashboard": "Povratak na dashboard",
+    "absenceReasons": "Razlozi izostanka"
+  },
+  "departments": {
+    "title": "Odjeli",
+    "description": "Upravljanje odjelima u organizaciji",
+    "newDepartment": "Novi odjel",
+    "editDepartment": "Uredi odjel",
+    "deleteDepartment": "Obriši odjel",
+    "noDepartments": "Nema odjela u organizaciji.",
+    "noSearchResults": "Nema odjela koji odgovaraju pretrazi.",
+    "searchPlaceholder": "Pretraži odjele...",
+    "name": "Naziv",
+    "alias": "Alias",
+    "employeesCount": "Zaposlenici",
+    "managersCount": "Manageri",
+    "color": "Boja",
+    "colorDescription": "Boja za vizualnu identifikaciju odjela",
+    "namePlaceholder": "npr. Razvoj",
+    "aliasPlaceholder": "npr. razvoj",
+    "aliasDescription": "Jedinstveni identifikator (mala slova, brojevi, crtice)",
+    "descriptionLabel": "Opis",
+    "descriptionPlaceholder": "Kratki opis odjela (opcionalno)",
+    "createDescription": "Unesite podatke za novi odjel.",
+    "editDescription": "Izmijenite podatke o odjelu.",
+    "deleteConfirm": "Jeste li sigurni da želite obrisati odjel {name}? Ova akcija se ne može poništiti.",
+    "deleteError": "Greška pri brisanju odjela"
+  },
+  "messages": {
+    "departmentCreated": "Odjel je uspješno kreiran",
+    "departmentUpdated": "Odjel je uspješno ažuriran",
+    "departmentDeleted": "Odjel je uspješno obrisan",
+    "departmentAliasExists": "Odjel s ovim aliasom već postoji",
+    "departmentNotFound": "Odjel nije pronađen",
+    "cannotDeleteWithEmployees": "Nije moguće obrisati odjel koji ima {count} aktivnih zaposlenika"
+  },
+  "language": {
+    "select": "Jezik",
+    "croatian": "Hrvatski",
+    "english": "English"
+  }
+}
+

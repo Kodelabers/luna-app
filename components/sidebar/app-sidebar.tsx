@@ -1,6 +1,7 @@
 "use client";
 
 import { LayoutDashboard, Settings } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import { NavMain, type NavItem } from "@/components/sidebar/nav-main";
 import { NavDepartments, type Department } from "@/components/sidebar/nav-departments";
@@ -38,10 +39,12 @@ export function AppSidebar({
   managedDepartments,
   ...props
 }: AppSidebarProps) {
+  const t = useTranslations("nav");
+
   // Main navigation items (visible to all)
   const mainNavItems: NavItem[] = [
     {
-      title: "Nadzorna ploča",
+      title: t("dashboard"),
       url: `/${organisationAlias}`,
       icon: LayoutDashboard,
     },
@@ -50,28 +53,28 @@ export function AppSidebar({
   // Admin navigation items
   const adminNavItems: NavItem[] = [
     {
-      title: "Administracija",
+      title: t("administration"),
       url: `/${organisationAlias}/administration`,
       icon: Settings,
       items: [
         {
-          title: "Odjeli",
+          title: t("departments"),
           url: `/${organisationAlias}/administration/departments`,
         },
         {
-          title: "Zaposlenici",
+          title: t("employees"),
           url: `/${organisationAlias}/administration/employees`,
         },
         {
-          title: "Članovi",
+          title: t("members"),
           url: `/${organisationAlias}/administration/members`,
         },
         {
-          title: "Razlozi nedostupnosti",
+          title: t("unavailabilityReasons"),
           url: `/${organisationAlias}/administration/unavailability-reasons`,
         },
         {
-          title: "Praznici",
+          title: t("holidays"),
           url: `/${organisationAlias}/administration/holidays`,
         },
       ],
@@ -101,7 +104,7 @@ export function AppSidebar({
         {isAdmin && (
           <>
             <SidebarSeparator />
-            <NavMain items={adminNavItems} label="Upravljanje" />
+            <NavMain items={adminNavItems} label={t("management")} />
           </>
         )}
       </SidebarContent>

@@ -1,7 +1,9 @@
 "use client";
 
-import { ChevronsUpDown, LogOut } from "lucide-react";
+import { useTransition } from "react";
+import { ChevronsUpDown, LogOut, Languages, Check } from "lucide-react";
 import { useClerk } from "@clerk/nextjs";
+import { useLocale, useTranslations } from "next-intl";
 
 import {
   Avatar,
@@ -14,6 +16,9 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -22,6 +27,8 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar";
+import { setLocale } from "@/lib/actions/locale";
+import { locales, localeNames, type Locale } from "@/i18n/config";
 
 export function NavUser({
   user,
@@ -34,6 +41,9 @@ export function NavUser({
 }) {
   const { isMobile } = useSidebar();
   const { signOut } = useClerk();
+  const locale = useLocale();
+  const t = useTranslations();
+  const [isPending, startTransition] = useTransition();
 
   const initials = user.name
     .split(" ")
@@ -41,6 +51,12 @@ export function NavUser({
     .join("")
     .toUpperCase()
     .slice(0, 2);
+
+  const handleLocaleChange = (newLocale: Locale) => {
+    startTransition(async () => {
+      await setLocale(newLocale);
+    });
+  };
 
   return (
     <SidebarMenu>
@@ -85,9 +101,30 @@ export function NavUser({
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger disabled={isPending}>
+                <Languages className="mr-2 size-4" />
+                {t("language.select")}
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent>
+                {locales.map((l) => (
+                  <DropdownMenuItem
+                    key={l}
+                    onClick={() => handleLocaleChange(l)}
+                    disabled={isPending}
+                  >
+                    {locale === l && <Check className="mr-2 size-4" />}
+                    <span className={locale !== l ? "ml-6" : ""}>
+                      {localeNames[l]}
+                    </span>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+            <DropdownMenuSeparator />
             <DropdownMenuItem onClick={() => signOut({ redirectUrl: "/" })}>
               <LogOut className="mr-2 size-4" />
-              Odjava
+              {t("auth.signOut")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

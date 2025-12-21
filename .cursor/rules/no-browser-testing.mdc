@@ -1,0 +1,15 @@
+---
+description: Ne koristi browser alate za testiranje
+globs:
+alwaysApply: true
+---
+
+# Pravila testiranja
+
+- **NIKADA** ne koristi browser alate (`browser_navigate`, `browser_click`, `browser_snapshot`, `browser_type`, itd.) za testiranje implementacije
+- Korisnik će sam testirati funkcionalnost u svom browseru
+- Umjesto browser testiranja, provjeri:
+  - Linter greške (`read_lints`)
+  - TypeScript tipove
+  - Kod logiku
+- Kada završiš implementaciju, obavijesti korisnika da može testirati

@@ -1,0 +1,109 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "create": "Create",
+    "edit": "Edit",
+    "delete": "Delete",
+    "search": "Search",
+    "loading": "Loading...",
+    "noResults": "No results",
+    "actions": "Actions",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "yes": "Yes",
+    "no": "No",
+    "sortAsc": "Sorted A-Z",
+    "sortDesc": "Sorted Z-A"
+  },
+  "auth": {
+    "signOut": "Sign out",
+    "signIn": "Sign in"
+  },
+  "nav": {
+    "dashboard": "Dashboard",
+    "administration": "Administration",
+    "departments": "Departments",
+    "employees": "Employees",
+    "members": "Members",
+    "unavailabilityReasons": "Unavailability Reasons",
+    "holidays": "Holidays",
+    "management": "Management",
+    "overview": "Overview",
+    "applications": "Applications"
+  },
+  "roles": {
+    "administrator": "Administrator",
+    "generalManager": "General Manager",
+    "departmentManager": "Department Manager"
+  },
+  "dashboard": {
+    "welcome": "Welcome, {name}!",
+    "dashboardFor": "Dashboard for {organisation}",
+    "myProfile": "My Profile",
+    "yourDataInSystem": "Your data in the system",
+    "fullName": "Full name:",
+    "email": "Email:",
+    "position": "Position:",
+    "notLinkedToEmployee": "Not linked to an employee",
+    "contactAdmin": "Contact the administrator to link your user account with the employee record.",
+    "myRequests": "My Requests",
+    "openRequests": "Open absence requests",
+    "openRequestsDescription": "Your open requests will be displayed here (DRAFT, SUBMITTED, APPROVED_FIRST_LEVEL).",
+    "forApproval": "For Approval",
+    "requestsAwaitingDecision": "Requests awaiting your decision",
+    "requestsAwaitingDescription": "Requests for approval will be displayed here (SUBMITTED status).",
+    "finalApproval": "Final Approval",
+    "requestsForFinalApproval": "Requests for final approval",
+    "finalApprovalDescription": "Requests for final approval will be displayed here (APPROVED_FIRST_LEVEL status).",
+    "myCalendar": "My Calendar",
+    "scheduleForCurrentMonth": "Schedule for the current month",
+    "calendarDescription": "Your calendar with DaySchedule records will be displayed here."
+  },
+  "admin": {
+    "accessDenied": "Access Denied",
+    "noAdminRights": "You do not have administrator rights to access this page.",
+    "backToDashboard": "Back to dashboard",
+    "absenceReasons": "Absence Reasons"
+  },
+  "departments": {
+    "title": "Departments",
+    "description": "Manage departments in the organization",
+    "newDepartment": "New Department",
+    "editDepartment": "Edit Department",
+    "deleteDepartment": "Delete Department",
+    "noDepartments": "No departments in the organization.",
+    "noSearchResults": "No departments match the search criteria.",
+    "searchPlaceholder": "Search departments...",
+    "name": "Name",
+    "alias": "Alias",
+    "employeesCount": "Employees",
+    "managersCount": "Managers",
+    "color": "Color",
+    "colorDescription": "Color for visual identification of the department",
+    "namePlaceholder": "e.g. Development",
+    "aliasPlaceholder": "e.g. development",
+    "aliasDescription": "Unique identifier (lowercase letters, numbers, dashes)",
+    "descriptionLabel": "Description",
+    "descriptionPlaceholder": "Short description of the department (optional)",
+    "createDescription": "Enter details for the new department.",
+    "editDescription": "Modify department details.",
+    "deleteConfirm": "Are you sure you want to delete the department {name}? This action cannot be undone.",
+    "deleteError": "Error deleting department"
+  },
+  "messages": {
+    "departmentCreated": "Department created successfully",
+    "departmentUpdated": "Department updated successfully",
+    "departmentDeleted": "Department deleted successfully",
+    "departmentAliasExists": "A department with this alias already exists",
+    "departmentNotFound": "Department not found",
+    "cannotDeleteWithEmployees": "Cannot delete a department with {count} active employees"
+  },
+  "language": {
+    "select": "Language",
+    "croatian": "Croatian",
+    "english": "English"
+  }
+}
+

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Building, FileText, Users } from "lucide-react";
 import { ChevronRight } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import {
   Collapsible,
@@ -35,6 +36,7 @@ export function NavDepartments({
   organisationAlias: string;
 }) {
   const pathname = usePathname();
+  const t = useTranslations("nav");
 
   if (departments.length === 0) {
     return null;
@@ -42,16 +44,16 @@ export function NavDepartments({
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Odjeli</SidebarGroupLabel>
+      <SidebarGroupLabel>{t("departments")}</SidebarGroupLabel>
       <SidebarMenu>
         {departments.map((dept) => {
           const deptBasePath = `/${organisationAlias}/department/${dept.id}`;
           const isActive = pathname.startsWith(deptBasePath);
 
           const subItems = [
-            { title: "Pregled", url: deptBasePath, icon: Building },
-            { title: "Zaposlenici", url: `${deptBasePath}/employees`, icon: Users },
-            { title: "Zahtjevi", url: `${deptBasePath}/applications`, icon: FileText },
+            { title: t("overview"), url: deptBasePath, icon: Building },
+            { title: t("employees"), url: `${deptBasePath}/employees`, icon: Users },
+            { title: t("applications"), url: `${deptBasePath}/applications`, icon: FileText },
           ];
 
           return (

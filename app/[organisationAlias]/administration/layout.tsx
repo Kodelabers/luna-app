@@ -2,6 +2,7 @@ import { resolveTenantContext, requireAdmin } from "@/lib/tenant/resolveTenantCo
 import { ForbiddenError } from "@/lib/errors";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { getTranslations } from "next-intl/server";
 
 type Props = {
   children: React.ReactNode;
@@ -10,17 +11,19 @@ type Props = {
 
 export default async function AdministrationLayout({ children, params }: Props) {
   const { organisationAlias } = await params;
+  const tNav = await getTranslations("nav");
+  const tAdmin = await getTranslations("admin");
 
   try {
     const ctx = await resolveTenantContext(organisationAlias);
     requireAdmin(ctx);
 
     const navItems = [
-      { href: `/${organisationAlias}/administration/departments`, label: "Odjeli" },
-      { href: `/${organisationAlias}/administration/employees`, label: "Zaposlenici" },
-      { href: `/${organisationAlias}/administration/members`, label: "Članovi" },
-      { href: `/${organisationAlias}/administration/unavailability-reasons`, label: "Razlozi izostanka" },
-      { href: `/${organisationAlias}/administration/holidays`, label: "Blagdani" },
+      { href: `/${organisationAlias}/administration/departments`, label: tNav("departments") },
+      { href: `/${organisationAlias}/administration/employees`, label: tNav("employees") },
+      { href: `/${organisationAlias}/administration/members`, label: tNav("members") },
+      { href: `/${organisationAlias}/administration/unavailability-reasons`, label: tAdmin("absenceReasons") },
+      { href: `/${organisationAlias}/administration/holidays`, label: tNav("holidays") },
     ];
 
     return (
@@ -43,12 +46,12 @@ export default async function AdministrationLayout({ children, params }: Props) 
       return (
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
-            <h1 className="text-2xl font-bold">Pristup odbijen</h1>
+            <h1 className="text-2xl font-bold">{tAdmin("accessDenied")}</h1>
             <p className="mt-2 text-muted-foreground">
-              Nemate administratorska prava za pristup ovoj stranici.
+              {tAdmin("noAdminRights")}
             </p>
             <Button asChild className="mt-4">
-              <Link href={`/${organisationAlias}`}>Povratak na dashboard</Link>
+              <Link href={`/${organisationAlias}`}>{tAdmin("backToDashboard")}</Link>
             </Button>
           </div>
         </div>
