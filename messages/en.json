@@ -184,6 +184,20 @@
     "select": "Language",
     "croatian": "Croatian",
     "english": "English"
+  },
+  "theme": {
+    "mode": "Mode",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System",
+    "color": "Color",
+    "zinc": "Zinc",
+    "blue": "Blue",
+    "green": "Green",
+    "orange": "Orange",
+    "red": "Red",
+    "violet": "Violet",
+    "yellow": "Yellow"
   }
 }
 

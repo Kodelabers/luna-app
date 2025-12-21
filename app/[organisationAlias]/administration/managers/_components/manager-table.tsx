@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { Fragment, useState, useTransition } from "react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { X, Loader2, Crown, Building2 } from "lucide-react";
@@ -178,7 +178,7 @@ export function ManagerTable({
 
           {/* Department Sections */}
           {filteredDepartments.map((department) => (
-            <>
+            <Fragment key={`header-${department.id}`}>
               <TableRow
                 key={`header-${department.id}`}
                 className="bg-muted/50 hover:bg-muted/50"
@@ -242,7 +242,7 @@ export function ManagerTable({
                   </TableRow>
                 ))
               )}
-            </>
+            </Fragment>
           ))}
         </TableBody>
       </Table>
@@ -259,7 +259,7 @@ export function ManagerTable({
                   })
                 : t("removeConfirm", {
                     name: `${managerToDelete?.manager.employee.firstName} ${managerToDelete?.manager.employee.lastName}`,
-                    department: managerToDelete?.departmentName,
+                    department: managerToDelete?.departmentName || "",
                   })}
             </DialogDescription>
           </DialogHeader>

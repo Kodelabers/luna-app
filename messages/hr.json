@@ -184,6 +184,20 @@
     "select": "Jezik",
     "croatian": "Hrvatski",
     "english": "English"
+  },
+  "theme": {
+    "mode": "Način rada",
+    "light": "Svijetla",
+    "dark": "Tamna",
+    "system": "Sustav",
+    "color": "Boja",
+    "zinc": "Zinc",
+    "blue": "Plava",
+    "green": "Zelena",
+    "orange": "Narančasta",
+    "red": "Crvena",
+    "violet": "Ljubičasta",
+    "yellow": "Žuta"
   }
 }
 
