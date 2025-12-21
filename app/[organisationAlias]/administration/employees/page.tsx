@@ -1,105 +1,141 @@
+import { Suspense } from "react";
 import { resolveTenantContext } from "@/lib/tenant/resolveTenantContext";
 import { db } from "@/lib/db";
-import { Card, CardContent } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { PageHeader } from "@/components/page-header";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { EmployeeSearchBar } from "./_components/employee-search-bar";
+import { EmployeeTable } from "./_components/employee-table";
+import { EmployeeDialog } from "./_components/employee-dialog";
+import { Pagination } from "@/components/ui/pagination";
 import { getTranslations } from "next-intl/server";
+import { PageHeader } from "@/components/page-header";
+
+const PAGE_SIZE = 20;
 
 type Props = {
   params: Promise<{ organisationAlias: string }>;
+  searchParams: Promise<{
+    search?: string;
+    sort?: "asc" | "desc";
+    page?: string;
+    department?: string;
+  }>;
 };
 
-export default async function EmployeesPage({ params }: Props) {
+export default async function EmployeesPage({ params, searchParams }: Props) {
   const { organisationAlias } = await params;
+  const {
+    search,
+    sort = "asc",
+    page: pageParam,
+    department,
+  } = await searchParams;
   const ctx = await resolveTenantContext(organisationAlias);
-  const tNav = await getTranslations("nav");
+  const t = await getTranslations("employees");
 
-  // Fetch employees for this organisation
-  const employees = await db.employee.findMany({
-    where: {
-      organisationId: ctx.organisationId,
-      active: true,
-    },
-    include: {
-      department: true,
-      user: true,
-      managers: {
-        where: { active: true },
+  const currentPage = Math.max(1, parseInt(pageParam || "1", 10));
+  const departmentId = department ? parseInt(department, 10) : undefined;
+
+  // Build where clause for reuse
+  const whereClause = {
+    organisationId: ctx.organisationId,
+    active: true,
+    ...(departmentId && { departmentId }),
+    ...(search && {
+      OR: [
+        { firstName: { contains: search, mode: "insensitive" as const } },
+        { lastName: { contains: search, mode: "insensitive" as const } },
+        { email: { contains: search, mode: "insensitive" as const } },
+      ],
+    }),
+  };
+
+  // Fetch employees, departments, and count in parallel
+  const [employees, totalCount, departments] = await Promise.all([
+    db.employee.findMany({
+      where: whereClause,
+      include: {
+        department: {
+          select: {
+            id: true,
+            name: true,
+            colorCode: true,
+          },
+        },
       },
-    },
-    orderBy: [
-      { lastName: "asc" },
-      { firstName: "asc" },
-    ],
-  });
+      orderBy: {
+        lastName: sort,
+      },
+      skip: (currentPage - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
+    }),
+    db.employee.count({
+      where: whereClause,
+    }),
+    db.department.findMany({
+      where: {
+        organisationId: ctx.organisationId,
+        active: true,
+      },
+      select: {
+        id: true,
+        name: true,
+        colorCode: true,
+      },
+      orderBy: {
+        name: "asc",
+      },
+    }),
+  ]);
+
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title={tNav("employees")}
-        description="Upravljanje zaposlenicima u organizaciji"
-        action={<Button>Novi zaposlenik</Button>}
-      />
+    <Card>
+      <CardHeader>
+        <PageHeader
+          title={t("title")}
+          description={t("description")}
+          action={
+            <EmployeeDialog
+              organisationAlias={organisationAlias}
+              departments={departments}
+            />
+          }
+        />
 
-      <Card>
-        <CardContent className="p-0">
-          {employees.length === 0 ? (
-            <div className="p-6 text-center">
-              <p className="text-muted-foreground">Nema zaposlenika u organizaciji.</p>
-              <Button className="mt-4">Dodaj prvog zaposlenika</Button>
+        <Suspense fallback={<Skeleton className="h-10 w-full" />}>
+          <EmployeeSearchBar departments={departments} />
+        </Suspense>
+      </CardHeader>
+
+      <CardContent className="p-0">
+        {employees.length === 0 && !search && !department ? (
+          <div className="p-6 text-center">
+            <p className="text-muted-foreground">{t("noEmployees")}</p>
+            <div className="mt-4">
+              <EmployeeDialog
+                organisationAlias={organisationAlias}
+                departments={departments}
+              />
             </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Ime i prezime</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Odjel</TableHead>
-                  <TableHead>Pozicija</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="text-right">Akcije</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {employees.map((emp) => (
-                  <TableRow key={emp.id}>
-                    <TableCell className="font-medium">
-                      {emp.firstName} {emp.lastName}
-                    </TableCell>
-                    <TableCell>{emp.email}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{emp.department.name}</Badge>
-                    </TableCell>
-                    <TableCell>{emp.title || "-"}</TableCell>
-                    <TableCell>
-                      <div className="flex gap-1">
-                        {emp.user && (
-                          <Badge variant="secondary" className="text-xs">
-                            Povezan
-                          </Badge>
-                        )}
-                        {emp.managers.length > 0 && (
-                          <Badge variant="default" className="text-xs">
-                            Manager
-                          </Badge>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="sm">
-                        Uredi
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+          </div>
+        ) : (
+          <div className="p-4">
+            <EmployeeTable
+              employees={employees}
+              organisationAlias={organisationAlias}
+              departments={departments}
+            />
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={totalCount}
+              pageSize={PAGE_SIZE}
+            />
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
-
