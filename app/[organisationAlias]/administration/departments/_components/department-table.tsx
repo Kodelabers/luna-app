@@ -48,11 +48,11 @@ export function DepartmentTable({
     <Table>
       <TableHeader>
         <TableRow>
-        <TableHead>#</TableHead>
+        <TableHead className="w-10">#</TableHead>
           <TableHead>{t("name")}</TableHead>
           <TableHead>{t("alias")}</TableHead>
-          <TableHead>{t("employeesCount")}</TableHead>
-          <TableHead>{t("managersCount")}</TableHead>
+          <TableHead className="w-12">{t("employeesCount")}</TableHead>
+          <TableHead className="w-12">{t("managersCount")}</TableHead>
           <TableHead className="text-right">{tCommon("actions")}</TableHead>
         </TableRow>
       </TableHeader>
