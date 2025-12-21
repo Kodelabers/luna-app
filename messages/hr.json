@@ -1,4 +1,10 @@
 {
+  "pagination": {
+    "showing": "Prikazano {start}-{end} od {total}",
+    "previous": "Prethodna",
+    "next": "Sljedeća",
+    "pageOf": "Stranica {current} od {total}"
+  },
   "common": {
     "save": "Spremi",
     "cancel": "Odustani",
@@ -90,7 +96,8 @@
     "createDescription": "Unesite podatke za novi odjel.",
     "editDescription": "Izmijenite podatke o odjelu.",
     "deleteConfirm": "Jeste li sigurni da želite obrisati odjel {name}? Ova akcija se ne može poništiti.",
-    "deleteError": "Greška pri brisanju odjela"
+    "deleteError": "Greška pri brisanju odjela",
+    "reset": "Resetiraj"
   },
   "messages": {
     "departmentCreated": "Odjel je uspješno kreiran",

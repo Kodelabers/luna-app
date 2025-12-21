@@ -6,56 +6,71 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { DepartmentSearchBar } from "./_components/department-search-bar";
 import { DepartmentTable } from "./_components/department-table";
 import { DepartmentDialog } from "./_components/department-dialog";
+import { Pagination } from "@/components/ui/pagination";
 import { getTranslations } from "next-intl/server";
+
+const PAGE_SIZE = 20;
 
 type Props = {
   params: Promise<{ organisationAlias: string }>;
-  searchParams: Promise<{ search?: string; sort?: "asc" | "desc" }>;
+  searchParams: Promise<{ search?: string; sort?: "asc" | "desc"; page?: string }>;
 };
 
 export default async function DepartmentsPage({ params, searchParams }: Props) {
   const { organisationAlias } = await params;
-  const { search, sort = "asc" } = await searchParams;
+  const { search, sort = "asc", page: pageParam } = await searchParams;
   const ctx = await resolveTenantContext(organisationAlias);
   const t = await getTranslations("departments");
 
-  // Fetch departments for this organisation with search and sort
-  const departments = await db.department.findMany({
-    where: {
-      organisationId: ctx.organisationId,
-      active: true,
-      ...(search && {
-        OR: [
-          { name: { contains: search, mode: "insensitive" } },
-          { alias: { contains: search, mode: "insensitive" } },
-        ],
-      }),
-    },
-    include: {
-      _count: {
-        select: {
-          employees: {
-            where: { active: true },
-          },
-          managers: {
-            where: { active: true },
+  const currentPage = Math.max(1, parseInt(pageParam || "1", 10));
+
+  // Build where clause for reuse
+  const whereClause = {
+    organisationId: ctx.organisationId,
+    active: true,
+    ...(search && {
+      OR: [
+        { name: { contains: search, mode: "insensitive" as const } },
+        { alias: { contains: search, mode: "insensitive" as const } },
+      ],
+    }),
+  };
+
+  // Fetch departments with pagination
+  const [departments, totalCount] = await Promise.all([
+    db.department.findMany({
+      where: whereClause,
+      include: {
+        _count: {
+          select: {
+            employees: {
+              where: { active: true },
+            },
+            managers: {
+              where: { active: true },
+            },
           },
         },
       },
-    },
-    orderBy: {
-      name: sort,
-    },
-  });
+      orderBy: {
+        name: sort,
+      },
+      skip: (currentPage - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
+    }),
+    db.department.count({
+      where: whereClause,
+    }),
+  ]);
+
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">{t("title")}</h1>
-          <p className="text-muted-foreground">
-            {t("description")}
-          </p>
+          <p className="text-muted-foreground">{t("description")}</p>
         </div>
         <DepartmentDialog organisationAlias={organisationAlias} />
       </div>
@@ -70,18 +85,24 @@ export default async function DepartmentsPage({ params, searchParams }: Props) {
         <CardContent className="p-0">
           {departments.length === 0 && !search ? (
             <div className="p-6 text-center">
-              <p className="text-muted-foreground">
-                {t("noDepartments")}
-              </p>
+              <p className="text-muted-foreground">{t("noDepartments")}</p>
               <div className="mt-4">
                 <DepartmentDialog organisationAlias={organisationAlias} />
               </div>
             </div>
           ) : (
-            <DepartmentTable
-              departments={departments}
-              organisationAlias={organisationAlias}
-            />
+            <>
+              <DepartmentTable
+                departments={departments}
+                organisationAlias={organisationAlias}
+              />
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={totalCount}
+                pageSize={PAGE_SIZE}
+              />
+            </>
           )}
         </CardContent>
       </Card>

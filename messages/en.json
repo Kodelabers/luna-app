@@ -1,4 +1,10 @@
 {
+  "pagination": {
+    "showing": "Showing {start}-{end} of {total}",
+    "previous": "Previous",
+    "next": "Next",
+    "pageOf": "Page {current} of {total}"
+  },
   "common": {
     "save": "Save",
     "cancel": "Cancel",
@@ -90,7 +96,8 @@
     "createDescription": "Enter details for the new department.",
     "editDescription": "Modify department details.",
     "deleteConfirm": "Are you sure you want to delete the department {name}? This action cannot be undone.",
-    "deleteError": "Error deleting department"
+    "deleteError": "Error deleting department",
+    "reset": "Reset"
   },
   "messages": {
     "departmentCreated": "Department created successfully",
