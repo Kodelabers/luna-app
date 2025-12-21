@@ -101,9 +101,13 @@ export function EmployeeSearchBar({ departments }: EmployeeSearchBarProps) {
     (d) => d.id.toString() === currentDepartment
   );
 
+  // Key for form to force re-mount when filters are reset
+  const formKey = `${currentSearch}-${currentSort}-${currentDepartment}`;
+
   return (
     <div className="space-y-3">
       <form
+        key={formKey}
         onSubmit={handleSubmit}
         className="flex flex-col sm:flex-row sm:items-center gap-2"
       >

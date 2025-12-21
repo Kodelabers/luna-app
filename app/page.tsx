@@ -1,4 +1,5 @@
 import { auth } from "@clerk/nextjs/server";
+import { SignOutButton } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
 import { db } from "@/lib/db";
 import { ensureLocalUser } from "@/lib/integrations/clerk";
@@ -6,6 +7,7 @@ import { currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { PendingInvitations } from "./_components/pending-invitations";
 
 export default async function HomePage() {
   const { userId } = await auth();
@@ -78,11 +80,46 @@ export default async function HomePage() {
             </Card>
           ))}
         </div>
+        <SignOutButton>
+          <Button variant="ghost" size="sm">
+            Odjava
+          </Button>
+        </SignOutButton>
       </div>
     );
   }
 
-  // User doesn't belong to any organisation
+  // User doesn't belong to any organisation - check for pending invitations
+  const pendingEmployees = await db.employee.findMany({
+    where: {
+      email: user.email,
+      userId: null, // Not yet linked to a user
+      active: true,
+      organisation: {
+        active: true,
+      },
+    },
+    include: {
+      organisation: {
+        select: {
+          name: true,
+          alias: true,
+        },
+      },
+      department: {
+        select: {
+          name: true,
+        },
+      },
+    },
+  });
+
+  // If there are pending invitations, show them
+  if (pendingEmployees.length > 0) {
+    return <PendingInvitations invitations={pendingEmployees} />;
+  }
+
+  // No organisations and no pending invitations
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-6 p-4">
       <Card className="max-w-md">
@@ -98,6 +135,11 @@ export default async function HomePage() {
           </p>
         </CardContent>
       </Card>
+      <SignOutButton>
+        <Button variant="ghost" size="sm">
+          Odjava
+        </Button>
+      </SignOutButton>
     </div>
   );
 }
