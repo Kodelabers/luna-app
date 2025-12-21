@@ -1,114 +1,102 @@
+import { Suspense } from "react";
 import { resolveTenantContext } from "@/lib/tenant/resolveTenantContext";
 import { db } from "@/lib/db";
-import { Card, CardContent } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { PageHeader } from "@/components/page-header";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { UnavailabilityReasonSearchBar } from "./_components/unavailability-reason-search-bar";
+import { UnavailabilityReasonTable } from "./_components/unavailability-reason-table";
+import { UnavailabilityReasonDialog } from "./_components/unavailability-reason-dialog";
+import { Pagination } from "@/components/ui/pagination";
 import { getTranslations } from "next-intl/server";
+import { PageHeader } from "@/components/page-header";
+
+const PAGE_SIZE = 20;
 
 type Props = {
   params: Promise<{ organisationAlias: string }>;
+  searchParams: Promise<{
+    search?: string;
+    sort?: "asc" | "desc";
+    page?: string;
+  }>;
 };
 
-export default async function UnavailabilityReasonsPage({ params }: Props) {
+export default async function UnavailabilityReasonsPage({
+  params,
+  searchParams,
+}: Props) {
   const { organisationAlias } = await params;
+  const { search, sort = "asc", page: pageParam } = await searchParams;
   const ctx = await resolveTenantContext(organisationAlias);
-  const tAdmin = await getTranslations("admin");
+  const t = await getTranslations("unavailabilityReasons");
 
-  // Fetch unavailability reasons for this organisation
-  const reasons = await db.unavailabilityReason.findMany({
-    where: {
-      organisationId: ctx.organisationId,
-      active: true,
-    },
-    orderBy: {
-      name: "asc",
-    },
-  });
+  const currentPage = Math.max(1, parseInt(pageParam || "1", 10));
+
+  // Build where clause for reuse
+  const whereClause = {
+    organisationId: ctx.organisationId,
+    active: true,
+    ...(search && {
+      name: { contains: search, mode: "insensitive" as const },
+    }),
+  };
+
+  // Fetch unavailability reasons with pagination
+  const [reasons, totalCount] = await Promise.all([
+    db.unavailabilityReason.findMany({
+      where: whereClause,
+      orderBy: {
+        name: sort,
+      },
+      skip: (currentPage - 1) * PAGE_SIZE,
+      take: PAGE_SIZE,
+    }),
+    db.unavailabilityReason.count({
+      where: whereClause,
+    }),
+  ]);
+
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title={tAdmin("absenceReasons")}
-        description="Vrste izostanaka koje zaposlenici mogu zatražiti"
-        action={<Button>Novi razlog</Button>}
-      />
+    <Card>
+      <CardHeader>
+        <PageHeader
+          title={t("title")}
+          description={t("description")}
+          action={
+            <UnavailabilityReasonDialog organisationAlias={organisationAlias} />
+          }
+        />
 
-      <Card>
-        <CardContent className="p-0">
-          {reasons.length === 0 ? (
-            <div className="p-6 text-center">
-              <p className="text-muted-foreground">Nema definiranih razloga izostanka.</p>
-              <Button className="mt-4">Dodaj prvi razlog</Button>
+        <Suspense fallback={<Skeleton className="h-10 w-full" />}>
+          <UnavailabilityReasonSearchBar />
+        </Suspense>
+      </CardHeader>
+
+      <CardContent className="p-0">
+        {reasons.length === 0 && !search ? (
+          <div className="p-6 text-center">
+            <p className="text-muted-foreground">{t("noReasons")}</p>
+            <div className="mt-4">
+              <UnavailabilityReasonDialog organisationAlias={organisationAlias} />
             </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Naziv</TableHead>
-                  <TableHead>Boja</TableHead>
-                  <TableHead>Odobrenje</TableHead>
-                  <TableHead>Planiranje</TableHead>
-                  <TableHead className="text-right">Akcije</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {reasons.map((reason) => (
-                  <TableRow key={reason.id}>
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-2">
-                        {reason.colorCode && (
-                          <div
-                            className="h-3 w-3 rounded-full"
-                            style={{ backgroundColor: reason.colorCode }}
-                          />
-                        )}
-                        {reason.name}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {reason.colorCode ? (
-                        <Badge variant="outline" style={{ borderColor: reason.colorCode }}>
-                          {reason.colorCode}
-                        </Badge>
-                      ) : (
-                        <span className="text-muted-foreground">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex gap-1">
-                        {reason.needApproval && (
-                          <Badge variant="secondary" className="text-xs">1. razina</Badge>
-                        )}
-                        {reason.needSecondApproval && (
-                          <Badge variant="default" className="text-xs">2. razina</Badge>
-                        )}
-                        {!reason.needApproval && !reason.needSecondApproval && (
-                          <span className="text-muted-foreground text-sm">Nije potrebno</span>
-                        )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {reason.hasPlanning ? (
-                        <Badge variant="outline">Da</Badge>
-                      ) : (
-                        <span className="text-muted-foreground">Ne</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="sm">
-                        Uredi
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+          </div>
+        ) : (
+          <div className="p-4">
+            <UnavailabilityReasonTable
+              reasons={reasons}
+              organisationAlias={organisationAlias}
+            />
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              totalItems={totalCount}
+              pageSize={PAGE_SIZE}
+            />
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 }
-
