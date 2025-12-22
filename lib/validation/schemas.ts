@@ -102,7 +102,11 @@ export const paginationSchema = z.object({
 // Manager schemas
 export const createManagerSchema = z.object({
   employeeId: z.coerce.number().positive("Zaposlenik je obavezan"),
-  departmentId: z.coerce.number().positive().optional(), // null = general manager
+  // null = general manager, number = department manager
+  departmentId: z.preprocess(
+    (val) => (val === null || val === undefined ? null : val),
+    z.union([z.coerce.number().positive(), z.null()])
+  ).optional(),
 });
 
 // Ledger entry schemas

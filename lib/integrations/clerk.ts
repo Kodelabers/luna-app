@@ -31,6 +31,9 @@ export async function ensureLocalUser(clerkUser: {
     throw new Error("User has no email address");
   }
 
+  // #region agent log
+  fetch('http://127.0.0.1:7242/ingest/b2b7332b-7e97-456c-84b1-92faf4f81900',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'clerk.ts:ensureLocalUser',message:'User upsert being called',data:{clerkId:clerkUser.id,email},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B'})}).catch(()=>{});
+  // #endregion
   // Upsert user by clerkId
   // Only update firstName, lastName, email - never touch active flag
   const user = await db.user.upsert({
