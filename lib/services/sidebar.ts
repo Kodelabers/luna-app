@@ -58,6 +58,7 @@ export async function getManagedDepartments(
         id: true,
         name: true,
         alias: true,
+        colorCode: true,
       },
       orderBy: {
         name: "asc",
@@ -80,6 +81,7 @@ export async function getManagedDepartments(
       id: true,
       name: true,
       alias: true,
+      colorCode: true,
     },
     orderBy: {
       name: "asc",

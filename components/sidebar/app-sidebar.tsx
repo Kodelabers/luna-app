@@ -15,6 +15,7 @@ import {
   SidebarRail,
   SidebarSeparator,
 } from "@/components/ui/sidebar";
+import { Separator } from "../ui/separator";
 
 type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
   organisation: {
@@ -96,7 +97,7 @@ export function AppSidebar({
         {/* Manager departments section */}
         {managedDepartments.length > 0 && (
           <>
-            <SidebarSeparator />
+            <Separator />
             <NavDepartments
               departments={managedDepartments}
               organisationAlias={organisationAlias}
@@ -107,7 +108,7 @@ export function AppSidebar({
         {/* Admin section */}
         {isAdmin && (
           <>
-            <SidebarSeparator />
+            <Separator />
             <NavMain items={adminNavItems} label={t("management")} />
           </>
         )}

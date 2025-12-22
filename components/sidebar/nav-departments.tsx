@@ -26,6 +26,7 @@ export type Department = {
   id: number;
   name: string;
   alias: string;
+  colorCode: string;
 };
 
 export function NavDepartments({
@@ -66,8 +67,10 @@ export function NavDepartments({
               <SidebarMenuItem>
                 <CollapsibleTrigger asChild>
                   <SidebarMenuButton tooltip={dept.name} isActive={isActive}>
-                    <Building />
-                    <span>{dept.name}</span>
+                    <div className="text-white  -opacity-60 rounded-sm p-1" style={{backgroundColor:dept.colorCode}}>
+                      <Building className="size-3 shrink-0"/>
+                    </div>
+                    <span className="truncate">{dept.name}</span>
                     <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
                   </SidebarMenuButton>
                 </CollapsibleTrigger>
