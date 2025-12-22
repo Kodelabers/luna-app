@@ -52,25 +52,19 @@ Sve vezano uz registraciju, prijavu i odjavu korisnika rješava Clerk i nije pot
 **Kako bih** brzo vidio svoj plan za tekući mjesec
 
 **Kriteriji prihvaćanja:**
-- Kalendar prikazuje DaySchedule zapise za odabrani mjesec
-- **Timezone handling:**
-  - Input parametar `clientTimeZone` (IANA format, npr. `Europe/Zagreb`)
-  - DaySchedule.date je pohranjen u UTC u bazi
-  - UI prikaz koristi korisnikovu vremensku zonu
-  - Konverzija UTC ↔ lokalna vremenska zona za sve datume
-- **"Danas" highlight:**
-  - Trenutni dan je vizualno istaknut u kalendaru
-  - Highlight se računa na klijentu ili se vraća kao `todayLocalISO`
-- Kalendar prikazuje za svaki dan:
-  - `dateISO` (lokalni format za UI)
-  - `isWeekend` (subota/nedjelja)
-  - `isHoliday` (praznik iz tablice Holiday)
-  - `status` (EmployeeStatus ako postoji DaySchedule zapis)
-  - `unavailabilityReasonId` i `reasonName` + `colorCode` za legendu
-- Vikendi i praznici su vizualno razlučivi, ali **ne ulaze u izračune potrošnje dana**
-- Praznici uključuju:
-  - Jednokratne praznike unutar raspona
-  - Ponavljajuće praznike (`repeatYearly=true`) koji padaju u tom mjesecu
+- Kalendar prikazuje `DaySchedule` za odabrani mjesec.
+- Prikaz je **timezone-aware**:
+  - datumi se prikazuju u korisnikovoj vremenskoj zoni (IANA tz, npr. `Europe/Zagreb`)
+  - podaci u bazi su u UTC; sustav radi ispravnu konverziju za prikaz i filtriranje mjeseca
+- Trenutni dan (“danas”) je vizualno istaknut.
+- Za svaki dan se vidi barem:
+  - status dana (ako postoji plan)
+  - oznaka vikend/praznik
+  - razlog nedostupnosti i boja (za legendu), ako postoji
+- Vikendi i praznici su vizualno razlučivi, ali **ne ulaze u workday/potrošnju** (to je dio workday/ledger pravila).
+
+**Napomena (implementacija):**
+- Detaljna timezone pravila: `/.cursor/docs/07_timezones_dates.md`
 
 **Error kodovi:**
 - 403: Korisnik nije vezan na Employee u organizaciji
@@ -87,10 +81,10 @@ Sve vezano uz registraciju, prijavu i odjavu korisnika rješava Clerk i nije pot
 
 **3.1 Widget "Moji otvoreni zahtjevi" — obični korisnik:**
 - Prikazuje se card s listom vlastitih **otvorenih** zahtjeva
-- **"Otvoreni" = zahtjevi koji nisu finalizirani:** `status IN (DRAFT, SUBMITTED, APPROVED_FIRST_LEVEL)`
+- **"Otvoreni"** = zahtjevi koji nisu finalizirani (npr. DRAFT, SUBMITTED, APPROVED_FIRST_LEVEL)
 - DRAFT zahtjevi su vidljivi **samo vlasniku** (nikome drugome)
 - Za svaki zahtjev prikazuje se: razdoblje, broj dana, status, tip nedostupnosti
-- Lista je sortirana po `createdAt desc`
+- Sortiranje: newest-first (točan query detalj nije dio ovog dokumenta)
 
 **3.2 Widget "Za odobriti" — Department Manager:**
 - Prikazuje se card s **tabovima**:
@@ -108,9 +102,13 @@ Sve vezano uz registraciju, prijavu i odjavu korisnika rješava Clerk i nije pot
 
 **Kombinacija uloga:**
 - Ako korisnik ima **i GM i Department Manager** ulogu, prikazuju se **oba widgeta** na dashboardu
-
-**Output za svaki zahtjev (serializabilno):**
-- `applicationId`, `employeeId` (+ ime), `departmentId` (+ naziv), `unavailabilityReasonId` (+ naziv/boja), `startDate`, `endDate`, `status`
+ 
+**Napomena:**
+- Pravilo vidljivosti (tko vidi koje zahtjeve) mora poštovati:
+  - manager ne vidi tuđe DRAFT
+  - DM vidi samo zahtjeve iz svojih odjela
+  - GM vidi zahtjeve za 2. razinu u cijeloj organizaciji
+- Detalji: `/.cursor/docs/03_permissions_rbac.md`.
 
 ---
 
@@ -255,11 +253,13 @@ Sve vezano uz registraciju, prijavu i odjavu korisnika rješava Clerk i nije pot
 **Kriteriji prihvaćanja:**
 - Prikazuje se gumb "Pošalji zahtjev"
 - Gumb je onemogućen ako zahtjev nije valjan
-- Ako postoji preklapanje sa DaySchedule-om s hasPlanning=true, prikazuje se upozorenje o budućoj korekciji
-- Nakon slanja, status postaje SUBMITTED (ili APPROVED ako ne treba odobrenje - needApproval=false)
-- Zahtjev postaje vidljiv Department Manageru (ili General Manageru ako je potrebno)
-- Za zahtjeve s needApproval=false: status postaje APPROVED odmah, korekcija se izvršava odmah, DaySchedule se ažurira odmah
-- Za zahtjeve s needApproval=true: dani se privremeno rezerviraju (za zahtjeve s hasPlanning=true), korekcija i DaySchedule ažuriranje tek pri odobrenju
+- Ako postoji preklapanje s postojećim planom, prije slanja se prikazuje jasno upozorenje (moguća buduća korekcija i prepisivanje plana).
+- Nakon slanja:
+  - zahtjev dobiva status **SUBMITTED** (ili odmah postaje **APPROVED** za tipove koji se automatski odobravaju)
+  - zahtjev postaje vidljiv odgovornim odobravateljima (DM i/ili GM, ovisno o pravilima tipa nedostupnosti)
+- Kad zahtjev postane konačno odobren:
+  - plan (DaySchedule) se ažurira za dane u periodu
+  - ako tip nedostupnosti troši dane, stanje dana se ažurira (ledger)
 - Prikazuje se potvrda uspješnog slanja
 
 ---
@@ -1106,21 +1106,9 @@ Sve vezano uz registraciju, prijavu i odjavu korisnika rješava Clerk i nije pot
 **Kako bi** osigurao konzistentnost plana i omogućio korekcije gdje je potrebno
 
 **Kriteriji prihvaćanja:**
-- Sustav provjerava preklapanje s aktivnim zahtjevima u statusima: DRAFT, SUBMITTED, APPROVED_FIRST_LEVEL
-- APPROVED i REJECTED zahtjevi se ne uzimaju u obzir (provjerava se DaySchedule umjesto njih)
-- Sustav provjerava preklapanje s DaySchedule-om (stvarni plan zaposlenika)
-- Ako postoji preklapanje s DRAFT, SUBMITTED ili APPROVED_FIRST_LEVEL zahtjevom, prikazuje se greška (ne može se kreirati)
-- Ako postoji preklapanje sa DaySchedule-om:
-  - Sustav provjerava unavailability reason u DaySchedule-u
-  - Ako unavailability reason ima hasPlanning=true:
-    - Prikazuje se upozorenje da će se izvršiti korekcija (vraćanje dana) kada zahtjev bude odobren (APPROVED)
-    - Ako postoji povezani zahtjev (applicationId): upozorenje navodi da će se vratiti SVI preostali dani iz originalnog zahtjeva (od početka novog zahtjeva do kraja originalnog), ne samo preklopljeni dani
-    - Novi zahtjev se može kreirati (DRAFT ili SUBMITTED)
-    - Korekcija se izvršava tek kada zahtjev postane APPROVED
-  - Ako unavailability reason nema hasPlanning=true:
-    - Prikazuje se upozorenje o preklapanju, ali zahtjev se može kreirati (nema korekcije dana)
-- Greška jasno navodi razdoblje postojećeg zahtjeva/plana i njegov status
-- Upozorenje jasno navodi da će novi zahtjev pregaziti postojeći plan u DaySchedule-u pri odobrenju
+- Blokirati kreiranje/submit ako postoji preklapanje s drugim “aktivnim” zahtjevom koji nije finaliziran (`DRAFT`, `SUBMITTED`, `APPROVED_FIRST_LEVEL`).
+- Ako postoji preklapanje s postojećim planom (`DaySchedule`), sustav vraća upozorenje da će APPROVED zahtjev prepisati plan.
+- Ako prebrisani plan potječe iz reason-a s `hasPlanning=true`, sustav upozorava na buduću korekciju i izvršava je tek na APPROVED (vidi `04_applications_flow.md`, `05_dayschedule_rules.md`, `06_ledger_rules.md`).
 
 ---
 
@@ -1162,7 +1150,7 @@ Sve vezano uz registraciju, prijavu i odjavu korisnika rješava Clerk i nije pot
 - Datum početka smije biti u prošlosti (evidencija naknadnih događaja kao bolovanja)
 - Datum završetka ne smije biti više od 365 dana u budućnosti
 - Zahtjev mora uključivati barem jedan radni dan
-- **Napomena:** Za detalje o ograničenjima datuma u prošlosti vidi otvorena_pitanja.md
+- **Napomena:** Za otvorena pitanja/odluke vidi `/.cursor/docs/OPEN_QUESTIONS.md`.
 
 ---
 
@@ -1176,6 +1164,7 @@ Sve vezano uz registraciju, prijavu i odjavu korisnika rješava Clerk i nije pot
 - Ako postoji preklapanje, prikazuje se greška
 - Datum početka ne smije biti u budućnosti
 - Datum završetka mora biti nakon datuma početka
+ - Semantika “aktivnog bolovanja bez datuma završetka” je TBD (vidi `/.cursor/docs/OPEN_QUESTIONS.md`).
 
 ---
 
@@ -1185,13 +1174,10 @@ Sve vezano uz registraciju, prijavu i odjavu korisnika rješava Clerk i nije pot
 **Kako bi** se osigurala integritet procesa odobravanja
 
 **Kriteriji prihvaćanja:**
-- DRAFT zahtjevi: Mogu se uređivati i brisati
-- SUBMITTED zahtjevi: Ne mogu se uređivati
-- APPROVED_FIRST_LEVEL zahtjevi: Ne mogu se uređivati
-- APPROVED zahtjevi: Ne mogu se direktno uređivati niti otkazati (konačni status)
-- DaySchedule rezultat APPROVED zahtjeva može biti promijenjen novim zahtjevom
-- REJECTED zahtjevi: Ne mogu se uređivati
-- Ako korisnik pokuša urediti zahtjev koji se ne može uređivati, prikazuje se greška: "Ne možete uređivati zahtjev u statusu: {status}"
+- Pravila uređivanja ovise o statusu (vidi `/.cursor/docs/01_domain_statuses.md`):
+  - `DRAFT` se može uređivati/brisati
+  - ostali statusi se ne uređuju kroz “edit zahtjeva” flow
+- Ako korisnik pokuša urediti nedozvoljen status, prikazuje se jasna greška.
 
 ---
 
@@ -1201,47 +1187,15 @@ Sve vezano uz registraciju, prijavu i odjavu korisnika rješava Clerk i nije pot
 **Kako bi** osigurao konzistentnost plana i omogućio korekcije
 
 **Kriteriji prihvaćanja:**
-- Pri kreiranju novog zahtjeva, sustav provjerava preklapanje sa DaySchedule-om za odabrano razdoblje
-- Provjerava se svaki dan u razdoblju novog zahtjeva
-- Ako postoji preklapanje sa DaySchedule-om:
-  - Sustav provjerava unavailability reason u DaySchedule-u
-  - Ako unavailability reason ima hasPlanning=true:
-    - Prikazuje se upozorenje da će se izvršiti korekcija (vraćanje dana) kada zahtjev bude odobren (APPROVED)
-    - Ako postoji povezani zahtjev (applicationId): upozorenje navodi da će se vratiti SVI preostali dani iz originalnog zahtjeva (od početka novog zahtjeva do kraja originalnog), ne samo preklopljeni dani
-    - Za zahtjeve s needApproval=false: korekcija će se izvršiti odmah (automatski APPROVED)
-    - Za zahtjeve s needApproval=true: korekcija će se izvršiti tek kada zahtjev pređe u APPROVED status
-    - Prikazuje se upozorenje da će novi zahtjev pregaziti postojeći plan u DaySchedule-u
-    - Novi zahtjev se može kreirati (DRAFT ili SUBMITTED)
-  - Ako unavailability reason nema hasPlanning=true:
-    - Prikazuje se upozorenje o preklapanju, ali zahtjev se može kreirati (nema korekcije dana)
-    - Novi zahtjev pregazi postojeći plan u DaySchedule-u pri odobrenju
-- **Korekcija se izvršava tek kada zahtjev postane APPROVED:**
-  - Vraća potrošene dane (CORRECTION ledger entry) - samo ako unavailability reason u DaySchedule-u ima hasPlanning=true
-  - Ako postoji povezani zahtjev (applicationId u DaySchedule-u):
-    - Vraćaju se SVI preostali dani iz originalnog zahtjeva (od početka novog zahtjeva do kraja originalnog zahtjeva), ne samo preklopljeni dani
-    - Brišu se SVI zapisi iz DaySchedule-a koji imaju applicationId = ID originalnog zahtjeva za dane od početka novog zahtjeva do kraja originalnog zahtjeva (jer su ti dani vraćeni da se mogu koristiti u novom zahtjevu)
-    - U log originalnog zahtjeva dodaje se zapis da su preostali dani vraćeni
-  - Novi zahtjev pregazi postojeći plan u DaySchedule-u (ažurira se DaySchedule s novim zahtjevom)
-  - DaySchedule zapisi se prepisuju za dane novog zahtjeva (novi unavailability reason zamjenjuje stari)
-- **Svako odobrenje zahtjeva (APPROVED) automatski mijenja DaySchedule:**
-  - Novi zahtjev pregazi postojeći plan u DaySchedule-u za dane u razdoblju zahtjeva
-  - Ako je postojao drugi unavailability reason za te dane, on se zamjenjuje novim
-  - Primjer: Ako je postojao plan "Edukacija" za neki dan, a kreiram zahtjev za "Bolovanje" za isti dan, bolovanje pregazi edukaciju u DaySchedule-u
-- Korekcija se izvršava samo za unavailability reasons s hasPlanning=true
-- **Primjer korekcije s applicationId:**
-  - Zaposlenik ima odobren godišnji od 1.1. do 31.1. (20 radnih dana) - zahtjev je APPROVED
-  - Zaposlenik otvara bolovanje od 15.1. (bez datuma završetka ili do 20.1.)
-  - Pri odobrenju bolovanja:
-    - Vraćaju se SVI preostali dani od 15.1. do 31.1. (ukupno 12 radnih dana)
-    - Ne vraćaju se samo preklopljeni dani (15.1.-20.1.)
-    - Razlog: Bolovanje prekida godišnji odmor, često bez poznatog kraja
-    - Brišu se SVI DaySchedule zapisi godišnjeg odmora od 15.1. do 31.1.
-    - Dani 1.1.-14.1. ostaju nepromijenjeni u DaySchedule-u kao iskorišteni godišnji odmor (ti dani su već realizirani prije bolovanja)
-    - Kreiraju se novi DaySchedule zapisi za bolovanje (15.1.-20.1. ako ima kraj, ili samo 15.1. ako nema kraja)
-    - Dani 21.1.-31.1. ostaju slobodni (zaposlenik radi) ako bolovanje ima kraj
-    - Ako zaposlenik završi bolovanje 20.1., može kreirati novi zahtjev za GO 21.1.-31.1.
-    - Originalni zahtjev za godišnji ostaje APPROVED i nepromijenjen (datumi 1.1.-31.1.)
-  - **Napomena:** Za otvorena bolovanja bez datuma završetka vidi otvorena_pitanja.md
+- Pri kreiranju i pri odobrenju sustav poštuje pravila:
+  - preklapanje se provjerava prema `DaySchedule` i “aktivnim” zahtjevima
+  - na `APPROVED` zahtjev prepisuje plan za dane u periodu (DaySchedule upsert)
+  - korekcije dana (ledger) rade se samo kad se prepisuje plan iz reason-a s `hasPlanning=true`
+- Detaljna pravila i edge-caseovi su u:
+  - `/.cursor/docs/04_applications_flow.md`
+  - `/.cursor/docs/05_dayschedule_rules.md`
+  - `/.cursor/docs/06_ledger_rules.md`
+  - otvorena pitanja: `/.cursor/docs/OPEN_QUESTIONS.md`
 
 
 
