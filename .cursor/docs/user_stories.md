@@ -112,6 +112,37 @@ Sve vezano uz registraciju, prijavu i odjavu korisnika rješava Clerk i nije pot
 
 ---
 
+### US-DASH-004: Planiranje odjela (gantt) na dashboardu
+**Kao** Department Manager ili General Manager  
+**Želim** vidjeti gantt-like pregled zaposlenika i datuma (po odjelima koje smijem vidjeti)  
+**Kako bih** brzo vidio odobreni plan i zahtjeve zaposlenika u budućem razdoblju
+
+**Kriteriji prihvaćanja:**
+- Prikazuje se tablica (gantt):
+  - redci: zaposlenici odjela/odjela koji su trenutno u scope-u prikaza
+  - stupci: dani u odabranom rasponu (od danas u budućnost)
+- **Default scope + filtriranje odjela:**
+  - **Department Manager** defaultno vidi **sve odjele** u kojima je manager; može filtrirati na jedan odjel
+  - **General Manager** defaultno vidi **sve odjele** u organizaciji; može filtrirati na jedan odjel
+- **Odabir raspona datuma:**
+  - default je “1 mjesec” (od danas prema budućnosti)
+  - postoje brzi odabiri: 1 mjesec / 3 mjeseca / 6 mjeseci / 1 godina
+  - postoji ručni odabir: Od / Do
+- **Cjelovit prikaz: plan + zahtjevi**
+  - **Plan (DaySchedule)** je prikazan kao **neutralna pozadina** po danu (da se vidi stvarni, odobreni plan)
+  - **Zahtjevi (Applications)** su prikazani kao **overlay blokovi** preko tablice
+  - korisniku mora biti jasno što je **odobreno (plan)** i što je **na čekanju (zahtjev)**
+- **Boje po statusu zahtjeva (za overlay blokove):**
+  - prikazuju se statusi: `SUBMITTED`, `APPROVED_FIRST_LEVEL`, `APPROVED`
+  - svaki od ova 3 statusa ima **različitu boju** (uz legendu status → boja)
+- **Preklapanja:**
+  - preklapanje zahtjeva s planom je vizualno uočljivo (zbog neutralne pozadine plana)
+  - opcionalno se može prikazati diskretan indikator/tooltip “što se preklapa s čim” za dodatnu jasnoću
+- **Oznaka “na bolovanju”:**
+  - uz ime zaposlenika prikazuje se oznaka (npr. crveni križ) ako je zaposlenik “trenutno na bolovanju”
+  - definicija “aktivno bolovanje” je TBD (vidi `/.cursor/docs/OPEN_QUESTIONS.md`)
+- Klik na blok/ćeliju otvara detalje (read-only) o zahtjevu/planu.
+
 ## 2. ZAPOSLENIK - PREGLED STANJA DANA
 
 ### US-EMP-001: Pregled stanja dana
@@ -381,10 +412,14 @@ Sve vezano uz registraciju, prijavu i odjavu korisnika rješava Clerk i nije pot
 - Svaki status zahtjeva ima svoju vizualnu oznaku (npr. zelena za APPROVED, plava za APPROVED_FIRST_LEVEL, žuta za SUBMITTED)
 - Bolovanje je vizualno razlučivo od godišnjeg odmora (npr. drugom bojom)
 - Vikendi i praznici su vizualno razlučivi od radnih dana
+- Defaultni prikaz kreće **od danas** i ide u budućnost (npr. 1 mjesec).
 - Mogu odabrati razdoblje prikaza (1, 3, 6, 12 mjeseci)
 - Mogu ručno odabrati datume početka i kraja
 - Prikazuju se zaglavlja mjeseci
 - Mogu kliknuti na označeni dan za pregled detalja
+
+**Napomena:**
+- Ovaj pregled može biti dostupan i kao dashboard widget po odjelu (vidi US-DASH-004) s istim pravilima raspona i statusnih oznaka.
 
 ---
 
@@ -571,6 +606,7 @@ Sve vezano uz registraciju, prijavu i odjavu korisnika rješava Clerk i nije pot
 - Vidim status svakog zahtjeva (SUBMITTED, APPROVED_FIRST_LEVEL, APPROVED, REJECTED)
 - Mogu pregledati detalje bilo kojeg zahtjeva
 - Vidim tablični prikaz planiranja za sve odjele
+ - U sklopu tabličnog prikaza mogu odabrati pojedini odjel i vidjeti gantt pregled planiranja (vidi US-DASH-004).
 
 ---
 

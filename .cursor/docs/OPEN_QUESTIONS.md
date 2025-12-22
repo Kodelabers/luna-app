@@ -70,4 +70,23 @@ Cursor AI ga koristi kao “guardrail”: ako je nešto TBD, implementacija mora
 **Impact**
 - Kako se ponašaju ledger i DaySchedule ako se cancel dogodi nakon djelomičnog procesiranja.
 
+---
+
+## OQ-004: Kako prepoznajemo “aktivno bolovanje” (oznaka uz zaposlenika)
+**Kontekst**
+- U dashboard gantt widgetu želimo prikazati oznaku uz zaposlenika (npr. crveni križ) kada je zaposlenik “trenutno na bolovanju”.
+- Potrebna je jasna definicija što znači “bolovanje” i kako ga sustav prepoznaje.
+
+**Opcije**
+- A) Preko konfiguracije u adminu: odabrani `UnavailabilityReason` (ili više njih) predstavlja “bolovanje”.
+- B) Preko naziva reason-a: `UnavailabilityReason.name == "Bolovanje"` (ili mapiranje po locale).
+- C) Preko flagova: kombinacija `needApproval` / `hasPlanning` (npr. `needApproval=false` i `hasPlanning=false`) i/ili dodatno pravilo.
+
+**Odluka**
+- TBD
+
+**Impact**
+- Kako service određuje “na bolovanju” u danom rasponu (npr. danas ili unutar prikazanog intervala).
+- Kako UI označava zaposlenika kada postoji više vrsta “bolovanja” ili sličnih razloga.
+
 
