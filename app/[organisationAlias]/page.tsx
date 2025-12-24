@@ -2,18 +2,70 @@ import { resolveTenantContext, getManagerStatus, getEmployeeForUser } from "@/li
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getTranslations } from "next-intl/server";
+import {
+  getOpenApplicationsForEmployee,
+  getDmApprovalQueues,
+  getGmApprovalQueue,
+} from "@/lib/services/dashboard";
+import { getEmployeeMonthCalendar } from "@/lib/services/calendar";
+import { OpenRequestsCard } from "./_components/dashboard/open-requests-card";
+import { DmApprovalCard } from "./_components/dashboard/dm-approval-card";
+import { GmApprovalCard } from "./_components/dashboard/gm-approval-card";
+import { MultiMonthCalendarCard } from "./_components/dashboard/multi-month-calendar-card";
 
 type Props = {
   params: Promise<{ organisationAlias: string }>;
+  searchParams: Promise<{
+    month?: string;
+    year?: string;
+  }>;
 };
 
-export default async function DashboardPage({ params }: Props) {
+export default async function DashboardPage({ params, searchParams }: Props) {
   const { organisationAlias } = await params;
+  const { month: monthParam, year: yearParam } = await searchParams;
+  
   const ctx = await resolveTenantContext(organisationAlias);
   const managerStatus = await getManagerStatus(ctx);
   const employee = await getEmployeeForUser(ctx);
   const t = await getTranslations("dashboard");
   const tRoles = await getTranslations("roles");
+
+  // Get current month/year or use query params
+  const now = new Date();
+  const currentMonth = monthParam ? parseInt(monthParam, 10) : now.getMonth() + 1;
+  const currentYear = yearParam ? parseInt(yearParam, 10) : now.getFullYear();
+  const clientTimeZone = "Europe/Zagreb"; // TODO: Get from user preferences
+
+  // Fetch dashboard data
+  let openApplications: Awaited<ReturnType<typeof getOpenApplicationsForEmployee>> = [];
+  let dmQueues: Awaited<ReturnType<typeof getDmApprovalQueues>> = { submitted: [], awaitingGm: [] };
+  let gmQueue: Awaited<ReturnType<typeof getGmApprovalQueue>> = [];
+  let calendarDays: Awaited<ReturnType<typeof getEmployeeMonthCalendar>> = [];
+
+  if (employee) {
+    // Employee's open requests
+    openApplications = await getOpenApplicationsForEmployee(ctx, employee.id);
+
+    // Employee's calendar - fetch 12 months for multi-month display
+    calendarDays = await getEmployeeMonthCalendar(ctx, {
+      employeeId: employee.id,
+      month: currentMonth,
+      year: currentYear,
+      clientTimeZone,
+      numberOfMonths: 12,
+    });
+  }
+
+  // DM queues
+  if (managerStatus.isDepartmentManager) {
+    dmQueues = await getDmApprovalQueues(ctx, managerStatus.managedDepartmentIds);
+  }
+
+  // GM queue
+  if (managerStatus.isGeneralManager) {
+    gmQueue = await getGmApprovalQueue(ctx);
+  }
 
   return (
     <div className="space-y-6">
@@ -83,67 +135,25 @@ export default async function DashboardPage({ params }: Props) {
         )}
 
         {/* Open requests - for employees */}
-        {employee && (
-          <Card>
-            <CardHeader>
-              <CardTitle>{t("myRequests")}</CardTitle>
-              <CardDescription>{t("openRequests")}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                {t("openRequestsDescription")}
-              </p>
-              {/* TODO: Implement UC-DASH-03.1 */}
-            </CardContent>
-          </Card>
-        )}
+        {employee && <OpenRequestsCard applications={openApplications} />}
 
         {/* Requests to approve - for department managers */}
         {managerStatus.isDepartmentManager && (
-          <Card>
-            <CardHeader>
-              <CardTitle>{t("forApproval")}</CardTitle>
-              <CardDescription>{t("requestsAwaitingDecision")}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                {t("requestsAwaitingDescription")}
-              </p>
-              {/* TODO: Implement UC-DASH-03.2 */}
-            </CardContent>
-          </Card>
+          <DmApprovalCard queues={dmQueues} organisationAlias={organisationAlias} />
         )}
 
         {/* Requests to approve - for general manager */}
         {managerStatus.isGeneralManager && (
-          <Card>
-            <CardHeader>
-              <CardTitle>{t("finalApproval")}</CardTitle>
-              <CardDescription>{t("requestsForFinalApproval")}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                {t("finalApprovalDescription")}
-              </p>
-              {/* TODO: Implement UC-DASH-03.3 */}
-            </CardContent>
-          </Card>
+          <GmApprovalCard applications={gmQueue} organisationAlias={organisationAlias} />
         )}
 
-        {/* Calendar placeholder */}
-        {employee && (
-          <Card className="md:col-span-2 lg:col-span-1">
-            <CardHeader>
-              <CardTitle>{t("myCalendar")}</CardTitle>
-              <CardDescription>{t("scheduleForCurrentMonth")}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground">
-                {t("calendarDescription")}
-              </p>
-              {/* TODO: Implement UC-DASH-02 */}
-            </CardContent>
-          </Card>
+        {/* Calendar */}
+        {employee && calendarDays.length > 0 && (
+          <MultiMonthCalendarCard
+            calendarDays={calendarDays}
+            month={currentMonth}
+            year={currentYear}
+          />
         )}
       </div>
     </div>

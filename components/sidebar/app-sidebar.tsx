@@ -1,6 +1,6 @@
 "use client";
 
-import { LayoutDashboard, Settings } from "lucide-react";
+import { LayoutDashboard, Settings, FileText } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { NavMain, type NavItem } from "@/components/sidebar/nav-main";
@@ -48,6 +48,11 @@ export function AppSidebar({
       title: t("dashboard"),
       url: `/${organisationAlias}`,
       icon: LayoutDashboard,
+    },
+    {
+      title: t("applications"),
+      url: `/${organisationAlias}/applications`,
+      icon: FileText,
     },
   ];
 

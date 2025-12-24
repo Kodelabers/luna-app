@@ -52,18 +52,30 @@ export const createEmployeeSchema = z.object({
 export const updateEmployeeSchema = createEmployeeSchema.partial();
 
 // Application (leave request) schemas
-export const createApplicationSchema = z.object({
-  startDate: z.coerce.date(),
-  endDate: z.coerce.date(),
+export const validateApplicationDraftSchema = z.object({
   unavailabilityReasonId: z.coerce.number().positive("Razlog je obavezan"),
+  startDateLocalISO: z.string().min(1, "Datum početka je obavezan"),
+  endDateLocalISO: z.string().min(1, "Datum završetka je obavezan"),
+  clientTimeZone: ianaTimezoneSchema,
+  editingApplicationId: z.coerce.number().positive().optional(),
+});
+
+export const saveDraftApplicationSchema = z.object({
+  unavailabilityReasonId: z.coerce.number().positive("Razlog je obavezan"),
+  startDateLocalISO: z.string().min(1, "Datum početka je obavezan"),
+  endDateLocalISO: z.string().min(1, "Datum završetka je obavezan"),
   description: z.string().max(1000).optional(),
-}).refine((data) => data.endDate >= data.startDate, {
-  message: "Datum završetka mora biti jednak ili kasniji od datuma početka",
-  path: ["endDate"],
+  clientTimeZone: ianaTimezoneSchema,
+  applicationId: z.coerce.number().positive().optional(),
 });
 
 export const submitApplicationSchema = z.object({
-  applicationId: z.coerce.number().positive(),
+  applicationId: z.coerce.number().positive("ID zahtjeva je obavezan"),
+  clientTimeZone: ianaTimezoneSchema,
+});
+
+export const deleteApplicationSchema = z.object({
+  applicationId: z.coerce.number().positive("ID zahtjeva je obavezan"),
 });
 
 // UnavailabilityReason schemas
@@ -117,6 +129,16 @@ export const createLedgerEntrySchema = z.object({
   changeDays: z.coerce.number().int("Broj dana mora biti cijeli broj"),
   type: z.enum(["ALLOCATION", "USAGE", "TRANSFER", "CORRECTION"]),
   note: z.string().max(500).optional(),
+});
+
+// Application decision schemas (DM/GM approval)
+export const applicationDecisionSchema = z.object({
+  applicationId: z.coerce.number().positive("ID zahtjeva je obavezan"),
+  decision: z.enum(["APPROVE", "REJECT"], {
+    message: "Odluka mora biti APPROVE ili REJECT",
+  }),
+  comment: z.string().max(1000).optional(),
+  clientTimeZone: ianaTimezoneSchema,
 });
 
 // Helper to parse FormData with Zod schema
