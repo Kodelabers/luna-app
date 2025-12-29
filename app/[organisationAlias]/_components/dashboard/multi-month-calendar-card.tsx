@@ -12,18 +12,25 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { CalendarDay } from "@/lib/services/calendar";
+import { ApplicationSummary } from "@/lib/services/dashboard";
 import { parseISO } from "date-fns";
+import { toZonedTime } from "date-fns-tz";
+import { format } from "date-fns";
 
 type MultiMonthCalendarCardProps = {
   calendarDays: CalendarDay[];
   month: number;
   year: number;
+  pendingApplications?: ApplicationSummary[];
+  clientTimeZone?: string;
 };
 
 export function MultiMonthCalendarCard({
   calendarDays,
   month,
   year,
+  pendingApplications = [],
+  clientTimeZone = "Europe/Zagreb",
 }: MultiMonthCalendarCardProps) {
   const t = useTranslations("dashboard");
   const [numberOfMonths, setNumberOfMonths] = useState(3);
@@ -142,6 +149,133 @@ export function MultiMonthCalendarCard({
   };
   modifiersClassNames.weekend = "text-muted-foreground";
 
+  // Add pending applications with border styling
+  // Create a set of approved dates (NOT_AVAILABLE) for filtering
+  const approvedDates = new Set<string>();
+  calendarDays
+    .filter((day) => day.status === "NOT_AVAILABLE")
+    .forEach((day) => {
+      approvedDates.add(day.dateISO);
+    });
+
+  // Group pending days by application and color, excluding already approved days
+  const pendingAppsByColor = new Map<string, { color: string; dates: Date[]; dateISOs: string[]; ranges: Map<string, 'start' | 'middle' | 'end' | 'single'> }>();
+  
+  pendingApplications.forEach((app) => {
+    const color = app.unavailabilityReasonColor || "#fbbf24"; // default to warning color
+    const key = `pending_${app.id}`;
+    
+    if (!pendingAppsByColor.has(key)) {
+      pendingAppsByColor.set(key, { color, dates: [], dateISOs: [], ranges: new Map() });
+    }
+    
+    // Convert UTC dates to local timezone dates
+    const startUtc = parseISO(app.startDate);
+    const endUtc = parseISO(app.endDate);
+    const startLocal = toZonedTime(startUtc, clientTimeZone);
+    const endLocal = toZonedTime(endUtc, clientTimeZone);
+    
+    // Generate all days in the range, excluding already approved days
+    const appDates: Date[] = [];
+    const appDateISOs: string[] = [];
+    for (let d = new Date(startLocal); d <= endLocal; d.setDate(d.getDate() + 1)) {
+      const dateISO = format(d, "yyyy-MM-dd");
+      // Only add if not already approved
+      if (!approvedDates.has(dateISO)) {
+        appDates.push(new Date(d));
+        appDateISOs.push(dateISO);
+      }
+    }
+    
+    if (appDates.length > 0) {
+      const group = pendingAppsByColor.get(key)!;
+      group.dates = appDates;
+      group.dateISOs = appDateISOs;
+      
+      // Detect consecutive ranges for this application
+      appDateISOs.forEach((dateISO, index) => {
+        const prevDateISO = index > 0 ? appDateISOs[index - 1] : null;
+        const nextDateISO = index < appDateISOs.length - 1 ? appDateISOs[index + 1] : null;
+        
+        const hasPrev = prevDateISO && isConsecutiveDay(prevDateISO, dateISO);
+        const hasNext = nextDateISO && isConsecutiveDay(dateISO, nextDateISO);
+        
+        if (hasPrev && hasNext) {
+          group.ranges.set(dateISO, 'middle');
+        } else if (hasPrev && !hasNext) {
+          group.ranges.set(dateISO, 'end');
+        } else if (!hasPrev && hasNext) {
+          group.ranges.set(dateISO, 'start');
+        } else {
+          group.ranges.set(dateISO, 'single');
+        }
+      });
+    }
+  });
+
+  // Create modifiers for pending applications with range-aware border styling
+  let pendingIndex = 0;
+  pendingAppsByColor.forEach((group, key) => {
+    if (group.dates.length > 0) {
+      const color = group.color;
+      
+      group.ranges.forEach((position, dateISO) => {
+        const date = parseISO(dateISO);
+        const modifierKey = `pending-${pendingIndex}-${position}`;
+        
+        if (!modifiers[modifierKey]) {
+          modifiers[modifierKey] = [];
+          
+          // Determine border style based on position
+          let borderStyle: React.CSSProperties = {
+            borderRadius: "0.375rem",
+          };
+          
+          if (position === 'start') {
+            // Start: no right border
+            borderStyle = {
+              borderTop: `2px solid ${color}`,
+              borderBottom: `2px solid ${color}`,
+              borderLeft: `2px solid ${color}`,
+              borderRight: 'none',
+              borderRadius: "0.375rem 0 0 0.375rem",
+            };
+          } else if (position === 'middle') {
+            // Middle: no side borders
+            borderStyle = {
+              borderTop: `2px solid ${color}`,
+              borderBottom: `2px solid ${color}`,
+              borderLeft: 'none',
+              borderRight: 'none',
+              borderRadius: "0",
+            };
+          } else if (position === 'end') {
+            // End: no left border
+            borderStyle = {
+              borderTop: `2px solid ${color}`,
+              borderBottom: `2px solid ${color}`,
+              borderLeft: 'none',
+              borderRight: `2px solid ${color}`,
+              borderRadius: "0 0.375rem 0.375rem 0",
+            };
+          } else {
+            // Single: all borders
+            borderStyle = {
+              border: `2px solid ${color}`,
+              borderRadius: "0.375rem",
+            };
+          }
+          
+          modifiersStyles[modifierKey] = borderStyle;
+        }
+        
+        modifiers[modifierKey].push(date);
+      });
+      
+      pendingIndex++;
+    }
+  });
+
   const monthOptions = [
     { value: 3, label: t("threeMonths") },
     { value: 6, label: t("sixMonths") },
@@ -224,11 +358,11 @@ export function MultiMonthCalendarCard({
               <div className="h-3 w-3 rounded border bg-red-100 dark:bg-red-950" />
               <span className="text-muted-foreground">Praznik</span>
             </div>
-            {/* Show unique unavailability reasons with their colors */}
+            {/* Show unique unavailability reasons with their colors (approved) */}
             {Array.from(
               new Map(
                 calendarDays
-                  .filter((day) => day.unavailabilityReasonName && day.unavailabilityReasonColor)
+                  .filter((day) => day.unavailabilityReasonName && day.unavailabilityReasonColor && day.status === "NOT_AVAILABLE")
                   .map((day) => [
                     day.unavailabilityReasonId,
                     {
@@ -243,7 +377,29 @@ export function MultiMonthCalendarCard({
                   className="h-3 w-3 rounded border"
                   style={{ backgroundColor: reason.color }}
                 />
-                <span className="text-muted-foreground">{reason.name}</span>
+                <span className="text-muted-foreground">{reason.name} (odobreno)</span>
+              </div>
+            ))}
+            {/* Show pending applications with border styling */}
+            {Array.from(
+              new Map(
+                pendingApplications
+                  .filter((app) => app.unavailabilityReasonColor)
+                  .map((app) => [
+                    app.unavailabilityReasonId,
+                    {
+                      name: app.unavailabilityReasonName,
+                      color: app.unavailabilityReasonColor!,
+                    },
+                  ])
+              ).values()
+            ).map((reason) => (
+              <div key={`pending-${reason.name}`} className="flex items-center gap-1">
+                <div
+                  className="h-3 w-3 rounded border-2"
+                  style={{ borderColor: reason.color, backgroundColor: "transparent" }}
+                />
+                <span className="text-muted-foreground">{reason.name} (u procesu)</span>
               </div>
             ))}
           </div>

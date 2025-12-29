@@ -67,6 +67,7 @@ export const saveDraftApplicationSchema = z.object({
   description: z.string().max(1000).optional(),
   clientTimeZone: ianaTimezoneSchema,
   applicationId: z.coerce.number().positive().optional(),
+  employeeId: z.coerce.number().positive().optional(), // For managers creating applications for others
 });
 
 export const submitApplicationSchema = z.object({

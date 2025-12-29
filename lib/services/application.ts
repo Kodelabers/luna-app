@@ -403,9 +403,14 @@ export async function validateApplicationDraft(
     throw new ForbiddenError("Zaposlenik nije pronađen");
   }
 
-  // Parse dates
-  const startLocal = parseISO(startDateLocalISO);
-  const endLocal = parseISO(endDateLocalISO);
+  // Parse dates as local dates in the client's timezone
+  // startDateLocalISO format: "YYYY-MM-DD"
+  const [startYear, startMonth, startDay] = startDateLocalISO.split("-").map(Number);
+  const [endYear, endMonth, endDay] = endDateLocalISO.split("-").map(Number);
+
+  // Create dates in local timezone (SOD for start, EOD for end)
+  const startLocal = new Date(startYear, startMonth - 1, startDay, 0, 0, 0, 0); // SOD
+  const endLocal = new Date(endYear, endMonth - 1, endDay, 23, 59, 59, 999); // EOD
 
   // Basic validation
   const fieldErrors: Record<string, string[]> = {};
@@ -415,6 +420,7 @@ export async function validateApplicationDraft(
   }
 
   // Convert to UTC for DB queries
+  // fromZonedTime treats the input date as if it's in the specified timezone
   const startUTC = fromZonedTime(startLocal, clientTimeZone);
   const endUTC = fromZonedTime(endLocal, clientTimeZone);
 
@@ -579,14 +585,24 @@ export async function validateApplicationDraft(
       },
     });
 
-    availableDays = ledgerEntries.reduce((sum, entry) => sum + entry.changeDays, 0);
-
-    // Check if enough days available
-    if (workdays > availableDays) {
+    // Check if there's any allocation for this year
+    const hasAllocation = ledgerEntries.some((entry) => entry.type === "ALLOCATION");
+    
+    if (!hasAllocation) {
       fieldErrors.endDate = fieldErrors.endDate || [];
       fieldErrors.endDate.push(
-        `Nemate dovoljno dostupnih dana (${availableDays} dostupno, ${workdays} zatraženo)`
+        `Nemate alocirane dane za ${reason.name} u ${year}. godini. Molimo kontaktirajte administratora.`
       );
+    } else {
+      availableDays = ledgerEntries.reduce((sum, entry) => sum + entry.changeDays, 0);
+
+      // Check if enough days available
+      if (workdays > availableDays) {
+        fieldErrors.endDate = fieldErrors.endDate || [];
+        fieldErrors.endDate.push(
+          `Nemate dovoljno dostupnih dana (${availableDays} dostupno, ${workdays} zatraženo)`
+        );
+      }
     }
   }
 
@@ -665,8 +681,15 @@ export async function saveDraftApplication(
   }
 
   // Parse and convert dates
-  const startLocal = parseISO(startDateLocalISO);
-  const endLocal = parseISO(endDateLocalISO);
+  // startDateLocalISO format: "YYYY-MM-DD"
+  const [startYear, startMonth, startDay] = startDateLocalISO.split("-").map(Number);
+  const [endYear, endMonth, endDay] = endDateLocalISO.split("-").map(Number);
+
+  // Create dates in local timezone (SOD for start, EOD for end)
+  const startLocal = new Date(startYear, startMonth - 1, startDay, 0, 0, 0, 0); // SOD
+  const endLocal = new Date(endYear, endMonth - 1, endDay, 23, 59, 59, 999); // EOD
+
+  // Convert to UTC for DB
   const startUTC = fromZonedTime(startLocal, clientTimeZone);
   const endUTC = fromZonedTime(endLocal, clientTimeZone);
 
@@ -909,6 +932,7 @@ export async function listMyApplications(
     status?: ApplicationStatus;
     year?: number;
     reasonId?: number;
+    clientTimeZone?: string;
   }
 ): Promise<
   Array<{
@@ -967,19 +991,29 @@ export async function listMyApplications(
     },
   });
 
-  // For now, use UTC for timezone (client will handle conversion)
-  const clientTimeZone = "UTC";
+  // Use provided clientTimeZone or default to Europe/Zagreb
+  const clientTimeZone = filters?.clientTimeZone || "Europe/Zagreb";
 
-  return applications.map((app) => ({
-    applicationId: app.id,
-    startLocalISO: toZonedTime(app.startDate, clientTimeZone).toISOString().split("T")[0],
-    endLocalISO: toZonedTime(app.endDate, clientTimeZone).toISOString().split("T")[0],
-    status: app.status,
-    reasonId: app.unavailabilityReason.id,
-    reasonName: app.unavailabilityReason.name,
-    workdays: app.requestedWorkdays,
-    description: app.description,
-    createdAtISO: app.createdAt.toISOString(),
-  }));
+  return applications.map((app) => {
+    // Convert UTC dates from DB to local timezone
+    const startLocal = toZonedTime(app.startDate, clientTimeZone);
+    const endLocal = toZonedTime(app.endDate, clientTimeZone);
+    
+    // Format as YYYY-MM-DD (local date only, no time component)
+    const startLocalISO = `${startLocal.getFullYear()}-${String(startLocal.getMonth() + 1).padStart(2, '0')}-${String(startLocal.getDate()).padStart(2, '0')}`;
+    const endLocalISO = `${endLocal.getFullYear()}-${String(endLocal.getMonth() + 1).padStart(2, '0')}-${String(endLocal.getDate()).padStart(2, '0')}`;
+    
+    return {
+      applicationId: app.id,
+      startLocalISO,
+      endLocalISO,
+      status: app.status,
+      reasonId: app.unavailabilityReason.id,
+      reasonName: app.unavailabilityReason.name,
+      workdays: app.requestedWorkdays,
+      description: app.description,
+      createdAtISO: app.createdAt.toISOString(),
+    };
+  });
 }
 

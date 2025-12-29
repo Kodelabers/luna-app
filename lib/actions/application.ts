@@ -286,6 +286,7 @@ export async function listMyApplicationsAction(
     status?: string;
     year?: number;
     reasonId?: number;
+    clientTimeZone?: string;
   }
 ) {
   try {
@@ -295,6 +296,7 @@ export async function listMyApplicationsAction(
     const parsedFilters = filters ? {
       ...filters,
       status: filters.status as any,
+      clientTimeZone: filters.clientTimeZone,
     } : undefined;
     
     const applications = await listMyApplications(ctx, parsedFilters);

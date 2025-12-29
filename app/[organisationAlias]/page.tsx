@@ -153,6 +153,8 @@ export default async function DashboardPage({ params, searchParams }: Props) {
             calendarDays={calendarDays}
             month={currentMonth}
             year={currentYear}
+            pendingApplications={openApplications}
+            clientTimeZone={clientTimeZone}
           />
         )}
       </div>

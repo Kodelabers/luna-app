@@ -52,6 +52,8 @@ export function ApplicationsListClient({
       if (reasonFilter !== "ALL") {
         filters.reasonId = reasonFilter;
       }
+      // Add client timezone
+      filters.clientTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
       const data = await listMyApplicationsAction(organisationAlias, filters);
       setApplications(data);

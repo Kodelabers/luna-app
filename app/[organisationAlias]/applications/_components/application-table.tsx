@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { Eye, Pencil, Trash2 } from "lucide-react";
 import { ApplicationStatus } from "@prisma/client";
 import { useTranslations } from "next-intl";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
 import { hr } from "date-fns/locale";
 
 type Application = {
@@ -79,12 +79,12 @@ export function ApplicationTable({
           {applications.map((app) => (
             <TableRow key={app.applicationId}>
               <TableCell>
-                {format(new Date(app.startLocalISO), "dd.MM.yyyy", {
+                {format(parseISO(app.startLocalISO), "dd.MM.yyyy", {
                   locale: hr,
                 })}
               </TableCell>
               <TableCell>
-                {format(new Date(app.endLocalISO), "dd.MM.yyyy", {
+                {format(parseISO(app.endLocalISO), "dd.MM.yyyy", {
                   locale: hr,
                 })}
               </TableCell>
