@@ -152,7 +152,7 @@ export const getPlanningDataSchema = z
       .string()
       .regex(/^\d{4}-\d{2}-\d{2}$/, "Datum mora biti u formatu YYYY-MM-DD"),
     clientTimeZone: ianaTimezoneSchema,
-    departmentId: z.coerce.number().positive().optional(),
+    departmentIds: z.array(z.coerce.number().positive()).optional(),
   })
   .refine(
     (data) => {

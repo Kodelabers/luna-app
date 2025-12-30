@@ -404,6 +404,11 @@
     "planningTableDescription": "Prikazano {employeeCount} zaposlenika za {dayCount} dana",
     "selectDateRange": "Odaberite period",
     "allDepartments": "Svi odjeli",
+    "noDepartments": "Nijedan odjel",
+    "selectedDepartments": "{count} odjela",
+    "selectDepartments": "Odaberi odjele",
+    "selectAll": "Odaberi sve",
+    "deselectAll": "Poništi sve",
     "noData": "Nema podataka za prikaz",
     "employee": "Zaposlenik",
     "presets": {

@@ -13,7 +13,7 @@ type Props = {
   searchParams: Promise<{
     from?: string;
     to?: string;
-    department?: string;
+    department?: string; // comma-separated department IDs
   }>;
 };
 
@@ -42,21 +42,30 @@ export default async function PlanningPage({ params, searchParams }: Props) {
 
   const fromLocalISO = from || format(defaultFrom, "yyyy-MM-dd");
   const toLocalISO = to || format(defaultTo, "yyyy-MM-dd");
-  const departmentId = department ? parseInt(department, 10) : undefined;
+  
+  // Parse comma-separated department IDs
+  const departmentIds: number[] = department
+    ? department
+        .split(",")
+        .map((id) => parseInt(id.trim(), 10))
+        .filter((id) => !isNaN(id) && id > 0)
+    : [];
 
-  // Validate departmentId if provided
-  let validDepartmentId: number | undefined = undefined;
-  if (departmentId) {
-    if (managerStatus.isGeneralManager) {
-      // GM can access any department
-      const dept = managedDepartments.find((d) => d.id === departmentId);
-      if (dept) {
-        validDepartmentId = departmentId;
-      }
-    } else {
-      // DM can only access managed departments
-      if (managerStatus.managedDepartmentIds.includes(departmentId)) {
-        validDepartmentId = departmentId;
+  // Validate departmentIds if provided
+  const validDepartmentIds: number[] = [];
+  if (departmentIds.length > 0) {
+    for (const deptId of departmentIds) {
+      if (managerStatus.isGeneralManager) {
+        // GM can access any department in organisation
+        const dept = managedDepartments.find((d) => d.id === deptId);
+        if (dept) {
+          validDepartmentIds.push(deptId);
+        }
+      } else {
+        // DM can only access managed departments
+        if (managerStatus.managedDepartmentIds.includes(deptId)) {
+          validDepartmentIds.push(deptId);
+        }
       }
     }
   }
@@ -70,7 +79,7 @@ export default async function PlanningPage({ params, searchParams }: Props) {
     fromLocalISO,
     toLocalISO,
     clientTimeZone,
-    validDepartmentId
+    validDepartmentIds.length > 0 ? validDepartmentIds : undefined
   );
 
   if (!result.success) {
@@ -107,7 +116,7 @@ export default async function PlanningPage({ params, searchParams }: Props) {
           <PlanningFiltersClient
             fromLocalISO={fromLocalISO}
             toLocalISO={toLocalISO}
-            departmentId={validDepartmentId}
+            departmentIds={validDepartmentIds}
             departments={managedDepartments.map((d) => ({
               id: d.id,
               name: d.name,

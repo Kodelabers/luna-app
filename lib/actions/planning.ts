@@ -14,7 +14,7 @@ export async function getPlanningDataAction(
   fromLocalISO: string,
   toLocalISO: string,
   clientTimeZone: string,
-  departmentId?: number
+  departmentIds?: number[]
 ): Promise<{ success: true; data: PlanningData } | { success: false; formError: string; fieldErrors?: Record<string, string[]> }> {
   try {
     // 1. Resolve tenant context
@@ -25,7 +25,7 @@ export async function getPlanningDataAction(
       fromLocalISO,
       toLocalISO,
       clientTimeZone,
-      departmentId,
+      departmentIds,
     });
 
     if (!validationResult.success) {

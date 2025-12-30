@@ -404,6 +404,11 @@
     "planningTableDescription": "Showing {employeeCount} employees for {dayCount} days",
     "selectDateRange": "Select date range",
     "allDepartments": "All departments",
+    "noDepartments": "No departments",
+    "selectedDepartments": "{count} departments",
+    "selectDepartments": "Select departments",
+    "selectAll": "Select all",
+    "deselectAll": "Deselect all",
     "noData": "No data to display",
     "employee": "Employee",
     "presets": {

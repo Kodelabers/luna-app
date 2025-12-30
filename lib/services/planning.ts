@@ -69,7 +69,7 @@ export type GetPlanningDataInput = {
   fromLocalISO: string; // YYYY-MM-DD
   toLocalISO: string; // YYYY-MM-DD
   clientTimeZone: string; // IANA tz
-  departmentId?: number;
+  departmentIds?: number[]; // Array of department IDs (if empty/undefined, show all accessible departments)
 };
 
 /**
@@ -80,7 +80,7 @@ export async function getPlanningData(
   ctx: TenantContext,
   input: GetPlanningDataInput
 ): Promise<PlanningData> {
-  const { fromLocalISO, toLocalISO, clientTimeZone, departmentId } = input;
+  const { fromLocalISO, toLocalISO, clientTimeZone, departmentIds } = input;
 
   // 1. Check manager access
   const managerStatus = await getManagerStatus(ctx);
@@ -91,20 +91,21 @@ export async function getPlanningData(
   // 2. Determine department scope
   let departmentScope: number[] = [];
   if (managerStatus.isGeneralManager) {
-    // GM: all departments or selected departmentId
-    if (departmentId) {
-      // Verify department belongs to organisation
-      const dept = await db.department.findFirst({
+    // GM: all departments or selected departmentIds
+    if (departmentIds && departmentIds.length > 0) {
+      // Verify all departments belong to organisation
+      const depts = await db.department.findMany({
         where: {
-          id: departmentId,
+          id: { in: departmentIds },
           organisationId: ctx.organisationId,
           active: true,
         },
+        select: { id: true },
       });
-      if (!dept) {
-        throw new ForbiddenError("Odjel nije pronađen ili nije u vašoj organizaciji");
+      if (depts.length !== departmentIds.length) {
+        throw new ForbiddenError("Neki odjeli nisu pronađeni ili nisu u vašoj organizaciji");
       }
-      departmentScope = [departmentId];
+      departmentScope = departmentIds;
     } else {
       // All departments - fetch all active departments
       const allDepts = await db.department.findMany({
@@ -117,12 +118,16 @@ export async function getPlanningData(
       departmentScope = allDepts.map((d) => d.id);
     }
   } else {
-    // DM: only managed departments or selected departmentId within managed
-    if (departmentId) {
-      if (!managerStatus.managedDepartmentIds.includes(departmentId)) {
-        throw new ForbiddenError("Nemate pristup ovom odjelu");
+    // DM: only managed departments or selected departmentIds within managed
+    if (departmentIds && departmentIds.length > 0) {
+      // Verify all selected departments are in managed list
+      const invalidDepts = departmentIds.filter(
+        (id) => !managerStatus.managedDepartmentIds.includes(id)
+      );
+      if (invalidDepts.length > 0) {
+        throw new ForbiddenError("Nemate pristup nekim od odabranih odjela");
       }
-      departmentScope = [departmentId];
+      departmentScope = departmentIds;
     } else {
       departmentScope = managerStatus.managedDepartmentIds;
     }

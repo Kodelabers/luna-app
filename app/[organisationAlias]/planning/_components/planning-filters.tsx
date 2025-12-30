@@ -6,17 +6,11 @@ import { useTranslations } from "next-intl";
 import { format, addMonths, startOfMonth, endOfMonth } from "date-fns";
 import { hr, enUS } from "date-fns/locale";
 import { useLocale } from "next-intl";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { cn } from "@/lib/utils";
 import type { DateRange } from "react-day-picker";
 
@@ -29,7 +23,7 @@ type Department = {
 type PlanningFiltersProps = {
   fromLocalISO: string;
   toLocalISO: string;
-  departmentId: number | undefined;
+  departmentIds: number[];
   departments: Department[];
   isGeneralManager: boolean;
   clientTimeZone: string;
@@ -39,7 +33,7 @@ type PlanningFiltersProps = {
 export function PlanningFilters({
   fromLocalISO,
   toLocalISO,
-  departmentId,
+  departmentIds,
   departments,
   isGeneralManager,
   clientTimeZone,
@@ -62,37 +56,45 @@ export function PlanningFilters({
     return undefined;
   });
 
-  const [selectedDepartmentId, setSelectedDepartmentId] = useState<
-    number | "all"
-  >(departmentId ?? "all");
+  // Initialize selected departments - if empty or all departments selected, show all
+  const [selectedDepartmentIds, setSelectedDepartmentIds] = useState<number[]>(
+    departmentIds.length === 0 || departmentIds.length === departments.length
+      ? departments.map((d) => d.id)
+      : departmentIds
+  );
 
   // Update URL when filters change
   useEffect(() => {
     if (dateRange?.from && dateRange?.to) {
       const newFrom = format(dateRange.from, "yyyy-MM-dd");
       const newTo = format(dateRange.to, "yyyy-MM-dd");
-      const deptId =
-        selectedDepartmentId === "all"
-          ? undefined
-          : Number(selectedDepartmentId);
+      
+      // If all departments are selected, don't include department param (show all)
+      const allSelected = selectedDepartmentIds.length === departments.length;
+      const deptIds = allSelected ? [] : selectedDepartmentIds;
+
+      // Check if filters actually changed
+      const deptIdsChanged = 
+        deptIds.length !== departmentIds.length ||
+        deptIds.some((id) => !departmentIds.includes(id));
 
       if (
         newFrom !== fromLocalISO ||
         newTo !== toLocalISO ||
-        deptId !== departmentId
+        deptIdsChanged
       ) {
         const params = new URLSearchParams(searchParams.toString());
         params.set("from", newFrom);
         params.set("to", newTo);
-        if (deptId) {
-          params.set("department", deptId.toString());
+        if (deptIds.length > 0) {
+          params.set("department", deptIds.join(","));
         } else {
           params.delete("department");
         }
         router.push(`/${organisationAlias}/planning?${params.toString()}`);
       }
     }
-  }, [dateRange, selectedDepartmentId, fromLocalISO, toLocalISO, departmentId, organisationAlias, router, searchParams]);
+  }, [dateRange, selectedDepartmentIds, fromLocalISO, toLocalISO, departmentIds, departments.length, organisationAlias, router, searchParams]);
 
   // Preset handlers - calculate range from today (not from start of month)
   const handlePreset = (months: number) => {
@@ -194,32 +196,89 @@ export function PlanningFilters({
           </PopoverContent>
         </Popover>
 
-        {/* Department Filter - only show for DM */}
-        {!isGeneralManager && departments.length > 0 && (
-          <Select
-            value={selectedDepartmentId.toString()}
-            onValueChange={(value) => setSelectedDepartmentId(value as number | "all")}
-          >
-            <SelectTrigger className="w-full sm:w-[200px]">
-              <SelectValue placeholder={t("allDepartments")} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">{t("allDepartments")}</SelectItem>
-              {departments.map((dept) => (
-                <SelectItem key={dept.id} value={dept.id.toString()}>
-                  <div className="flex items-center gap-2">
-                    {dept.colorCode && (
-                      <div
-                        className="h-3 w-3 rounded-xs shrink-0"
-                        style={{ backgroundColor: dept.colorCode }}
+        {/* Department Multi-Select Filter - show for both GM and DM if they have multiple departments */}
+        {departments.length > 1 && (
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className="w-full sm:w-[250px] justify-between"
+              >
+                <span className="truncate">
+                  {selectedDepartmentIds.length === departments.length
+                    ? t("allDepartments")
+                    : selectedDepartmentIds.length === 0
+                    ? t("noDepartments")
+                    : selectedDepartmentIds.length === 1
+                    ? departments.find((d) => d.id === selectedDepartmentIds[0])?.name
+                    : t("selectedDepartments", { count: selectedDepartmentIds.length })}
+                </span>
+                <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-[250px] p-0" align="start">
+              <div className="p-2">
+                <div className="flex items-center justify-between px-2 py-1.5">
+                  <span className="text-sm font-medium">{t("selectDepartments")}</span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-auto p-0 text-xs"
+                    onClick={() => {
+                      if (selectedDepartmentIds.length === departments.length) {
+                        setSelectedDepartmentIds([]);
+                      } else {
+                        setSelectedDepartmentIds(departments.map((d) => d.id));
+                      }
+                    }}
+                  >
+                    {selectedDepartmentIds.length === departments.length
+                      ? t("deselectAll")
+                      : t("selectAll")}
+                  </Button>
+                </div>
+                <div className="border-t mt-2 pt-2 space-y-1 max-h-[300px] overflow-y-auto">
+                  {departments.map((dept) => (
+                    <div
+                      key={dept.id}
+                      className="flex items-center space-x-2 px-2 py-1.5 rounded-sm hover:bg-accent cursor-pointer"
+                      onClick={() => {
+                        if (selectedDepartmentIds.includes(dept.id)) {
+                          setSelectedDepartmentIds(
+                            selectedDepartmentIds.filter((id) => id !== dept.id)
+                          );
+                        } else {
+                          setSelectedDepartmentIds([...selectedDepartmentIds, dept.id]);
+                        }
+                      }}
+                    >
+                      <Checkbox
+                        checked={selectedDepartmentIds.includes(dept.id)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedDepartmentIds([...selectedDepartmentIds, dept.id]);
+                          } else {
+                            setSelectedDepartmentIds(
+                              selectedDepartmentIds.filter((id) => id !== dept.id)
+                            );
+                          }
+                        }}
                       />
-                    )}
-                    <span>{dept.name}</span>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        {dept.colorCode && (
+                          <div
+                            className="h-3 w-3 rounded-xs shrink-0"
+                            style={{ backgroundColor: dept.colorCode }}
+                          />
+                        )}
+                        <span className="text-sm truncate">{dept.name}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
         )}
       </div>
     </div>

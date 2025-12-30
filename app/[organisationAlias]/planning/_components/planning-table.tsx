@@ -201,7 +201,7 @@ export function PlanningTable({ data, organisationAlias }: PlanningTableProps) {
                 >
                   <div className="flex flex-col items-center gap-1">
                     <span>
-                      {format(parseISO(day.dateLocalISO), "dd", {
+                      {format(parseISO(day.dateLocalISO), "dd.MM.", {
                         locale: dateLocale,
                       })}
                     </span>
