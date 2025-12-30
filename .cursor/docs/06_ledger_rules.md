@@ -33,7 +33,7 @@ Ako želite drugačije (split po godinama), to je zasebna odluka i mora biti dok
 - **CORRECTION**:
   - kad se “vraćaju” dani zbog preklapanja i pregazivanja plana (samo relevantno za reason-e s `hasPlanning=true`)
 - **TRANSFER**:
-  - prijenos u novu godinu (pravilo TBD ako nije definirano)
+  - automatski prijenos preostalih dana u novu godinu pri “otvaranju godine” (vidi sekciju 8)
 
 ## 4) Veza na zahtjev
 Ako je knjiženje nastalo zbog zahtjeva:
@@ -70,7 +70,35 @@ Ako korisnik kreira zahtjev za novu godinu (npr. siječanj 2026.) prije nego št
 - USAGE entry za prethodnu godinu ima istu strukturu kao i za tekuću godinu (negativan `changeDays`, veza na `applicationId`)
 
 ### Napomena
-- U normalnom toku poslovanja, administrator napravi TRANSFER preostalih dana iz prethodne godine u novu prije planiranja nove godine
-- Ova funkcionalnost omogućava fleksibilnost prije nego što administrator napravi TRANSFER
+- Ako nova godina još nije “otvorena” dodjelom (ALLOCATION) za tu godinu, sustav može privremeno dopustiti korištenje preostalih dana iz prethodne godine (pravila iznad).
+- Kad manager “otvori” novu godinu dodjelom, preostali dani iz prethodne godine se automatski prenose (vidi sekciju 8).
+
+## 8) Otvaranje nove godine i automatski prijenos preostalih dana
+
+Kad manager doda dodjelu za novu godinu (ALLOCATION), sustav mora automatski prenijeti preostale dane iz prethodne godine za istu vrstu odsutnosti.
+
+### Pravilo (high-level)
+- Ako u prethodnoj godini postoji preostalo stanje \(balance > 0\), tada se:
+  1) **prethodna godina zatvara** tako da joj stanje postane 0
+  2) u novoj godini se to stanje **dodaje** na novo stanje (uz inicijalnu dodjelu koju je manager unio)
+
+### Pravilo knjiženja (internal)
+Za `employeeId + unavailabilityReasonId`:
+- Izračunaj `prevBalance = SUM(changeDays)` za `year = newYear - 1`.
+- Ako je `prevBalance > 0`:
+  - U prethodnoj godini kreirati `UnavailabilityLedgerEntry`:
+    - `year = newYear - 1`
+    - `type = TRANSFER`
+    - `changeDays = -prevBalance` (zatvara prethodnu godinu na 0)
+    - `note = "prijenos u iduću godinu"`
+  - U novoj godini kreirati `UnavailabilityLedgerEntry`:
+    - `year = newYear`
+    - `type = CORRECTION`
+    - `changeDays = +prevBalance` (dodaje prenesene dane na novu godinu)
+    - `note = "prijenos iz prethodne godine"`
+
+Napomene:
+- `TRANSFER` se ovdje koristi kao “prijenos između godina”; **smjer** se vidi iz znaka `changeDays`.
+- `note` je obavezan za ova dva automatska unosa (audit i UX).
 
 

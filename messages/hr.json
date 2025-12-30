@@ -34,11 +34,12 @@
     "employees": "Zaposlenici",
     "managers": "Manageri",
     "members": "Članovi",
-    "unavailabilityReasons": "Razlozi nedostupnosti",
+    "unavailabilityReasons": "Vrste odsutnosti",
     "holidays": "Praznici",
     "management": "Upravljanje",
     "overview": "Pregled",
-    "applications": "Zahtjevi"
+    "applications": "Zahtjevi",
+    "planning": "Planiranje"
   },
   "roles": {
     "administrator": "Administrator",
@@ -56,7 +57,7 @@
     "notLinkedToEmployee": "Niste povezani sa zaposlenikom",
     "contactAdmin": "Kontaktirajte administratora kako bi povezao vaš korisnički račun sa evidencijom zaposlenika.",
     "myRequests": "Moji zahtjevi",
-    "openRequests": "Otvoreni zahtjevi za izostanak",
+    "openRequests": "Otvoreni zahtjevi za odsutnost",
     "openRequestsDescription": "Ovdje će se prikazati vaši otvoreni zahtjevi (DRAFT, SUBMITTED, APPROVED_FIRST_LEVEL).",
     "forApproval": "Za odobrenje",
     "requestsAwaitingDecision": "Zahtjevi koji čekaju vašu odluku",
@@ -99,14 +100,14 @@
     "accessDenied": "Pristup odbijen",
     "noAdminRights": "Nemate administratorska prava za pristup ovoj stranici.",
     "backToDashboard": "Povratak na dashboard",
-    "absenceReasons": "Razlozi izostanka",
+    "absenceReasons": "Vrste odsutnosti",
     "title": "Administracija",
     "description": "Upravljanje organizacijom i postavkama",
     "departmentsDescription": "Upravljanje odjelima i njihovom strukturom",
     "employeesDescription": "Upravljanje zaposlenicima u organizaciji",
     "membersDescription": "Korisnici s pristupom sustavu",
     "holidaysDescription": "Neradni dani i praznici",
-    "absenceReasonsDescription": "Vrste izostanaka koje zaposlenici mogu zatražiti"
+    "absenceReasonsDescription": "Vrste odsutnosti koje zaposlenici mogu zatražiti"
   },
   "departments": {
     "title": "Odjeli",
@@ -208,12 +209,12 @@
     "emailColumn": "Email"
   },
   "unavailabilityReasons": {
-    "title": "Razlozi nedostupnosti",
-    "description": "Upravljanje vrstama izostanaka koje zaposlenici mogu zatražiti",
+    "title": "Vrste odsutnosti",
+    "description": "Upravljanje vrstama odsutnosti koje zaposlenici mogu zatražiti",
     "newReason": "Novi razlog",
     "editReason": "Uredi razlog",
     "deleteReason": "Obriši razlog",
-    "noReasons": "Nema razloga nedostupnosti u organizaciji.",
+    "noReasons": "Nema vrsta odsutnosti u organizaciji.",
     "noSearchResults": "Nema razloga koji odgovaraju pretrazi.",
     "searchPlaceholder": "Pretraži razloge...",
     "name": "Naziv",
@@ -230,8 +231,8 @@
     "needApprovalDescription": "Ovaj razlog zahtijeva odobrenje managera prve razine",
     "needSecondApprovalDescription": "Ovaj razlog zahtijeva odobrenje managera druge razine",
     "hasPlanningDescription": "Ovaj razlog je uključen u planiranje i knjiženje",
-    "createDescription": "Unesite podatke za novi razlog nedostupnosti.",
-    "editDescription": "Izmijenite podatke o razlogu nedostupnosti.",
+    "createDescription": "Unesite podatke za novu vrstu odsutnosti.",
+    "editDescription": "Izmijenite podatke o vrsti odsutnosti.",
     "deleteConfirm": "Jeste li sigurni da želite obrisati razlog {name}? Ova akcija se ne može poništiti.",
     "deleteError": "Greška pri brisanju razloga",
     "reset": "Resetiraj",
@@ -289,7 +290,7 @@
   },
   "applications": {
     "title": "Zahtjevi",
-    "description": "Upravljanje zahtjevima za nedostupnost",
+    "description": "Upravljanje zahtjevima za odsutnost",
     "myApplications": "Moji zahtjevi",
     "newApplication": "Novi zahtjev",
     "editApplication": "Uredi zahtjev",
@@ -316,12 +317,12 @@
     "pendingApproval": "U procesu odobravanja",
     "employee": "Zaposlenik",
     "creatingOnBehalf": "Kreirate zahtjev u ime odabranog zaposlenika",
-    "ledgerBalance": "Stanje dana po razlozima",
-    "allocated": "Alocirano",
+    "ledgerBalance": "Stanje dana po vrstama odsutnosti",
+    "allocated": "Dodijeljeno",
     "used": "Iskorišteno",
     "remaining": "Preostalo",
     "approved": "Odobreno",
-    "createDescription": "Kreirajte novi zahtjev za nedostupnost.",
+    "createDescription": "Kreirajte novi zahtjev za odsutnost.",
     "editDescription": "Izmijenite podatke o zahtjevu.",
     "deleteConfirm": "Jeste li sigurni da želite obrisati ovaj zahtjev? Ova akcija se ne može poništiti.",
     "deleteError": "Greška pri brisanju zahtjeva",
@@ -392,6 +393,47 @@
       "filterByYear": "Filtriraj po godini",
       "allReasons": "Svi razlozi",
       "allYears": "Sve godine"
+    }
+  },
+  "planning": {
+    "title": "Planiranje odsutnosti",
+    "description": "Gantt prikaz planiranja odsutnosti za zaposlenike",
+    "filters": "Filtri",
+    "filtersDescription": "Odaberite raspon datuma i odjel za prikaz",
+    "planningTable": "Tablica planiranja",
+    "planningTableDescription": "Prikazano {employeeCount} zaposlenika za {dayCount} dana",
+    "selectDateRange": "Odaberite period",
+    "allDepartments": "Svi odjeli",
+    "noData": "Nema podataka za prikaz",
+    "employee": "Zaposlenik",
+    "presets": {
+      "1month": "1 mjesec",
+      "3months": "3 mjeseca",
+      "6months": "6 mjeseci",
+      "12months": "12 mjeseci"
+    },
+    "legend": {
+      "available": "Dostupan",
+      "notAvailable": "Nedostupan",
+      "weekend": "Vikend",
+      "holiday": "Praznik",
+      "submitted": "Poslan",
+      "approvedFirstLevel": "Odobreno (1. razina)",
+      "approved": "Odobreno"
+    },
+    "cellDetails": {
+      "title": "Detalji ćelije",
+      "dayInfo": "Informacije o danu",
+      "date": "Datum",
+      "type": "Tip",
+      "weekend": "Vikend",
+      "plan": "Plan (DaySchedule)",
+      "status": "Status",
+      "reason": "Razlog",
+      "application": "Zahtjev",
+      "applications": "Zahtjevi",
+      "viewApplication": "Pregled zahtjeva",
+      "noData": "Nema podataka za ovaj dan"
     }
   }
 }

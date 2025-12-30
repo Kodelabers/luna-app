@@ -26,5 +26,8 @@ Ovaj folder (`.cursor/docs/`) je **operativna dokumentacija** za razvoj u Cursor
 
 ## Postojeći use-case docovi
 - Dashboard: `/.cursor/docs/UC01-Dashboard.md`
+- Zahtjevi: `/.cursor/docs/UC02-Applications.md`
+- Planiranje odsutnosti: `/.cursor/docs/UC03-PlaniranjeOdsutnosti.md`
+- Stanje dana i dodjele: `/.cursor/docs/UC04-StanjeDanaDodjele.md`
 
 

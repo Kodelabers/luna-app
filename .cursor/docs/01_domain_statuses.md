@@ -1,6 +1,6 @@
 # Domena — statusi i prijelazi
 
-Ovaj dokument definira **jedinstvena pravila** za statuse i prijelaze zahtjeva (`Application`) i kako se bilježe događaji.
+Ovaj dokument definira **jedinstvena pravila** za statuse i prijelaze **zahtjeva za odsutnost** (`Application`) i kako se bilježe događaji.
 
 ## 1) Statusi zahtjeva (ApplicationStatus)
 - **DRAFT**: nacrt (vidljiv samo vlasniku); može se uređivati i brisati/soft-delete prema odluci (vidi `OPEN_QUESTIONS.md`).

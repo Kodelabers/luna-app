@@ -284,6 +284,9 @@ General Manager može iz dashboarda procesirati zahtjeve koji čekaju **2. razin
 ### Cilj
 Na dashboardu prikazati gantt-like pregled planiranja po odjelima: zaposlenici u retcima i dani u stupcima (od danas u budućnost), s **cjelovitim prikazom plana (DaySchedule) i zahtjeva (Applications)**.
 
+Napomena:
+- Ovaj widget mora biti **funkcionalno identičan** prikazu iz `/.cursor/docs/UC03-PlaniranjeOdsutnosti.md` (UC-PLAN-01). Razlika je samo u tome što je prikazan kao widget na dashboardu umjesto (ili uz) zasebnu stranicu.
+
 ### Akteri
 - Department Manager
 - General Manager
@@ -299,7 +302,7 @@ Na dashboardu prikazati gantt-like pregled planiranja po odjelima: zaposlenici u
 ### Input (Server Action)
 - `departmentId?: number` (ako je postavljen → filtriraj na jedan odjel; inače default scope)
 - `rangePreset?: "1m" | "3m" | "6m" | "1y"` (ili ekvivalent)
-- `from?: string`, `to?: string` (ISO; interpretacija prema client TZ)
+- `fromLocalISO?: string`, `toLocalISO?: string` (YYYY-MM-DD; interpretacija prema client TZ)
 - `clientTimeZone: string` (IANA tz)
 
 ### Preduvjeti

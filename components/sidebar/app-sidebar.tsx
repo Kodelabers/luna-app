@@ -1,6 +1,6 @@
 "use client";
 
-import { LayoutDashboard, Settings, FileText } from "lucide-react";
+import { LayoutDashboard, Settings, FileText, CalendarDays } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { NavMain, type NavItem } from "@/components/sidebar/nav-main";
@@ -56,6 +56,15 @@ export function AppSidebar({
     },
   ];
 
+  // Manager navigation items (visible to DM/GM)
+  const managerNavItems: NavItem[] = [
+    {
+      title: t("planning"),
+      url: `/${organisationAlias}/planning`,
+      icon: CalendarDays,
+    },
+  ];
+
   // Admin navigation items
   const adminNavItems: NavItem[] = [
     {
@@ -98,6 +107,14 @@ export function AppSidebar({
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={mainNavItems} />
+        
+        {/* Manager section - Planning */}
+        {managedDepartments.length > 0 && (
+          <>
+            <Separator />
+            <NavMain items={managerNavItems} />
+          </>
+        )}
         
         {/* Manager departments section */}
         {managedDepartments.length > 0 && (

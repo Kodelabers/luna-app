@@ -34,11 +34,12 @@
     "employees": "Employees",
     "managers": "Managers",
     "members": "Members",
-    "unavailabilityReasons": "Unavailability Reasons",
+    "unavailabilityReasons": "Absence Types",
     "holidays": "Holidays",
     "management": "Management",
     "overview": "Overview",
-    "applications": "Applications"
+    "applications": "Applications",
+    "planning": "Planning"
   },
   "roles": {
     "administrator": "Administrator",
@@ -99,14 +100,14 @@
     "accessDenied": "Access Denied",
     "noAdminRights": "You do not have administrator rights to access this page.",
     "backToDashboard": "Back to dashboard",
-    "absenceReasons": "Absence Reasons",
+    "absenceReasons": "Absence Types",
     "title": "Administration",
     "description": "Manage organization and settings",
     "departmentsDescription": "Manage departments and their structure",
     "employeesDescription": "Manage employees in the organization",
     "membersDescription": "Users with access to the system",
     "holidaysDescription": "Non-working days and holidays",
-    "absenceReasonsDescription": "Types of absences that employees can request"
+    "absenceReasonsDescription": "Absence types that employees can request"
   },
   "departments": {
     "title": "Departments",
@@ -208,12 +209,12 @@
     "emailColumn": "Email"
   },
   "unavailabilityReasons": {
-    "title": "Unavailability Reasons",
-    "description": "Manage types of absences that employees can request",
+    "title": "Absence Types",
+    "description": "Manage absence types that employees can request",
     "newReason": "New Reason",
     "editReason": "Edit Reason",
     "deleteReason": "Delete Reason",
-    "noReasons": "No unavailability reasons in the organization.",
+    "noReasons": "No absence types in the organization.",
     "noSearchResults": "No reasons match the search criteria.",
     "searchPlaceholder": "Search reasons...",
     "name": "Name",
@@ -230,8 +231,8 @@
     "needApprovalDescription": "This reason requires first level manager approval",
     "needSecondApprovalDescription": "This reason requires second level manager approval",
     "hasPlanningDescription": "This reason is included in planning and ledger tracking",
-    "createDescription": "Enter details for the new unavailability reason.",
-    "editDescription": "Modify unavailability reason details.",
+    "createDescription": "Enter details for the new absence type.",
+    "editDescription": "Modify absence type details.",
     "deleteConfirm": "Are you sure you want to delete the reason {name}? This action cannot be undone.",
     "deleteError": "Error deleting reason",
     "reset": "Reset",
@@ -316,7 +317,7 @@
     "pendingApproval": "Pending approval",
     "employee": "Employee",
     "creatingOnBehalf": "Creating request on behalf of selected employee",
-    "ledgerBalance": "Days balance by reason",
+    "ledgerBalance": "Days balance by absence type",
     "allocated": "Allocated",
     "used": "Used",
     "remaining": "Remaining",
@@ -392,6 +393,47 @@
       "filterByYear": "Filter by year",
       "allReasons": "All reasons",
       "allYears": "All years"
+    }
+  },
+  "planning": {
+    "title": "Absence Planning",
+    "description": "Gantt view of absence planning for employees",
+    "filters": "Filters",
+    "filtersDescription": "Select date range and department to display",
+    "planningTable": "Planning Table",
+    "planningTableDescription": "Showing {employeeCount} employees for {dayCount} days",
+    "selectDateRange": "Select date range",
+    "allDepartments": "All departments",
+    "noData": "No data to display",
+    "employee": "Employee",
+    "presets": {
+      "1month": "1 month",
+      "3months": "3 months",
+      "6months": "6 months",
+      "12months": "12 months"
+    },
+    "legend": {
+      "available": "Available",
+      "notAvailable": "Not Available",
+      "weekend": "Weekend",
+      "holiday": "Holiday",
+      "submitted": "Submitted",
+      "approvedFirstLevel": "Approved (1st Level)",
+      "approved": "Approved"
+    },
+    "cellDetails": {
+      "title": "Cell Details",
+      "dayInfo": "Day Information",
+      "date": "Date",
+      "type": "Type",
+      "weekend": "Weekend",
+      "plan": "Plan (DaySchedule)",
+      "status": "Status",
+      "reason": "Reason",
+      "application": "Application",
+      "applications": "Applications",
+      "viewApplication": "View Application",
+      "noData": "No data for this day"
     }
   }
 }

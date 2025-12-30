@@ -5,6 +5,7 @@ export type ManagedDepartment = {
   id: number;
   name: string;
   alias: string;
+  colorCode: string | null;
 };
 
 /**

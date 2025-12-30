@@ -57,7 +57,7 @@ export default async function TenantLayout({ children, params }: Props) {
               />
             </div>
           </header>
-          <main className="flex flex-1 flex-col gap-4 p-4 pt-0">
+          <main className="flex flex-1 flex-col gap-4 p-4 pt-0 overflow-x-hidden min-w-0">
             {children}
           </main>
         </SidebarInset>

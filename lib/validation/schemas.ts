@@ -142,6 +142,44 @@ export const applicationDecisionSchema = z.object({
   clientTimeZone: ianaTimezoneSchema,
 });
 
+// Planning schemas (UC-PLAN-01)
+export const getPlanningDataSchema = z
+  .object({
+    fromLocalISO: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, "Datum mora biti u formatu YYYY-MM-DD"),
+    toLocalISO: z
+      .string()
+      .regex(/^\d{4}-\d{2}-\d{2}$/, "Datum mora biti u formatu YYYY-MM-DD"),
+    clientTimeZone: ianaTimezoneSchema,
+    departmentId: z.coerce.number().positive().optional(),
+  })
+  .refine(
+    (data) => {
+      const from = new Date(data.fromLocalISO);
+      const to = new Date(data.toLocalISO);
+      return from <= to;
+    },
+    {
+      message: "Datum početka mora biti prije ili jednak datumu završetka",
+      path: ["toLocalISO"],
+    }
+  )
+  .refine(
+    (data) => {
+      const from = new Date(data.fromLocalISO);
+      const to = new Date(data.toLocalISO);
+      const diffMonths =
+        (to.getFullYear() - from.getFullYear()) * 12 +
+        (to.getMonth() - from.getMonth());
+      return diffMonths <= 12;
+    },
+    {
+      message: "Raspon datuma ne smije biti veći od 12 mjeseci",
+      path: ["toLocalISO"],
+    }
+  );
+
 // Helper to parse FormData with Zod schema
 export function parseFormData<T extends z.ZodType>(
   schema: T,

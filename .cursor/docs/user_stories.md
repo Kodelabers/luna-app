@@ -1176,7 +1176,7 @@ Sve vezano uz registraciju, prijavu i odjavu korisnika rješava Clerk i nije pot
 - **Ako nema ALLOCATION za godinu u kojoj period počinje:**
   - Sustav provjerava prethodnu godinu (`year - 1`)
   - Ako u prethodnoj godini postoje preostali dani (balance > 0) i traženi dani su manji ili jednaki preostalim danima, validacija prolazi
-- **Napomena:** U normalnom toku poslovanja, administrator napravi TRANSFER preostalih dana iz prethodne godine u novu prije planiranja nove godine
+- **Napomena:** Kad manager “otvori” novu godinu dodjelom dana, sustav automatski prenosi preostale dane iz prethodne godine u novu (vidi `/.cursor/docs/06_ledger_rules.md` i UC “Stanje dana i dodjele”).
 
 ---
 
