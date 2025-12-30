@@ -1173,6 +1173,11 @@ Sve vezano uz registraciju, prijavu i odjavu korisnika rješava Clerk i nije pot
 - Greška pokazuje koliko je dostupno i koliko se traži
 - Validacija se radi za godinu u kojoj POČINJE godišnji
 - Balance se računa iz ledger entries (SUM changeDays)
+- **Ako nema ALLOCATION za godinu u kojoj period počinje:**
+  - Sustav provjerava prethodnu godinu (`year - 1`)
+  - Ako u prethodnoj godini postoje preostali dani (balance > 0) i traženi dani su manji ili jednaki preostalim danima, validacija prolazi
+  - Prikazuje se upozorenje da će se koristiti preostali dani iz prethodne godine
+- **Napomena:** U normalnom toku poslovanja, administrator napravi TRANSFER preostalih dana iz prethodne godine u novu prije planiranja nove godine
 
 ---
 

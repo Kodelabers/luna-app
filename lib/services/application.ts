@@ -80,7 +80,7 @@ export async function decideAsDepartmentManager(
   if (decision === "REJECT") {
     // Comment is required for rejection
     if (!comment || comment.trim().length === 0) {
-      throw new ValidationError("Komentar je obavezan kod odbijanja zahtjeva");
+      throw new ValidationError({ comment: ["Komentar je obavezan kod odbijanja zahtjeva"] });
     }
 
     // Update status to REJECTED
@@ -245,7 +245,7 @@ export async function decideAsGeneralManager(
   if (decision === "REJECT") {
     // Comment is required for rejection
     if (!comment || comment.trim().length === 0) {
-      throw new ValidationError("Komentar je obavezan kod odbijanja zahtjeva");
+      throw new ValidationError({ comment: ["Komentar je obavezan kod odbijanja zahtjeva"] });
     }
 
     // Update status to REJECTED
@@ -575,7 +575,7 @@ export async function validateApplicationDraft(
     const startLocal = toZonedTime(startUTC, clientTimeZone);
     const year = startLocal.getFullYear();
 
-    // Get ledger balance
+    // Get ledger balance for current year
     const ledgerEntries = await db.unavailabilityLedgerEntry.findMany({
       where: {
         organisationId: ctx.organisationId,
@@ -588,21 +588,30 @@ export async function validateApplicationDraft(
     // Check if there's any allocation for this year
     const hasAllocation = ledgerEntries.some((entry) => entry.type === "ALLOCATION");
     
-    if (!hasAllocation) {
+    if (hasAllocation) {
+      // Use current year allocation
+      availableDays = ledgerEntries.reduce((sum, entry) => sum + entry.changeDays, 0);
+    } else {
+      // Check previous year for remaining days
+      const previousYear = year - 1;
+      const previousYearEntries = await db.unavailabilityLedgerEntry.findMany({
+        where: {
+          organisationId: ctx.organisationId,
+          employeeId: employee.id,
+          unavailabilityReasonId,
+          year: previousYear,
+        },
+      });
+
+      availableDays = previousYearEntries.reduce((sum, entry) => sum + entry.changeDays, 0);
+    }
+
+    // Check if enough days available
+    if (workdays > availableDays) {
       fieldErrors.endDate = fieldErrors.endDate || [];
       fieldErrors.endDate.push(
-        `Nemate alocirane dane za ${reason.name} u ${year}. godini. Molimo kontaktirajte administratora.`
+        `Nemate dovoljno dostupnih dana (${availableDays} dostupno, ${workdays} zatraženo)`
       );
-    } else {
-      availableDays = ledgerEntries.reduce((sum, entry) => sum + entry.changeDays, 0);
-
-      // Check if enough days available
-      if (workdays > availableDays) {
-        fieldErrors.endDate = fieldErrors.endDate || [];
-        fieldErrors.endDate.push(
-          `Nemate dovoljno dostupnih dana (${availableDays} dostupno, ${workdays} zatraženo)`
-        );
-      }
     }
   }
 
@@ -677,7 +686,7 @@ export async function saveDraftApplication(
   });
 
   if (!validation.isValid) {
-    throw new ValidationError("Validacija nije prošla", validation.fieldErrors);
+    throw new ValidationError(validation.fieldErrors || {}, "Validacija nije prošla");
   }
 
   // Parse and convert dates
@@ -816,7 +825,7 @@ export async function submitApplication(
   });
 
   if (!validation.isValid) {
-    throw new ValidationError("Validacija nije prošla", validation.fieldErrors);
+    throw new ValidationError(validation.fieldErrors || {}, "Validacija nije prošla");
   }
 
   // Check if approval is needed

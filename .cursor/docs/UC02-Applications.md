@@ -61,6 +61,8 @@ Zaposlenik odabire period i razlog nedostupnosti, dobiva real-time validaciju (r
      - ako prebrisani plan potječe iz reason-a s `hasPlanning=true`, vratiti warning o budućoj korekciji (US-EMP-012B, US-VAL-007)
    - Validacija dostupnih dana (US-VAL-003):
      - balance iz ledger-a (SUM `changeDays`) za godinu po pravilu iz `06_ledger_rules.md`
+     - ako nema ALLOCATION za godinu perioda, provjeriti prethodnu godinu (`year - 1`)
+     - ako u prethodnoj godini postoje preostali dani (balance > 0) i `workdays <= balance`, dopustiti kreiranje zahtjeva
      - ako `workdays > availableDays` → error (blokira submit i spremanje nacrta)
 4) Server vraća serializabilni “validation model” za UI.
 

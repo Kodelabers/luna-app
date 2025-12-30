@@ -207,13 +207,44 @@ export async function applyApprovalEffects(
     const startLocal = toZonedTime(startDate, clientTimeZone);
     const ledgerYear = startLocal.getFullYear();
 
+    // Check if allocation exists for ledgerYear
+    const currentYearAllocation = await db.unavailabilityLedgerEntry.findFirst({
+      where: {
+        organisationId: ctx.organisationId,
+        employeeId,
+        unavailabilityReasonId,
+        year: ledgerYear,
+        type: "ALLOCATION",
+      },
+    });
+
+    let usageYear = ledgerYear;
+    if (!currentYearAllocation) {
+      // Check previous year for remaining days
+      const previousYear = ledgerYear - 1;
+      const previousYearEntries = await db.unavailabilityLedgerEntry.findMany({
+        where: {
+          organisationId: ctx.organisationId,
+          employeeId,
+          unavailabilityReasonId,
+          year: previousYear,
+        },
+      });
+
+      const previousYearBalance = previousYearEntries.reduce((sum, entry) => sum + entry.changeDays, 0);
+
+      if (previousYearBalance > 0) {
+        usageYear = previousYear;
+      }
+    }
+
     // USAGE entry (negative)
     await db.unavailabilityLedgerEntry.create({
       data: {
         organisationId: ctx.organisationId,
         employeeId,
         unavailabilityReasonId,
-        year: ledgerYear,
+        year: usageYear,
         changeDays: -workdays,
         type: "USAGE",
         applicationId,
