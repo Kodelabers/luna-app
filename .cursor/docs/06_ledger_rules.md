@@ -2,6 +2,16 @@
 
 Ledger je jedini izvor istine za “alokacije, potrošnju, korekcije” po tipu nedostupnosti (reason) i godini.
 
+## User-facing terminologija (UI)
+
+Ovaj dokument opisuje **interni mehanizam**. U UI se ovo mora prikazivati kroz korisničke pojmove iz `/.cursor/docs/09_terminology_glossary.md`:
+
+- UI koristi: **odsutnost**, **vrsta odsutnosti**, **stanje dana**, **dodijeljeno/iskorišteno/na čekanju/preostalo**
+- UI ne koristi: *ledger, allocation/alokacija, usage, correction, transfer, knjiženje*
+- `UnavailabilityLedgerEntry` se u UI-u prikazuje kao:
+  - “Stanje dana” (agregat)
+  - (opc.) “Povijest promjena” gdje se tipovi mapiraju: `ALLOCATION=Dodjela`, `USAGE=Iskorištenje`, `TRANSFER=Prijenos`, `CORRECTION=Ispravak`
+
 ## 1) Konvencija
 - `changeDays`:
   - **pozitivno** = dodaje dane (ALLOCATION, TRANSFER, CORRECTION +)

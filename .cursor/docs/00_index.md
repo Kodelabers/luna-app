@@ -13,6 +13,7 @@ Ovaj folder (`.cursor/docs/`) je **operativna dokumentacija** za razvoj u Cursor
 - Sve tenant-scoped po `/:organisationAlias/*`
 
 ## Ključni dokumenti
+- **Terminologija (UI)**: `/.cursor/docs/09_terminology_glossary.md`
 - **Otvorena pitanja / odluke**: `/.cursor/docs/OPEN_QUESTIONS.md`
 - **Statusi i prijelazi**: `/.cursor/docs/01_domain_statuses.md`
 - **Mapping: koncept → Prisma**: `/.cursor/docs/02_data_model_mapping.md`

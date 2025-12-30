@@ -60,7 +60,7 @@ Sve vezano uz registraciju, prijavu i odjavu korisnika rješava Clerk i nije pot
 - Za svaki dan se vidi barem:
   - status dana (ako postoji plan)
   - oznaka vikend/praznik
-  - razlog nedostupnosti i boja (za legendu), ako postoji
+  - vrsta odsutnosti i boja (za legendu), ako postoji
 - Vikendi i praznici su vizualno razlučivi, ali **ne ulaze u workday/potrošnju** (to je dio workday/ledger pravila).
 
 **Napomena (implementacija):**
@@ -83,7 +83,7 @@ Sve vezano uz registraciju, prijavu i odjavu korisnika rješava Clerk i nije pot
 - Prikazuje se card s listom vlastitih **otvorenih** zahtjeva
 - **"Otvoreni"** = zahtjevi koji nisu finalizirani (npr. DRAFT, SUBMITTED, APPROVED_FIRST_LEVEL)
 - DRAFT zahtjevi su vidljivi **samo vlasniku** (nikome drugome)
-- Za svaki zahtjev prikazuje se: razdoblje, broj dana, status, tip nedostupnosti
+- Za svaki zahtjev prikazuje se: razdoblje, broj dana, status, vrsta odsutnosti
 - Sortiranje: newest-first (točan query detalj nije dio ovog dokumenta)
 
 **3.2 Widget "Za odobriti" — Department Manager:**
@@ -151,14 +151,14 @@ Sve vezano uz registraciju, prijavu i odjavu korisnika rješava Clerk i nije pot
 **Kako bih** znao koliko dana imam na raspolaganju
 
 **Kriteriji prihvaćanja:**
-- **Stanje se prikazuje PO tipu nedostupnosti (odvojeno za svaki tip)**
-- Za svaki tip nedostupnosti (npr. "Godišnji odmor", "Slobodni dani", "Edukacija") prikazuje se:
+- **Stanje se prikazuje PO vrsti odsutnosti (odvojeno za svaku vrstu)**
+- Za svaku vrstu odsutnosti (npr. "Godišnji odmor", "Slobodni dani", "Edukacija") prikazuje se:
   - Ukupan broj dodijeljenih dana za tekuću godinu
   - Broj iskorištenih dana
   - Broj dana na čekanju (SUBMITTED, APPROVED_FIRST_LEVEL)
   - Broj preostalih dana
-- Svaki tip nedostupnosti ima vlastitu vizualnu oznaku (npr. karticu s ikonom i bojom)
-- **Napomena:** Ne prikazuje se "ukupna" suma svih tipova, već svaki tip posebno
+- Svaka vrsta odsutnosti ima vlastitu vizualnu oznaku (npr. karticu s ikonom i bojom)
+- **Napomena:** Ne prikazuje se "ukupna" suma svih vrsta, već svaka vrsta posebno
 
 ---
 
@@ -168,12 +168,12 @@ Sve vezano uz registraciju, prijavu i odjavu korisnika rješava Clerk i nije pot
 **Kako bih** razumio koliko imam dana za svaku godinu
 
 **Kriteriji prihvaćanja:**
-- **Stanje se prikazuje PO tipu nedostupnosti (odvojeno za svaki tip)**
-- Za svaki tip nedostupnosti (npr. "Godišnji odmor", "Slobodni dani") prikazuje se tablica po godinama
-- Za svaku godinu i svaki tip prikazuje se: dodijeljeno, iskorišteno, na čekanju, preostalo
+- **Stanje se prikazuje PO vrsti odsutnosti (odvojeno za svaku vrstu)**
+- Za svaku vrstu odsutnosti (npr. "Godišnji odmor", "Slobodni dani") prikazuje se tablica po godinama
+- Za svaku godinu i svaku vrstu prikazuje se: dodijeljeno, iskorišteno, na čekanju, preostalo
 - Tablicu mogu otvoriti klikom na info ikonu kod kartice specifičnog tipa
 - Negativni preostali dani se vizualno ističu (npr. crvenom bojom)
-- **Napomena:** Svaki tip nedostupnosti ima vlastitu tablicu/sekciju, ne miješaju se zajedno
+- **Napomena:** Svaka vrsta odsutnosti ima vlastitu tablicu/sekciju, ne miješaju se zajedno
 
 ---
 
@@ -286,11 +286,11 @@ Sve vezano uz registraciju, prijavu i odjavu korisnika rješava Clerk i nije pot
 - Gumb je onemogućen ako zahtjev nije valjan
 - Ako postoji preklapanje s postojećim planom, prije slanja se prikazuje jasno upozorenje (moguća buduća korekcija i prepisivanje plana).
 - Nakon slanja:
-  - zahtjev dobiva status **SUBMITTED** (ili odmah postaje **APPROVED** za tipove koji se automatski odobravaju)
-  - zahtjev postaje vidljiv odgovornim odobravateljima (DM i/ili GM, ovisno o pravilima tipa nedostupnosti)
+  - zahtjev dobiva status **SUBMITTED** (ili odmah postaje **APPROVED** za vrste odsutnosti koje se automatski odobravaju)
+  - zahtjev postaje vidljiv odgovornim odobravateljima (DM i/ili GM, ovisno o pravilima vrste odsutnosti)
 - Kad zahtjev postane konačno odobren:
   - plan (DaySchedule) se ažurira za dane u periodu
-  - ako tip nedostupnosti troši dane, stanje dana se ažurira (ledger)
+  - ako vrsta odsutnosti prati stanje dana, stanje dana se ažurira
 - Prikazuje se potvrda uspješnog slanja
 
 ---
@@ -355,7 +355,7 @@ Sve vezano uz registraciju, prijavu i odjavu korisnika rješava Clerk i nije pot
   - Ako postoji povezani zahtjev (applicationId): upozorenje navodi da će se vratiti SVI preostali dani iz originalnog zahtjeva (od početka novog zahtjeva do kraja originalnog), ne samo preklopljeni dani
   - Za zahtjeve s needApproval=false: korekcija će se izvršiti odmah (automatski APPROVED)
   - Za zahtjeve s needApproval=true: korekcija će se izvršiti tek kada zahtjev pređe u APPROVED status
-- Pri odobrenju (APPROVED): sustav izvršava korekciju - vraća potrošene dane u alokaciju (CORRECTION ledger entry)
+- Pri odobrenju (APPROVED): sustav izvršava korekciju - vraća potrošene dane u stanje dana (internal: `CORRECTION` entry)
 - Pri odobrenju: ako postoji povezani zahtjev (applicationId u DaySchedule-u):
   - Vraćaju se SVI preostali dani iz originalnog zahtjeva (od datuma početka novog zahtjeva do datuma završetka originalnog zahtjeva)
   - Razlog: Novi zahtjev (npr. bolovanje) prekida realizaciju originalnog zahtjeva, često bez poznatog datuma završetka
@@ -451,19 +451,19 @@ Sve vezano uz registraciju, prijavu i odjavu korisnika rješava Clerk i nije pot
 - Ako postoji preklapanje sa DaySchedule-om gdje unavailability reason ima hasPlanning=true:
   - Prikazuje se upozorenje da će se izvršiti korekcija (vraćanje dana) i da će novi zahtjev pregaziti postojeći plan
   - Ako postoji povezani zahtjev (applicationId): upozorenje navodi da će se vratiti SVI preostali dani iz originalnog zahtjeva (od početka novog zahtjeva do kraja originalnog), ne samo preklopljeni dani
-  - Vidim detalje o preklapanju (koji dani, koji razlog nedostupnosti)
+  - Vidim detalje o preklapanju (koji dani, koja vrsta odsutnosti)
 - Mogu dodati vlastiti komentar (opcionalno)
 - Kliknem na "Odobri" za potvrdu
 - Ako zahtjev ne treba drugi nivo odobrenja: status postaje APPROVED (konačno)
 - Ako zahtjev treba drugi nivo odobrenja: status postaje APPROVED_FIRST_LEVEL
 - Kada status postane APPROVED:
-  - Dani se trajno oduzimaju od alokacije
+  - Dani se trajno oduzimaju od dodijeljenih dana (stanje dana)
   - Ako postoji preklapanje sa DaySchedule-om s hasPlanning=true: izvršava se korekcija (vraća dane, CORRECTION ledger entry)
   - Ako postoji povezani zahtjev (applicationId u DaySchedule-u):
     - Vraćaju se SVI preostali dani iz originalnog zahtjeva (od početka novog zahtjeva do kraja originalnog zahtjeva), ne samo preklopljeni dani
     - Brišu se SVI zapisi iz DaySchedule-a koji imaju applicationId = ID originalnog zahtjeva za dane od početka novog zahtjeva do kraja originalnog zahtjeva (jer su ti dani vraćeni da se mogu koristiti u novom zahtjevu)
     - U log originalnog zahtjeva dodaje se zapis da su preostali dani vraćeni
-  - Novi zahtjev pregazi postojeći plan u DaySchedule-u (ažurira se DaySchedule s novim razlogom nedostupnosti)
+  - Novi zahtjev pregazi postojeći plan u DaySchedule-u (ažurira se DaySchedule s novom vrstom odsutnosti)
   - DaySchedule zapisi se prepisuju za dane novog zahtjeva (novi unavailability reason zamjenjuje stari)
 - Prikazuje se potvrda uspješnog odobravanja
 
@@ -524,7 +524,7 @@ Sve vezano uz registraciju, prijavu i odjavu korisnika rješava Clerk i nije pot
 **Kriteriji prihvaćanja:**
 - Mogu eksportirati tablični prikaz planiranja u Excel i PDF
 - Mogu eksportirati listu zahtjeva u Excel, PDF, CSV
-- Mogu eksportirati pregled alokacija zaposlenika u Excel i PDF
+- Mogu eksportirati pregled dodjela i stanja dana zaposlenika u Excel i PDF
 - Mogu eksportirati statistiku odjela u PDF
 - Eksport sadrži: logo organizacije, datum kreiranja, ime korisnika koji je kreirao
 - PDF ima lijepo formatiranje s headerima i footerima
@@ -564,11 +564,11 @@ Sve vezano uz registraciju, prijavu i odjavu korisnika rješava Clerk i nije pot
 - Ako postoji preklapanje sa DaySchedule-om gdje unavailability reason ima hasPlanning=true:
   - Prikazuje se upozorenje da će se izvršiti korekcija (vraćanje dana) i da će novi zahtjev pregaziti postojeći plan
   - Ako postoji povezani zahtjev (applicationId): upozorenje navodi da će se vratiti SVI preostali dani iz originalnog zahtjeva (od početka novog zahtjeva do kraja originalnog), ne samo preklopljeni dani
-  - Vidim detalje o preklapanju (koji dani, koji razlog nedostupnosti)
+  - Vidim detalje o preklapanju (koji dani, koja vrsta odsutnosti)
 - Mogu dodati vlastiti komentar (opcionalno)
 - Kliknem na "Odobri" za potvrdu
 - Status zahtjeva postaje APPROVED (konačno)
-- Dani se trajno oduzimaju od alokacije
+- Dani se trajno oduzimaju od dodijeljenih dana (stanje dana)
 - Ako postoji preklapanje sa DaySchedule-om s hasPlanning=true: izvršava se korekcija (vraća dane, CORRECTION ledger entry)
 - Ako postoji povezani zahtjev (applicationId u DaySchedule-u):
   - Vraćaju se SVI preostali dani iz originalnog zahtjeva (od početka novog zahtjeva do kraja originalnog zahtjeva), ne samo preklopljeni dani
@@ -612,7 +612,7 @@ Sve vezano uz registraciju, prijavu i odjavu korisnika rješava Clerk i nije pot
 
 ### US-GM-005: Kreiranje vlastitih zahtjeva General Managera
 **Kao** General Manager  
-**Želim** kreirati vlastite zahtjeve za godišnji odmor i druge nedostupnosti  
+**Želim** kreirati vlastite zahtjeve za godišnji odmor i druge odsutnosti  
 **Kako bih** planirao svoj odmor
 
 **Kriteriji prihvaćanja:**
@@ -636,7 +636,7 @@ Sve vezano uz registraciju, prijavu i odjavu korisnika rješava Clerk i nije pot
 
 ---
 
-## 7. DEPARTMENT MANAGER / GENERAL MANAGER - UPRAVLJANJE ALOKACIJAMA
+## 7. DEPARTMENT MANAGER / GENERAL MANAGER - PLANIRANJE ODSUTNOSTI (STANJE DANA)
 
 ### US-MGR-001: Pregled stanja dana zaposlenika
 **Kao** Department Manager ili General Manager  
@@ -647,9 +647,9 @@ Sve vezano uz registraciju, prijavu i odjavu korisnika rješava Clerk i nije pot
 - Department Manager vidi samo zaposlenike svog odjela
 - General Manager vidi sve zaposlenike u organizaciji
 - Prikazuje se lista zaposlenika sa stanjem njihovih dana
-- **Stanje se prikazuje PO tipu nedostupnosti (odvojeno za svaki tip)**
-- Za svakog zaposlenika i svaki tip nedostupnosti (npr. "Godišnji odmor", "Slobodni dani", "Edukacija") vidim:
-  - Naziv tipa nedostupnosti
+- **Stanje se prikazuje PO vrsti odsutnosti (odvojeno za svaku vrstu)**
+- Za svakog zaposlenika i svaku vrstu odsutnosti (npr. "Godišnji odmor", "Slobodni dani", "Edukacija") vidim:
+  - Naziv vrste odsutnosti
   - Dodijeljeno dana (za tekuću godinu)
   - Iskorišteno dana
   - Na čekanju dana
@@ -657,7 +657,7 @@ Sve vezano uz registraciju, prijavu i odjavu korisnika rješava Clerk i nije pot
 - Informacije su vizualno prikazane (npr. u chipovima gdje svaki tip ima svoju oznaku)
 - Za svakog zaposlenika i svaki tip prikazuje se tablica po godinama
 - Mogu kliknuti "Uredi dodjele" za promjenu dodjela (po tipu)
-- **Napomena:** Ne prikazuje se "ukupna" suma svih tipova, već svaki tip nedostupnosti ima vlastite brojke
+- **Napomena:** Ne prikazuje se "ukupna" suma svih tipova, već svaka vrsta odsutnosti ima vlastite brojke
 
 ---
 
@@ -668,14 +668,14 @@ Sve vezano uz registraciju, prijavu i odjavu korisnika rješava Clerk i nije pot
 
 **Kriteriji prihvaćanja:**
 - Otvaram dialog za upravljanje danima
-- **Odabirem tip nedostupnosti** za koji dodjelјujem dane (npr. "Godišnji odmor", "Slobodni dani", "Edukacija")
+- **Odabirem vrstu odsutnosti** za koju dodjelјujem dane (npr. "Godišnji odmor", "Slobodni dani", "Edukacija")
 - Prikazuje se trenutno stanje za odabrani tip
 - Vidim gumb "Dodaj novu godinu" za odabrani tip
 - Odabirem godinu
 - Unosim broj dana (1-50)
-- Spremam dodjelu (kreira se ALLOCATION evidencija promjene za specifični tip)
+- Spremam dodjelu (internal: kreira se `ALLOCATION` evidencija promjene za specifičnu vrstu)
 - Nova godina se pojavljuje u tablici za taj tip
-- **Napomena:** Svaki tip nedostupnosti ima vlastite evidencije promjena i stanje
+- **Napomena:** Svaka vrsta odsutnosti ima vlastite evidencije promjena i stanje
 
 ---
 
@@ -685,14 +685,14 @@ Sve vezano uz registraciju, prijavu i odjavu korisnika rješava Clerk i nije pot
 **Kako bi** ispravio grešku ili dodao dodatne dane
 
 **Kriteriji prihvaćanja:**
-- **Odabirem tip nedostupnosti** za koji mijenjam dodjelu
+- **Odabirem vrstu odsutnosti** za koju mijenjam dodjelu
 - Kliknem na "Uredi" kod godine u tablici za odabrani tip
 - Mijenjam broj dana
 - Ne mogu smanjiti ispod već iskorištenih dana (za taj specifični tip)
 - Spremam promjene (kreira se CORRECTION evidencija promjene za specifični tip)
 - Automatski se preračunavaju preostali dani za taj tip
 - Prikazuje se upozorenje ako pokušavam smanjiti ispod iskorištenih
-- **Napomena:** Promjena se odnosi samo na odabrani tip nedostupnosti, ne utječe na druge tipove
+- **Napomena:** Promjena se odnosi samo na odabranu vrstu odsutnosti, ne utječe na druge vrste
 
 ---
 
@@ -702,14 +702,14 @@ Sve vezano uz registraciju, prijavu i odjavu korisnika rješava Clerk i nije pot
 **Kako bih** imao uvid u sve promjene i korekcije
 
 **Kriteriji prihvaćanja:**
-- **Odabirem tip nedostupnosti** za koji želim vidjeti povijest
+- **Odabirem vrstu odsutnosti** za koju želim vidjeti povijest
 - Prikazuje se tablica s poviješću svih evidencija promjena po godinama za odabrani tip
 - Za svaku godinu i odabrani tip vidim: početnu dodjelu, transfer, korekcije, potrošnju, preostalo
 - Svaka evidencija ima timestamp i korisnika koji ju je kreirao
 - Mogu filtrirati po godini i tipu evidencije (ALLOCATION, USAGE, TRANSFER, CORRECTION)
 - Vidim poveznicu na zahtjev (applicationId) ako je evidencija nastala iz zahtjeva
 - Mogu eksportirati povijest u Excel/PDF (za odabrani tip)
-- **Napomena:** Povijest se prikazuje odvojeno za svaki tip nedostupnosti, ne miješa se
+- **Napomena:** Povijest se prikazuje odvojeno za svaku vrstu odsutnosti, ne miješa se
 
 ---
 
@@ -857,7 +857,7 @@ Sve vezano uz registraciju, prijavu i odjavu korisnika rješava Clerk i nije pot
 - Odabirem odjel (opcionalno)
 - Unosim broj dana godišnjeg odmora (default: 20)
 - Spremam zaposlenika
-- Automatski se kreira alokacija za tekuću godinu
+- Automatski se kreira početna dodjela dana za tekuću godinu (internal: `ALLOCATION` entry)
 - Status je automatski "Aktivan"
 
 ---
@@ -1104,7 +1104,7 @@ Sve vezano uz registraciju, prijavu i odjavu korisnika rješava Clerk i nije pot
   - Zahtjev odobren (APPROVED)
   - Zahtjev odbijen (REJECTED)
   - Zahtjev odobren na prvom nivou (APPROVED_FIRST_LEVEL) - čeka drugi nivo
-  - Alokacija dana promijenjena
+  - Dodjela dana promijenjena
 - **Department Manager prima notifikacije za:**
   - Novi zahtjev na čekanju (SUBMITTED)
 - **General Manager prima notifikacije za:**

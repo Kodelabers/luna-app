@@ -1,4 +1,4 @@
-# Application flow (zahtjevi) — create/submit/approve/reject/cancel
+# Application flow (zahtjevi za odsutnost) — create/submit/approve/reject/cancel
 
 Ovaj dokument opisuje operativni flow za `Application` u skladu s:
 - `spec.md` (layering, multitenancy, timezone)
@@ -9,7 +9,7 @@ Ovaj dokument opisuje operativni flow za `Application` u skladu s:
 ### Ulaz (UI)
 - `employeeId` (implicitno iz ctx user→employee)
 - `departmentId` (iz employee profila)
-- `unavailabilityReasonId`
+- `unavailabilityReasonId` (UI: **vrsta odsutnosti**)
 - `startDate`, `endDate` (UTC; semantika “open-ended” TBD u `OPEN_QUESTIONS.md`)
 - `description` (opc.)
 
@@ -59,8 +59,8 @@ Inače:
 ### Efekt kod finalnog APPROVED
 Kad zahtjev dođe u `APPROVED`:
 - generirati/upsertati `DaySchedule` za dane u razdoblju (prema `05_dayschedule_rules.md`)
-- ako `UnavailabilityReason.hasPlanning = true`:
-  - napraviti `UnavailabilityLedgerEntry` tipa `USAGE` (negativno)
+- ako `UnavailabilityReason.hasPlanning = true` (UI: vrsta odsutnosti “prati stanje dana”):
+  - sustav ažurira **stanje dana** (internal: kreira `UnavailabilityLedgerEntry` tipa `USAGE` s negativnim `changeDays`)
   - napraviti korekcije ako se preklapa s postojećim planom nastalim iz reason-a s `hasPlanning=true` (pravila u `06_ledger_rules.md`)
 
 ## 6) Odobravanje — 2. razina (GM)
