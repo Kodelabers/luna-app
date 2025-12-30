@@ -1,6 +1,6 @@
-# Implementation Status - UC02 Applications
+# Implementation Status
 
-## Implementirano (2024-12-23)
+## UC02 Applications - Implementirano (2024-12-23)
 
 ### ✅ UC-APP-01 — Employee: Kreiranje zahtjeva (odabir perioda + real-time validacija)
 - **Service**: `validateApplicationDraft()` u `lib/services/application.ts`
@@ -159,4 +159,131 @@ Korisnik može testirati:
 3. Implementacija korekcija (UC-APP-07)
 4. Dodavanje paginacije za listu zahtjeva
 5. Dodavanje export funkcionalnosti (PDF, Excel)
+
+---
+
+## UC03 Planiranje Odsutnosti - Implementirano (2024-12-23)
+
+### ✅ UC-PLAN-01 — Prikaz planiranja odsutnosti (gantt/tablica: plan + zahtjevi)
+- **Service**: `getPlanningData()` u `lib/services/planning.ts`
+- **Action**: `getPlanningDataAction()` u `lib/actions/planning.ts`
+- **Ruta**: `/[organisationAlias]/planning/page.tsx`
+- **Funkcionalnost**:
+  - Tablični (gantt-like) prikaz zaposlenika i dana
+  - Plan (DaySchedule) kao pozadina s bojama prema `unavailabilityReason.colorCode`
+  - Zahtjevi (Application) kao overlay s border stilovima
+  - Timezone-aware konverzije (UTC ↔ client TZ)
+  - Manager scope (GM: svi odjeli, DM: samo managed departments)
+  - Multi-select filtriranje po odjelima
+  - Date range picker s preset opcijama (1/3/6/12 mjeseci)
+  - Default raspon: 1 mjesec od danas prema budućnosti
+  - Horizontalni scroll za široke tablice
+  - Sticky prva kolona (zaposlenici)
+  - Klik na ćeliju otvara read-only detalje
+
+### ✅ UI Komponente
+- **PlanningFilters** (`planning-filters.tsx`):
+  - Date range picker (Calendar + Popover)
+  - Preset buttons (1, 3, 6, 12 mjeseci)
+  - Multi-select za odjele (Popover + Checkbox)
+  - "Select all" / "Deselect all" funkcionalnost
+  - URL query parametri za state management
+  
+- **PlanningTable** (`planning-table.tsx`):
+  - Split layout (fiksna lijeva kolona + scrollable desna strana)
+  - Gantt-like prikaz s redcima (zaposlenici) i stupcima (dani)
+  - DaySchedule pozadina s zaobljenim rubovima za consecutive dane
+  - Application overlay s border stilovima (start/middle/end/single)
+  - Vikendi i praznici vizualno razlučivi
+  - Legenda s unique unavailability reasons
+  - Header prikazuje dan i mjesec (dd.MM.)
+  
+- **PlanningCellDialog** (`planning-cell-dialog.tsx`):
+  - Read-only prikaz detalja ćelije
+  - Prikaz DaySchedule informacija
+  - Prikaz Application informacija
+  - Linkovi na detalje zahtjeva
+
+### ✅ Validacije (Zod schemas)
+- `getPlanningDataSchema` u `lib/validation/schemas.ts`:
+  - Validacija datuma (YYYY-MM-DD format)
+  - Validacija timezone (IANA format)
+  - Validacija raspona (max 12 mjeseci)
+  - Validacija `departmentIds` array
+
+### ✅ i18n prijevodi
+- Hrvatski (hr.json)
+- Engleski (en.json)
+- Svi ključevi pod `planning.*`:
+  - title, description, filters, planningTable
+  - presets (1month, 3months, 6months, 12months)
+  - allDepartments, noDepartments, selectedDepartments
+  - selectDepartments, selectAll, deselectAll
+  - legend items (available, notAvailable, weekend, holiday)
+
+### ✅ Navigacija
+- Dodano u sidebar: "Planning" link s CalendarDays ikonom
+- Vidljivo samo za managere (DM/GM)
+
+### ✅ Boje i stilizacija (konzistentno s "Moj kalendar")
+- **DaySchedule (NOT_AVAILABLE)**: 
+  - Background color: `unavailabilityReason.colorCode` (puna boja)
+  - Tekst: bijeli
+  - Border radius: zaobljeni rubovi za consecutive dane (start/middle/end/single)
+- **DaySchedule (AVAILABLE)**: `bg-background`
+- **DaySchedule (SELECTED_FOR_DUTY)**: `bg-blue-100 dark:bg-blue-950`
+- **Applications (overlay)**:
+  - Border stilovi s `unavailabilityReason.colorCode`
+  - Border debljina: 2px solid
+  - Border radius: zaobljeni rubovi za consecutive dane
+  - Svi statusi koriste istu boju (ne razlikuje se po statusu)
+- **Vikendi**: `bg-muted` s `text-muted-foreground`
+- **Praznici**: `bg-red-100 dark:bg-red-950` s `text-red-900 dark:text-red-100`
+
+### ✅ Funkcionalnosti
+- Multi-select filtriranje po odjelima (više odjela odjednom)
+- Date range preseti (1, 3, 6, 12 mjeseci) računaju se od danas
+- Ručni odabir datuma (Od/Do)
+- Horizontalni scroll za široke tablice
+- Sticky prva kolona za zaposlenike
+- Read-only detalji na klik ćelije
+- Legenda s unique unavailability reasons
+
+### ✅ RBAC i sigurnost
+- Provjera manager pristupa (DM/GM)
+- GM vidi sve odjele u organizaciji
+- DM vidi samo managed departments
+- Validacija departmentIds prije dohvata podataka
+- Tenant-scoped svi upiti
+
+### ✅ Timezone handling
+- Sve datume u bazi su UTC
+- UI prikazuje u `clientTimeZone` (IANA format)
+- Konverzije kroz `date-fns-tz` (`fromZonedTime`, `toZonedTime`)
+- Date range se računa u client TZ, konvertira u UTC za DB upite
+
+## Što nije implementirano (TBD)
+
+### ❌ Oznaka "na bolovanju" uz zaposlenika
+- TBD prema OPEN_QUESTIONS.md (OQ-004)
+
+## Napomene
+
+1. **Multi-select**: Implementirano kao Popover s Checkbox-ovima umjesto običnog Select-a
+2. **URL state**: Department filter koristi comma-separated vrijednosti (`?department=1,2,3`)
+3. **Default range**: 1 mjesec od danas (ne od početka mjeseca)
+4. **Horizontal scroll**: Tablica ima vlastiti scroll, ne uzrokuje globalni scrollbar
+5. **Layout**: Split layout s fiksnom lijevom kolonom i scrollable desnom stranom
+
+## Testiranje
+
+Korisnik može testirati:
+1. Pristup stranici kao DM/GM
+2. Filtriranje po odjelima (multi-select)
+3. Odabir date range (preseti i ručni)
+4. Horizontalni scroll za velike raspone
+5. Klik na ćeliju za detalje
+6. Prikaz plana (DaySchedule) kao pozadine
+7. Prikaz zahtjeva (Application) kao overlay-a
+8. Legenda s bojama
 

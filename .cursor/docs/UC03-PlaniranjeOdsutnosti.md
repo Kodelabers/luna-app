@@ -35,7 +35,7 @@ DM/GM vidi tablični (gantt-like) prikaz zaposlenika i dana za odabrani raspon:
 - `fromLocalISO: string` (YYYY-MM-DD)
 - `toLocalISO: string` (YYYY-MM-DD)
 - `clientTimeZone: string` (IANA tz, npr. `Europe/Zagreb`)
-- (opc.) `departmentId?: number`
+- (opc.) `departmentIds?: number[]` - Array odjela za filtriranje (ako prazan/undefined, prikazuje sve dostupne odjele)
 
 ### Preduvjeti
 - Tenant ctx: `resolveTenantContext(organisationAlias)`
@@ -44,8 +44,8 @@ DM/GM vidi tablični (gantt-like) prikaz zaposlenika i dana za odabrani raspon:
 
 ### Glavni tok (tz-aware)
 1) Odredi scope odjela:
-   - GM: svi odjeli u org-u ili odabrani `departmentId`
-   - DM: samo `managedDepartmentIds` ili odabrani `departmentId` unutar te liste
+   - GM: svi odjeli u org-u ili odabrani `departmentIds` (multi-select)
+   - DM: samo `managedDepartmentIds` ili odabrani `departmentIds` unutar te liste (multi-select)
 2) Iz `fromLocalISO/toLocalISO` + `clientTimeZone` izračunati UTC granice raspona (vidi `07_timezones_dates.md`).
 3) Dohvatiti zaposlenike u scope-u + njihove zapise za prikaz (tenant-scoped, `active=true`).
 4) Dohvatiti `DaySchedule` za te zaposlenike u rasponu (tenant-scoped).
@@ -81,6 +81,14 @@ DM/GM vidi tablični (gantt-like) prikaz zaposlenika i dana za odabrani raspon:
   - Svaki razlog se prikazuje samo jednom u legendi s njegovom bojom i imenom (npr. "plavo - godišnji odmor", "crveno - bolovanje").
 
 ### Greške
-- 403: korisnik nema manager pristup ili je `departmentId` izvan scope-a
+- 403: korisnik nema manager pristup ili je `departmentIds` izvan scope-a
 - 422: nevalidan raspon datuma/timezone ili raspon prevelik
+
+### UI Funkcionalnosti
+- **Multi-select filtriranje po odjelima**: Korisnik može odabrati više odjela odjednom
+- **Date range preseti**: Brzi odabir (1, 3, 6, 12 mjeseci) računaju se od danas
+- **Ručni odabir datuma**: Calendar picker za custom raspon
+- **Horizontalni scroll**: Tablica ima vlastiti scroll za široke raspone
+- **Sticky prva kolona**: Ime zaposlenika ostaje vidljivo pri scrollanju
+- **Header format**: Prikazuje dan i mjesec (dd.MM.) za lakšu orijentaciju
 
