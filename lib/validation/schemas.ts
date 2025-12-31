@@ -142,6 +142,26 @@ export const applicationDecisionSchema = z.object({
   clientTimeZone: ianaTimezoneSchema,
 });
 
+// Days balance schemas (UC-DAYS-04, UC-DAYS-05)
+export const allocateDaysSchema = z.object({
+  employeeId: z.coerce.number().positive("Zaposlenik je obavezan"),
+  unavailabilityReasonId: z.coerce.number().positive("Vrsta odsutnosti je obavezna"),
+  year: yearSchema,
+  days: z.coerce.number().int("Broj dana mora biti cijeli broj").min(1, "Broj dana mora biti najmanje 1").max(50, "Broj dana može biti najviše 50"),
+  clientTimeZone: ianaTimezoneSchema,
+});
+
+export const updateAllocationSchema = z.object({
+  employeeId: z.coerce.number().positive("Zaposlenik je obavezan"),
+  unavailabilityReasonId: z.coerce.number().positive("Vrsta odsutnosti je obavezna"),
+  year: yearSchema,
+  adjustmentType: z.enum(["INCREASE", "DECREASE"], {
+    required_error: "Odaberite da li želite povećati ili smanjiti dodjelu",
+  }),
+  adjustmentDays: z.coerce.number().int("Broj dana mora biti cijeli broj").min(1, "Broj dana mora biti najmanje 1").max(50, "Broj dana može biti najviše 50"),
+  clientTimeZone: ianaTimezoneSchema,
+});
+
 // Planning schemas (UC-PLAN-01)
 export const getPlanningDataSchema = z
   .object({

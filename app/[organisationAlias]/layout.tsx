@@ -1,9 +1,9 @@
-import { resolveTenantContext, isAdmin } from "@/lib/tenant/resolveTenantContext";
+import { resolveTenantContext, isAdmin, getManagerStatus } from "@/lib/tenant/resolveTenantContext";
 import { notFound } from "next/navigation";
 import { NotFoundError, ForbiddenError } from "@/lib/errors";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { getManagedDepartments } from "@/lib/services/sidebar";
+import { getManagedDepartments, getPlanningAbsenceReasons } from "@/lib/services/sidebar";
 import { AppSidebar } from "@/components/sidebar/app-sidebar";
 import { DynamicBreadcrumb } from "@/components/dynamic-breadcrumb";
 import { Separator } from "@/components/ui/separator";
@@ -25,6 +25,13 @@ export default async function TenantLayout({ children, params }: Props) {
     const ctx = await resolveTenantContext(organisationAlias);
     const userIsAdmin = isAdmin(ctx);
     const managedDepartments = await getManagedDepartments(ctx);
+    const managerStatus = await getManagerStatus(ctx);
+    
+    // Get planning absence reasons for managers
+    const planningAbsenceReasons = 
+      (managerStatus.isGeneralManager || managerStatus.isDepartmentManager)
+        ? await getPlanningAbsenceReasons(ctx)
+        : [];
 
     const userName = `${ctx.user.firstName} ${ctx.user.lastName}`.trim();
 
@@ -42,6 +49,7 @@ export default async function TenantLayout({ children, params }: Props) {
           organisationAlias={organisationAlias}
           isAdmin={userIsAdmin}
           managedDepartments={managedDepartments}
+          planningAbsenceReasons={planningAbsenceReasons}
         />
         <SidebarInset>
           <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">

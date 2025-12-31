@@ -36,10 +36,12 @@
     "members": "Members",
     "unavailabilityReasons": "Absence Types",
     "holidays": "Holidays",
+    "planningAbsence": "Planning Absence",
     "management": "Management",
     "overview": "Overview",
     "applications": "Applications",
-    "planning": "Planning"
+    "planning": "Planning",
+    "profile": "My Profile"
   },
   "roles": {
     "administrator": "Administrator",
@@ -440,6 +442,83 @@
       "viewApplication": "View Application",
       "noData": "No data for this day"
     }
+  },
+  "profile": {
+    "title": "My Profile",
+    "description": "View your own days balance"
+  },
+  "daysBalance": {
+    "title": "Days Balance",
+    "description": "View days balance by absence types",
+    "byYearTitle": "Days Balance by Year",
+    "byYearDescription": "Detailed view of days balance by year",
+    "managerTitle": "Planning Absence",
+    "managerDescription": "View and manage employee days balance by absence types",
+    "allocated": "Allocated",
+    "used": "Used",
+    "pending": "Pending",
+    "remaining": "Remaining",
+    "year": "Year",
+    "noReasons": "No absence types with planning",
+    "noData": "No data",
+    "noEmployees": "No employees",
+    "employee": "Employee",
+    "department": "Department",
+    "reason": "Absence Type",
+    "actions": "Actions",
+    "employeesBalance": "Employee Days Balance",
+    "allocate": "Allocate",
+    "update": "Update",
+    "history": "History",
+    "filters": "Filters",
+    "allDepartments": "All departments",
+    "noDepartments": "No departments",
+    "selectedDepartments": "{count} departments",
+    "selectDepartments": "Select departments",
+    "selectAll": "Select all",
+    "deselectAll": "Deselect all",
+    "addNewYear": "Planning",
+    "cannotOpenFutureYear": "Cannot open year in advance (maximum {maxYear})",
+    "activeYear": "Active Year",
+    "notPlanned": "not planned"
+  },
+  "allocateDays": {
+    "title": "Allocate Days",
+    "description": "Allocate number of days to employee for selected year and absence type",
+    "year": "Year",
+    "days": "Number of Days",
+    "submit": "Allocate",
+    "openYearMessage": "Opening year {year} (next after {openYear})",
+    "transferMessage": "Year {openYear} will be closed. Remaining days ({balance}) will be automatically transferred to the new year {newYear}.",
+    "selectYear": "Select year",
+    "maxYearExceeded": "Cannot open year {year}. Maximum allowed year is {maxYear}.",
+    "yearAlreadyOpen": "Year {year} is already open. Use update instead of new allocation.",
+    "openingNewYear": "Opening new year {year}"
+  },
+  "updateAllocation": {
+    "title": "Update Allocation",
+    "description": "Update allocated number of days. Currently used: {used} days",
+    "year": "Year",
+    "adjustmentType": "Action",
+    "adjustmentDays": "Number of Days",
+    "selectAdjustmentType": "Select action",
+    "increase": "Increase",
+    "decrease": "Decrease",
+    "submit": "Update",
+    "openYearOnly": "Update is only possible for the open year {openYear}",
+    "editingYear": "Editing allocation for year {openYear}",
+    "currentAllocation": "Current allocation: {allocated} days, used: {used} days"
+  },
+  "ledgerHistory": {
+    "title": "Change History",
+    "description": "History of all days balance changes",
+    "noEntries": "No entries in history",
+    "date": "Date",
+    "year": "Year",
+    "type": "Type",
+    "changeDays": "Change Days",
+    "note": "Note",
+    "createdBy": "Created By"
   }
 }
 

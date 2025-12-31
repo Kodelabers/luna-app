@@ -8,6 +8,12 @@ export type ManagedDepartment = {
   colorCode: string | null;
 };
 
+export type PlanningAbsenceReason = {
+  id: number;
+  name: string;
+  colorCode: string | null;
+};
+
 /**
  * Get departments that the current user can manage
  * Returns departments where user is either:
@@ -82,6 +88,29 @@ export async function getManagedDepartments(
       id: true,
       name: true,
       alias: true,
+      colorCode: true,
+    },
+    orderBy: {
+      name: "asc",
+    },
+  });
+}
+
+/**
+ * Get unavailability reasons with hasPlanning=true for sidebar navigation
+ */
+export async function getPlanningAbsenceReasons(
+  ctx: TenantContext
+): Promise<PlanningAbsenceReason[]> {
+  return db.unavailabilityReason.findMany({
+    where: {
+      organisationId: ctx.organisationId,
+      active: true,
+      hasPlanning: true,
+    },
+    select: {
+      id: true,
+      name: true,
       colorCode: true,
     },
     orderBy: {

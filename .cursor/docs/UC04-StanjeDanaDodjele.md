@@ -18,7 +18,7 @@ Svi use caseovi moraju poštovati `spec.md` (SSoT Prisma schema, multitenancy, S
 ## UC-DAYS-01 — Employee: Pregled vlastitog stanja dana (po vrsti odsutnosti)
 
 ### Cilj
-Zaposlenik vidi svoje stanje dana, **odvojeno po vrsti odsutnosti** (npr. godišnji, slobodni dani), za tekuću godinu:
+Zaposlenik vidi svoje stanje dana, **odvojeno po vrsti odsutnosti** (npr. godišnji, slobodni dani), za **otvorenu (aktivnu) godinu** (`openYear`):
 - dodijeljeno, iskorišteno, na čekanju, preostalo
 
 ### Akteri
@@ -41,6 +41,15 @@ Zaposlenik vidi svoje stanje dana, **odvojeno po vrsti odsutnosti** (npr. godiš
 ### Pravila
 - Prikaz je **po vrsti odsutnosti**, bez “ukupnog zbroja” svih vrsta.
 
+### Globalno pravilo prikaza godine (UI: “Stanje dana”)
+- Standardni prikazi “Stanje dana” (dodijeljeno/iskorišteno/na čekanju/preostalo) se po defaultu računaju i prikazuju za **otvorenu (aktivnu) godinu**:
+  - `openYear` = najnovija godina za koju postoji barem jedan `ALLOCATION` entry za kombinaciju `employeeId + unavailabilityReasonId`.
+  - `openYear` je fokus za “Planiranje” i upravljanje stanjem dana; ostale godine se u UI-u tipično ne prikazuju.
+- “Trenutna godina” (`currentYear`, po klijentskoj vremenskoj zoni) koristi se za UX ograničenja (npr. max `currentYear + 1` kod otvaranja godine), ali **nije** default godina za prikaz stanja.
+- Iznimke gdje UI prikazuje druge godine:
+  - UC-DAYS-02 (pregled po godinama)
+  - UC-DAYS-06 (povijest promjena)
+
 ### Greške
 - 403: user nije vezan na Employee u org-u
 
@@ -57,6 +66,9 @@ Zaposlenik može otvoriti detaljniji prikaz stanja dana po godinama za odabranu 
 ### Glavni tok
 1) UI odabere vrstu odsutnosti.
 2) Service vraća tablicu po godinama: dodijeljeno/iskorišteno/na čekanju/preostalo.
+
+### Napomena
+- Ovo je “historijski/by-year” prikaz. Standardni (default) fokus u aplikaciji je `openYear`, ali ovaj ekran može prikazivati i druge godine.
 
 ---
 
@@ -75,19 +87,22 @@ DM/GM vidi stanje dana zaposlenika u svom scope-u (DM: samo svoj odjel, GM: cije
 
 ### Glavni tok
 1) Odrediti scope zaposlenika (DM: department, GM: svi).
-2) Za svakog zaposlenika vratiti stanje dana po vrsti odsutnosti za tekuću godinu + opcionalno tablicu po godinama (ili link na detalje).
+2) Za svakog zaposlenika vratiti stanje dana po vrsti odsutnosti za **otvorenu (aktivnu) godinu** (`openYear`) + opcionalno tablicu po godinama (ili link na detalje).
 
 ---
 
 ## UC-DAYS-04 — Manager: Dodjela dana za novu godinu (po vrsti odsutnosti)
 
 ### Cilj
-DM/GM dodjeljuje broj dana zaposleniku za odabranu godinu i vrstu odsutnosti.
+DM/GM dodjeljuje broj dana zaposleniku za vrstu odsutnosti i time “otvara” godinu za planiranje.
+
+**Definicija (UI/UX):**
+- **Otvorena (aktivna) godina** = godina za koju postoji dodjela (internal: postoji barem jedan `ALLOCATION` entry) za kombinaciju `employeeId + unavailabilityReasonId`.
+- U pravilu postoji samo jedna otvorena godina po vrsti odsutnosti i zaposleniku, i to je najnovija (zadnja).
 
 ### Input (Server Action)
 - `employeeId: number`
 - `unavailabilityReasonId: number` (UI: vrsta odsutnosti)
-- `year: number`
 - `days: number` (1–50)
 
 ### Preduvjeti
@@ -95,17 +110,26 @@ DM/GM dodjeljuje broj dana zaposleniku za odabranu godinu i vrstu odsutnosti.
 - RBAC: manager smije mijenjati samo zaposlenike u svom scope-u
 
 ### Glavni tok
-1) Validirati input (year, days).
-2) Upisati internal evidenciju dodjele (ledger entry tip `ALLOCATION`) za zaposlenika/vrsu/godinu.
-3) Ako u prethodnoj godini postoji preostalo stanje dana za istu vrstu odsutnosti, izvršiti automatski prijenos:
+1) Validirati input (days).
+2) Odrediti ciljnu godinu prema UX pravilima (vidi “Pravila”).
+3) Upisati internal evidenciju dodjele (ledger entry tip `ALLOCATION`) za zaposlenika/vrsu/određenu godinu.
+4) Ako u prethodnoj (trenutno otvorenoj) godini postoji preostalo stanje dana za istu vrstu odsutnosti, izvršiti automatski prijenos:
    - u prethodnoj godini dodati `TRANSFER` entry s negativnim `changeDays` i `note="prijenos u iduću godinu"` (zatvara godinu na 0)
    - u novoj godini dodati `CORRECTION` entry s pozitivnim `changeDays` i `note="prijenos iz prethodne godine"` (dodaje prenesene dane na novu godinu)
-4) Vratiti novo stanje dana.
+5) Vratiti novo stanje dana.
 
 ### Pravila
 - UI terminologija: “dodjela”, “stanje dana”; bez “alokacija/ledger” riječi.
 - “Otvaranje godine” mora biti idempotentno: ako je prijenos već napravljen, ne smije se duplicirati.
 - Detaljna pravila knjiženja i `note` vrijednosti su u `/.cursor/docs/06_ledger_rules.md` (sekcija “Otvaranje nove godine…”).
+- **UX pravilo odabira godine (bez ručnog unosa godine u dijalogu):**
+  - **Ako postoji otvorena godina** za `employeeId + unavailabilityReasonId`:
+    - “Planiranje” otvara **samo** `openYear + 1`.
+    - Maksimalno se može otvoriti **najviše** `currentYear + 1` (gdje je `currentYear` određen po pravilima vremenske zone, kao i drugdje u aplikaciji).
+    - Pri otvaranju `openYear + 1` sustav automatski radi prijenos iz `openYear` (ako postoji preostalo stanje > 0), prema `06_ledger_rules.md` sekciji 8.
+  - **Ako ne postoji otvorena godina** (npr. novi zaposlenik / još nema plana):
+    - Pri kreiranju prvog plana manager **bira početnu godinu** iz raspona: `currentYear - 1`, `currentYear`, `currentYear + 1`.
+    - Nakon što se prvi plan kreira, nadalje vrijedi pravilo “samo `openYear + 1`” (nema više biranja godine).
 
 ---
 
@@ -121,6 +145,10 @@ DM/GM mijenja dodijeljeni broj dana za postojeću godinu (ispravak/korekcija).
 1) Izračunati trenutno iskorišteno za tu godinu i vrstu.
 2) Ako bi `newDays` palo ispod već iskorištenog → blokirati (poruka).
 3) Upisati internal korekciju (ledger entry tip `CORRECTION`) i vratiti stanje.
+
+### Pravila (UX)
+- Izmjena dodjele je moguća **samo za otvorenu (aktivnu) godinu** za tu vrstu odsutnosti.
+- Za zatvorene godine (povijest) UI ne nudi akciju izmjene.
 
 ---
 

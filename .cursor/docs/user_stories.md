@@ -670,8 +670,14 @@ Sve vezano uz registraciju, prijavu i odjavu korisnika rješava Clerk i nije pot
 - Otvaram dialog za upravljanje danima
 - **Odabirem vrstu odsutnosti** za koju dodjelјujem dane (npr. "Godišnji odmor", "Slobodni dani", "Edukacija")
 - Prikazuje se trenutno stanje za odabrani tip
-- Vidim gumb "Dodaj novu godinu" za odabrani tip
-- Odabirem godinu
+- Vidim gumb "Planiranje" za odabrani tip
+- **Ako zaposlenik već ima otvorenu (aktivnu) godinu za taj tip**:
+  - Nova godina se otvara **automatski** kao `aktivnaGodina + 1`
+  - Ne mogu planirati više od 1 godine unaprijed: maksimalno je `trenutnaGodina + 1` (trenutna godina se računa po pravilima vremenske zone u aplikaciji)
+  - Pri otvaranju nove godine automatski se radi prijenos iz prethodne godine (ako ima preostalih dana)
+- **Ako zaposlenik nema niti jednu otvorenu (aktivnu) godinu za taj tip** (npr. novi zaposlenik / još nema plana):
+  - Biram početnu godinu iz raspona: `trenutnaGodina - 1`, `trenutnaGodina`, `trenutnaGodina + 1`
+  - Nakon kreiranja prvog plana, nadalje se godine otvaraju samo po pravilu `aktivnaGodina + 1`
 - Unosim broj dana (1-50)
 - Spremam dodjelu (internal: kreira se `ALLOCATION` evidencija promjene za specifičnu vrstu)
 - Nova godina se pojavljuje u tablici za taj tip
@@ -686,7 +692,8 @@ Sve vezano uz registraciju, prijavu i odjavu korisnika rješava Clerk i nije pot
 
 **Kriteriji prihvaćanja:**
 - **Odabirem vrstu odsutnosti** za koju mijenjam dodjelu
-- Kliknem na "Uredi" kod godine u tablici za odabrani tip
+- Izmjenu mogu raditi **samo za otvorenu (aktivnu) godinu** za taj tip
+- Kliknem na "Uredi" kod aktivne godine u tablici za odabrani tip
 - Mijenjam broj dana
 - Ne mogu smanjiti ispod već iskorištenih dana (za taj specifični tip)
 - Spremam promjene (kreira se CORRECTION evidencija promjene za specifični tip)

@@ -24,6 +24,26 @@ Preporuka (prema user stories):
 
 Ako želite drugačije (split po godinama), to je zasebna odluka i mora biti dokumentirana.
 
+### 2.1) “Otvorena (aktivna) godina” (UI/UX konvencija)
+Za `employeeId + unavailabilityReasonId`:
+- **Otvorena (aktivna) godina** = godina koja je “otvorena” dodjelom (internal: postoji barem jedan `ALLOCATION` entry za tu godinu).
+- Otvorena godina može imati stanje 0 (npr. sve je iskorišteno), ali i dalje je “otvorena”.
+- U pravilu postoji **samo jedna** otvorena godina po vrsti odsutnosti i zaposleniku, i to je **najnovija** (zadnja).
+- “Trenutna godina” (`currentYear`) za ova pravila računa se po **klijentskoj vremenskoj zoni** (kao i drugdje u aplikaciji).
+
+### 2.2) Pravilo otvaranja godine (UX ograničenje)
+- Ako već postoji otvorena godina `openYear`, nova dodjela (“otvaranje nove godine”) radi se isključivo za `openYear + 1`.
+- Ne planira se više od 1 godine unaprijed: maksimalno se može otvoriti `currentYear + 1`.
+- Ako otvorena godina ne postoji (npr. novi zaposlenik / još nema plana), početna godina se može izabrati u rasponu: `currentYear - 1`, `currentYear`, `currentYear + 1`.
+  - Nakon što se prvi plan otvori, nadalje vrijedi pravilo “samo `openYear + 1`”.
+
+### 2.3) UI pravilo: koja se godina prikazuje u “Stanje dana”
+- Standardni prikazi “Stanje dana” (dodijeljeno/iskorišteno/na čekanju/preostalo) se po defaultu računaju i prikazuju za **otvorenu (aktivnu) godinu** = `openYear`.
+- “Trenutna godina” (`currentYear`) se koristi za UX/validacijska ograničenja otvaranja godine (npr. max `currentYear + 1`), ali **ne određuje** default godinu prikaza stanja.
+- Iznimke gdje UI prikazuje druge godine:
+  - “Pregled po godinama” (npr. UC-DAYS-02)
+  - “Povijest promjena” (UC-DAYS-06)
+
 ## 3) Kada se knjiži
 - **ALLOCATION**:
   - kad manager/admin dodijeli dane za godinu (po reasonu)

@@ -36,10 +36,12 @@
     "members": "Članovi",
     "unavailabilityReasons": "Vrste odsutnosti",
     "holidays": "Praznici",
+    "planningAbsence": "Planiranje odsutnosti",
     "management": "Upravljanje",
     "overview": "Pregled",
     "applications": "Zahtjevi",
-    "planning": "Planiranje"
+    "planning": "Planiranje",
+    "profile": "Moj profil"
   },
   "roles": {
     "administrator": "Administrator",
@@ -440,6 +442,83 @@
       "viewApplication": "Pregled zahtjeva",
       "noData": "Nema podataka za ovaj dan"
     }
+  },
+  "profile": {
+    "title": "Moj profil",
+    "description": "Pregled vlastitog stanja dana"
+  },
+  "daysBalance": {
+    "title": "Stanje dana",
+    "description": "Pregled stanja dana po vrstama odsutnosti",
+    "byYearTitle": "Stanje dana po godinama",
+    "byYearDescription": "Detaljni prikaz stanja dana po godinama",
+    "managerTitle": "Planiranje odsutnosti",
+    "managerDescription": "Pregled i upravljanje stanjem dana zaposlenika po vrstama odsutnosti",
+    "allocated": "Dodijeljeno",
+    "used": "Iskorišteno",
+    "pending": "Na čekanju",
+    "remaining": "Preostalo",
+    "year": "Godina",
+    "noReasons": "Nema vrsta odsutnosti s planiranjem",
+    "noData": "Nema podataka",
+    "noEmployees": "Nema zaposlenika",
+    "employee": "Zaposlenik",
+    "department": "Odjel",
+    "reason": "Vrsta odsutnosti",
+    "actions": "Akcije",
+    "employeesBalance": "Stanje dana zaposlenika",
+    "allocate": "Dodjela",
+    "update": "Izmjena",
+    "history": "Povijest",
+    "filters": "Filtri",
+    "allDepartments": "Svi odjeli",
+    "noDepartments": "Nijedan odjel",
+    "selectedDepartments": "{count} odjela",
+    "selectDepartments": "Odaberi odjele",
+    "selectAll": "Odaberi sve",
+    "deselectAll": "Poništi sve",
+    "addNewYear": "Planiranje",
+    "cannotOpenFutureYear": "Ne možete otvoriti godinu unaprijed (maksimalno {maxYear})",
+    "activeYear": "Aktivna godina",
+    "notPlanned": "nije planirano"
+  },
+  "allocateDays": {
+    "title": "Dodjela dana",
+    "description": "Dodijelite broj dana zaposleniku za odabranu godinu i vrstu odsutnosti",
+    "year": "Godina",
+    "days": "Broj dana",
+    "submit": "Dodijeli",
+    "openYearMessage": "Otvaranje godine {year} (sljedeća nakon {openYear})",
+    "transferMessage": "Godina {openYear} će biti zatvorena. Preostali dani ({balance}) će biti automatski preneseni u novu godinu {newYear}.",
+    "selectYear": "Odaberi godinu",
+    "maxYearExceeded": "Ne možete otvoriti godinu {year}. Maksimalno dozvoljena godina je {maxYear}.",
+    "yearAlreadyOpen": "Godina {year} već je otvorena. Koristite izmjenu umjesto nove dodjele.",
+    "openingNewYear": "Otvaranje nove godine {year}"
+  },
+  "updateAllocation": {
+    "title": "Izmjena dodjele",
+    "description": "Izmijenite dodijeljeni broj dana. Trenutno iskorišteno: {used} dana",
+    "year": "Godina",
+    "adjustmentType": "Akcija",
+    "adjustmentDays": "Broj dana",
+    "selectAdjustmentType": "Odaberi akciju",
+    "increase": "Povećaj",
+    "decrease": "Smanji",
+    "submit": "Ažuriraj",
+    "openYearOnly": "Izmjena je moguća samo za otvorenu godinu {openYear}",
+    "editingYear": "Izmjena dodjele za godinu {openYear}",
+    "currentAllocation": "Trenutna dodjela: {allocated} dana, iskorišteno: {used} dana"
+  },
+  "ledgerHistory": {
+    "title": "Povijest promjena",
+    "description": "Povijest svih promjena stanja dana",
+    "noEntries": "Nema unosa u povijesti",
+    "date": "Datum",
+    "year": "Godina",
+    "type": "Tip",
+    "changeDays": "Promjena dana",
+    "note": "Napomena",
+    "createdBy": "Kreirao"
   }
 }
 
