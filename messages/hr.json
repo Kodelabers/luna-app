@@ -482,7 +482,8 @@
     "activeYear": "Aktivna godina",
     "notPlanned": "nije planirano",
     "totalAvailable": "Ukupno na raspolaganju",
-    "plannedThrough": "Planirano do: {year}"
+    "plannedThrough": "Planirano do: {year}",
+    "lastPlanned": "Zadnje planirano: {year}"
   },
   "allocateDays": {
     "title": "Dodjela dana",
@@ -495,7 +496,8 @@
     "selectYear": "Odaberi godinu",
     "maxYearExceeded": "Ne možete otvoriti godinu {year}. Maksimalno dozvoljena godina je {maxYear}.",
     "yearAlreadyOpen": "Godina {year} već je otvorena. Koristite izmjenu umjesto nove dodjele.",
-    "openingNewYear": "Otvaranje nove godine {year}"
+    "openingNewYear": "Otvaranje nove godine {year}",
+    "staleOpenYearMessage": "Zadnje planirano: {openYear}. Odaberite godinu za ponovno otvaranje plana."
   },
   "updateAllocation": {
     "title": "Izmjena dodjele",

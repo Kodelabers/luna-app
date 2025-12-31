@@ -168,6 +168,9 @@ export function DaysBalanceTableClient({
                   // Calculate total available (entitlementTotal = balance + used)
                   const totalAvailable = emp.balance.breakdown.balance + emp.balance.breakdown.used;
                   
+                  // Check if openYear is stale (older than currentYear - 1)
+                  const isStaleOpenYear = openYear !== null && openYear < currentYear - 1;
+                  
                   return (
                     <TableRow key={emp.employeeId}>
                       <TableCell className="font-medium">
@@ -177,7 +180,9 @@ export function DaysBalanceTableClient({
                           </span>
                           {openYear !== null ? (
                             <span className="text-xs text-muted-foreground">
-                              {t("plannedThrough", { year: openYear })}
+                              {isStaleOpenYear 
+                                ? t("lastPlanned", { year: openYear })
+                                : t("plannedThrough", { year: openYear })}
                             </span>
                           ) : (
                             <span className="text-xs text-muted-foreground">

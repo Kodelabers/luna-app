@@ -541,9 +541,12 @@ export async function allocateDays(
   // Get open year
   const openYear = await getOpenYear(ctx, employeeId, unavailabilityReasonId);
 
+  // Check if openYear is stale (older than currentYear - 1)
+  const isStaleOpenYear = openYear !== null && openYear < currentYear - 1;
+
   // Validate year according to rules
-  if (openYear !== null) {
-    // If openYear exists, year must be openYear + 1 and <= currentYear + 1
+  if (openYear !== null && !isStaleOpenYear) {
+    // If openYear exists and is not stale, year must be openYear + 1 and <= currentYear + 1
     const expectedYear = openYear + 1;
     if (year !== expectedYear) {
       throw new ValidationError(
@@ -558,7 +561,7 @@ export async function allocateDays(
       );
     }
   } else {
-    // If no openYear exists, year must be in range currentYear-1..currentYear+1
+    // If no openYear exists or openYear is stale, treat as "first plan": year must be in range currentYear-1..currentYear+1
     if (year < currentYear - 1 || year > currentYear + 1) {
       throw new ValidationError(
         { year: [`Godina mora biti u rasponu ${currentYear - 1}..${currentYear + 1}`] },
@@ -600,58 +603,63 @@ export async function allocateDays(
   });
 
   // Check for automatic transfer from previous year (per 06_ledger_rules.md)
-  const previousYear = year - 1;
-  const previousYearEntries = await db.unavailabilityLedgerEntry.findMany({
-    where: {
-      organisationId: ctx.organisationId,
-      employeeId,
-      unavailabilityReasonId,
-      year: previousYear,
-    },
-  });
+  // Transfer is only done for continuous year opening (openYear + 1), not for stale re-open
+  const shouldTransfer = openYear !== null && !isStaleOpenYear && year === openYear + 1;
 
-  const prevBalance = previousYearEntries.reduce((sum, entry) => sum + entry.changeDays, 0);
-
-  // Check if transfer already exists (idempotency)
-  const existingTransfer = await db.unavailabilityLedgerEntry.findFirst({
-    where: {
-      organisationId: ctx.organisationId,
-      employeeId,
-      unavailabilityReasonId,
-      year: previousYear,
-      type: "TRANSFER",
-      note: "prijenos u iduću godinu",
-    },
-  });
-
-  if (prevBalance > 0 && !existingTransfer) {
-    // Create TRANSFER entry in previous year (closes previous year to 0)
-    await db.unavailabilityLedgerEntry.create({
-      data: {
+  if (shouldTransfer) {
+    const previousYear = year - 1;
+    const previousYearEntries = await db.unavailabilityLedgerEntry.findMany({
+      where: {
         organisationId: ctx.organisationId,
         employeeId,
         unavailabilityReasonId,
         year: previousYear,
-        changeDays: -prevBalance,
+      },
+    });
+
+    const prevBalance = previousYearEntries.reduce((sum, entry) => sum + entry.changeDays, 0);
+
+    // Check if transfer already exists (idempotency)
+    const existingTransfer = await db.unavailabilityLedgerEntry.findFirst({
+      where: {
+        organisationId: ctx.organisationId,
+        employeeId,
+        unavailabilityReasonId,
+        year: previousYear,
         type: "TRANSFER",
-        createdById: ctx.organisationUser.id,
         note: "prijenos u iduću godinu",
       },
     });
 
-    // Create TRANSFER entry in new year (adds transferred days)
-    await db.unavailabilityLedgerEntry.create({
-      data: {
-        organisationId: ctx.organisationId,
-        employeeId,
-        unavailabilityReasonId,
-        year,
-        changeDays: prevBalance,
-        type: "TRANSFER",
-        createdById: ctx.organisationUser.id,
-        note: "prijenos iz prethodne godine",
-      },
-    });
+    if (prevBalance > 0 && !existingTransfer) {
+      // Create TRANSFER entry in previous year (closes previous year to 0)
+      await db.unavailabilityLedgerEntry.create({
+        data: {
+          organisationId: ctx.organisationId,
+          employeeId,
+          unavailabilityReasonId,
+          year: previousYear,
+          changeDays: -prevBalance,
+          type: "TRANSFER",
+          createdById: ctx.organisationUser.id,
+          note: "prijenos u iduću godinu",
+        },
+      });
+
+      // Create TRANSFER entry in new year (adds transferred days)
+      await db.unavailabilityLedgerEntry.create({
+        data: {
+          organisationId: ctx.organisationId,
+          employeeId,
+          unavailabilityReasonId,
+          year,
+          changeDays: prevBalance,
+          type: "TRANSFER",
+          createdById: ctx.organisationUser.id,
+          note: "prijenos iz prethodne godine",
+        },
+      });
+    }
   }
 
   return { success: true };

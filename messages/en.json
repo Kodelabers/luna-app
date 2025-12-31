@@ -482,7 +482,8 @@
     "activeYear": "Active Year",
     "notPlanned": "not planned",
     "totalAvailable": "Total available",
-    "plannedThrough": "Planned through: {year}"
+    "plannedThrough": "Planned through: {year}",
+    "lastPlanned": "Last planned: {year}"
   },
   "allocateDays": {
     "title": "Allocate Days",
@@ -495,7 +496,8 @@
     "selectYear": "Select year",
     "maxYearExceeded": "Cannot open year {year}. Maximum allowed year is {maxYear}.",
     "yearAlreadyOpen": "Year {year} is already open. Use update instead of new allocation.",
-    "openingNewYear": "Opening new year {year}"
+    "openingNewYear": "Opening new year {year}",
+    "staleOpenYearMessage": "Last planned: {openYear}. Select a year to reopen the plan."
   },
   "updateAllocation": {
     "title": "Update Allocation",

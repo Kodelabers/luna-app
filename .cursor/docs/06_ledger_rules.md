@@ -37,6 +37,19 @@ Za `employeeId + unavailabilityReasonId`:
 - Ako otvorena godina ne postoji (npr. novi zaposlenik / još nema plana), početna godina se može izabrati u rasponu: `currentYear - 1`, `currentYear`, `currentYear + 1`.
   - Nakon što se prvi plan otvori, nadalje vrijedi pravilo “samo `openYear + 1`”.
 
+### 2.4) UX pravilo: “stari plan” (stale openYear) i ponovno otvaranje bez prijenosa (GO)
+Problem: ako je `openYear` jako star (npr. “zadnje planirano 2019.”), pravilo “otvori samo `openYear + 1`” vodi u loš UX (manager bi morao otvarati 2020, 2021, …) i ne odgovara realnim scenarijima (npr. višegodišnje neplaćeno odsustvo).
+
+Zato uvodimo UX pravilo “stari plan”:
+- Definicija (preporuka): `openYear` se smatra **stari plan (stale)** ako je `openYear < currentYear - 1`.
+- Kad je `openYear` stale, u UI/validaciji se tretira kao da **ne postoji otvorena godina**.
+
+Posljedice za “otvaranje godine” (specifično za GO — opcija A):
+- Manager tada **bira početnu godinu** kao kod prvog plana: `currentYear - 1`, `currentYear`, `currentYear + 1`.
+- Pri takvom “ponovnom otvaranju” **NE radi se automatski prijenos** iz stare godine u novu godinu.
+  - Prijenos (TRANSFER) je rezerviran za **kontinuitet** kad se otvara `openYear + 1` (sekcija 8).
+  - Stari saldo ostaje u povijesti (audit), ali se ne “vuče” kroz više godina u novi plan.
+
 ### 2.3) UI pravilo: koja se godina prikazuje u “Stanje dana”
 - Standardni prikazi “Stanje dana” (dodijeljeno/iskorišteno/na čekanju/preostalo) se po defaultu računaju i prikazuju za **otvorenu (aktivnu) godinu** = `openYear`.
 - “Trenutna godina” (`currentYear`) se koristi za UX/validacijska ograničenja otvaranja godine (npr. max `currentYear + 1`), ali **ne određuje** default godinu prikaza stanja.
@@ -152,5 +165,9 @@ Napomene:
 - `TRANSFER` se koristi u oba smjera (iz stare godine i u novu godinu); **smjer** se vidi iz znaka `changeDays` (+/-).
 - `CORRECTION` je rezerviran za ručne ispravke i vraćanje dana kod preklapanja (sekcija 6).
 - `note` je obavezan za ova dva automatska unosa (audit i UX).
+
+### 8.1) Ograničenje prijenosa kod “stari plan” scenarija (GO)
+Ako se godina “ponovno otvara” nakon stale `openYear` (vidi sekciju 2.4), automatski prijenos se **ne izvršava**.
+U tom slučaju “otvaranje godine” se ponaša kao novi početak plana (bez carryover-a iz davnih godina).
 
 

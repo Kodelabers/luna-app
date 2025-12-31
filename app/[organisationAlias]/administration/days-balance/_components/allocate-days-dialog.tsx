@@ -68,9 +68,12 @@ export function AllocateDaysDialog({
     ? Intl.DateTimeFormat().resolvedOptions().timeZone 
     : "Europe/Zagreb";
 
+  // Check if openYear is stale (older than currentYear - 1)
+  const isStaleOpenYear = openYear !== null && openYear < currentYear - 1;
+
   // Calculate initial year based on rules
   const getInitialYear = (): number => {
-    if (openYear !== null) {
+    if (openYear !== null && !isStaleOpenYear) {
       const nextYear = openYear + 1;
       // Validate: nextYear <= currentYear + 1
       if (nextYear > currentYear + 1) {
@@ -79,14 +82,14 @@ export function AllocateDaysDialog({
       }
       return nextYear;
     } else {
-      // No openYear: allow currentYear-1, currentYear, or currentYear+1
+      // No openYear or stale openYear: allow currentYear-1, currentYear, or currentYear+1
       return currentYear;
     }
   };
 
   const initialYear = getInitialYear();
-  const showYearSelect = openYear === null;
-  const nextYear = openYear !== null ? openYear + 1 : null;
+  const showYearSelect = openYear === null || isStaleOpenYear;
+  const nextYear = openYear !== null && !isStaleOpenYear ? openYear + 1 : null;
   const canOpenNextYear = nextYear !== null && nextYear <= currentYear + 1;
 
   const form = useForm<AllocateDaysFormValues>({
@@ -161,8 +164,17 @@ export function AllocateDaysDialog({
               value={form.watch("year") || initialYear}
             />
 
-            {/* Show transfer message if openYearBalance > 0 */}
-            {openYear !== null && openYearBalance !== null && openYearBalance > 0 && canOpenNextYear && (
+            {/* Show stale openYear info message */}
+            {isStaleOpenYear && openYear !== null && (
+              <Alert>
+                <AlertDescription>
+                  {t("staleOpenYearMessage", { openYear })}
+                </AlertDescription>
+              </Alert>
+            )}
+
+            {/* Show transfer message if openYearBalance > 0 and not stale */}
+            {openYear !== null && !isStaleOpenYear && openYearBalance !== null && openYearBalance > 0 && canOpenNextYear && (
               <Alert>
                 <AlertDescription>
                   {t("transferMessage", {
@@ -174,8 +186,8 @@ export function AllocateDaysDialog({
               </Alert>
             )}
 
-            {/* Show simple message if opening new year with balance = 0 */}
-            {openYear !== null && openYearBalance !== null && openYearBalance === 0 && canOpenNextYear && (
+            {/* Show simple message if opening new year with balance = 0 and not stale */}
+            {openYear !== null && !isStaleOpenYear && openYearBalance !== null && openYearBalance === 0 && canOpenNextYear && (
               <Alert>
                 <AlertDescription>
                   {t("openingNewYear", { year: nextYear })}
@@ -183,8 +195,8 @@ export function AllocateDaysDialog({
               </Alert>
             )}
 
-            {/* Show error if cannot open next year */}
-            {openYear !== null && !canOpenNextYear && (
+            {/* Show error if cannot open next year and not stale */}
+            {openYear !== null && !isStaleOpenYear && !canOpenNextYear && (
               <Alert variant="destructive">
                 <AlertDescription>
                   {t("maxYearExceeded", {
@@ -261,7 +273,7 @@ export function AllocateDaysDialog({
               >
                 {tCommon("cancel")}
               </Button>
-              <Button type="submit" disabled={isPending || (openYear !== null && !canOpenNextYear)}>
+              <Button type="submit" disabled={isPending || (openYear !== null && !isStaleOpenYear && !canOpenNextYear)}>
                 {isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 {t("submit")}
               </Button>

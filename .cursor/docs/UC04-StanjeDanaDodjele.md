@@ -135,6 +135,10 @@ DM/GM dodjeljuje broj dana zaposleniku za vrstu odsutnosti i time “otvara” g
     - Otvaranje nove godine (UI akcija) otvara **samo** `openYear + 1`.
     - Maksimalno se može otvoriti **najviše** `currentYear + 1` (gdje je `currentYear` određen po pravilima vremenske zone, kao i drugdje u aplikaciji).
     - Pri otvaranju `openYear + 1` sustav automatski radi prijenos iz `openYear` (ako postoji preostalo stanje > 0), prema `06_ledger_rules.md` sekciji 8.
+    - **Iznimka (GO): stari plan / stale openYear**
+      - Ako je `openYear` stale (preporuka: `openYear < currentYear - 1`), tada se u UX-u tretira kao da otvorena godina **ne postoji**.
+      - Manager tada bira početnu godinu iz raspona: `currentYear - 1`, `currentYear`, `currentYear + 1`.
+      - Pri ovakvom “ponovnom otvaranju” **ne radi se automatski prijenos** iz stare godine u novu godinu (opcija A).
   - **Ako ne postoji otvorena godina** (npr. novi zaposlenik / još nema plana):
     - Pri kreiranju prvog plana manager **bira početnu godinu** iz raspona: `currentYear - 1`, `currentYear`, `currentYear + 1`.
     - Nakon što se prvi plan kreira, nadalje vrijedi pravilo “samo `openYear + 1`” (nema više biranja godine).
