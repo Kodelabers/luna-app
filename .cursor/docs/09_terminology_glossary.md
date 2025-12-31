@@ -10,6 +10,19 @@ Ovaj dokument standardizira **korisničku terminologiju**. Cilj je da aplikacija
 - **Plan / Kalendar odsutnosti** (`DaySchedule`): stvarni upis po danu koji predstavlja “što je u planu” za taj datum (iz odobrenog zahtjeva ili drugih flowova).
 - **Stanje dana**: korisnički prikaz koliko dana postoji za određenu **vrstu odsutnosti** i godinu.
 
+## Standardni nazivi u prikazu “Stanje dana”
+U prikazima “Stanje dana” korisnik želi odgovor na pitanje: **koliko dana ima na raspolaganju u godini**.
+
+Da bi UI bio intuitivan i konzistentan (posebno kad postoji prijenos iz prethodne godine), preporučeni nazivi su:
+- **Ukupno na raspolaganju**: “pravo za godinu” (uključuje osnovnu dodjelu + prenesene dane + ispravke)
+- **Iskorišteno**
+- **Na čekanju**
+- **Preostalo**
+
+Napomena:
+- Ako UI prikaže samo osnovnu dodjelu (`ALLOCATION`) kao "Dodijeljeno", može doći do zbunjujućih prikaza tipa "Dodijeljeno 20 / Preostalo 25" kad je dio dana prenesen u novu godinu (prijenos se u novoj godini pojavljuje kao `TRANSFER` entry).
+- Kanonska definicija “Ukupno na raspolaganju” je dokumentirana u `/.cursor/docs/06_ledger_rules.md` (sekcija 5.1).
+
 ## Pravilo: UI terminologija vs internal mehanizam
 
 - UI copy (naslovi, labeli, poruke) **ne smije koristiti**: *ledger, allocation, usage, correction, transfer, knjiženje, alokacija, saldo*.

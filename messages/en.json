@@ -480,7 +480,9 @@
     "addNewYear": "Planning",
     "cannotOpenFutureYear": "Cannot open year in advance (maximum {maxYear})",
     "activeYear": "Active Year",
-    "notPlanned": "not planned"
+    "notPlanned": "not planned",
+    "totalAvailable": "Total available",
+    "plannedThrough": "Planned through: {year}"
   },
   "allocateDays": {
     "title": "Allocate Days",

@@ -650,7 +650,7 @@ Sve vezano uz registraciju, prijavu i odjavu korisnika rješava Clerk i nije pot
 - **Stanje se prikazuje PO vrsti odsutnosti (odvojeno za svaku vrstu)**
 - Za svakog zaposlenika i svaku vrstu odsutnosti (npr. "Godišnji odmor", "Slobodni dani", "Edukacija") vidim:
   - Naziv vrste odsutnosti
-  - Dodijeljeno dana (za tekuću godinu)
+  - Ukupno na raspolaganju (za otvorenu godinu)
   - Iskorišteno dana
   - Na čekanju dana
   - Preostalo dana

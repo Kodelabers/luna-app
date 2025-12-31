@@ -51,9 +51,11 @@ Za `employeeId + unavailabilityReasonId`:
   - kad zahtjev postane `APPROVED` i `UnavailabilityReason.hasPlanning = true`
   - ako zahtjev počinje u novoj godini bez ALLOCATION, dani se oduzimaju iz prethodne godine (vidi sekciju 7)
 - **CORRECTION**:
-  - kad se “vraćaju” dani zbog preklapanja i pregazivanja plana (samo relevantno za reason-e s `hasPlanning=true`)
+  - kad se "vraćaju" dani zbog preklapanja i pregazivanja plana (samo relevantno za reason-e s `hasPlanning=true`)
+  - kad manager ručno ispravlja dodjelu (increase/decrease)
 - **TRANSFER**:
-  - automatski prijenos preostalih dana u novu godinu pri “otvaranju godine” (vidi sekciju 8)
+  - automatski prijenos preostalih dana između godina pri "otvaranju godine" (vidi sekciju 8)
+  - koristi se u oba smjera: negativan `changeDays` iz stare godine, pozitivan u novu godinu
 
 ## 4) Veza na zahtjev
 Ako je knjiženje nastalo zbog zahtjeva:
@@ -66,6 +68,35 @@ Za prikaz stanja:
   - `employeeId`
   - `unavailabilityReasonId`
   - `year`
+
+### 5.1) UI/UX: “Ukupno na raspolaganju” (pravo za godinu)
+U UI korisnik mentalno gleda **pravo na dane za određenu godinu** (npr. GO) — tj. “koliko dana ima na raspolaganju”.
+
+Da bismo izbjegli UX kontradikcije kod prijenosa (carryover), UI u tablicama **ne smije** prikazivati samo `ALLOCATION` kao "Dodijeljeno", jer prijenos iz prethodne godine u novoj godini dolazi kao pozitivan `TRANSFER` (vidi sekciju 8).
+
+**Preporučeni naziv stupca u UI-u:** “Ukupno na raspolaganju” (ili “Pravo za godinu”).
+
+**Definicija (kanonska, izvedena iz ledger agregata):**
+- `balance = SUM(changeDays)` za godinu
+- `used = abs(SUM(USAGE.changeDays))` za godinu
+- `ukupnoNaRaspolaganju = balance + used`
+
+Intuicija:
+- `balance` je trenutno stanje (može biti manje zbog `USAGE`)
+- dodavanjem `used` dobije se ukupna “količina” koja je bila dostupna za tu godinu (dodjela + prijenos + korekcije), bez obzira koliko je već potrošeno
+
+**Korisna ekvivalentnost za provjeru:**
+- `ukupnoNaRaspolaganju = preostalo + naCekanju + iskoristeno`
+
+### 5.2) UI/UX: Zašto je "Dodijeljeno (ALLOCATION)" zbunjujuće kod prijenosa
+Primjer:
+- u novoj godini manager dodijeli 20 dana (`ALLOCATION +20`)
+- iz prethodne godine se prenese 5 dana (u novoj godini `TRANSFER +5`, uz `note="prijenos iz prethodne godine"`)
+
+Ako UI prikaže "Dodijeljeno = 20", a "Preostalo = 25", korisniku to izgleda pogrešno.
+Zato u prikazima "Stanje dana" za otvorenu godinu preporučujemo:
+- stupac "Ukupno na raspolaganju" = `balance + used`
+- (opc.) dodatni tooltip/secondary tekst koji objašnjava da uključuje prenesene dane i ispravke (CORRECTION)
 
 ## 6) Korekcija kod preklapanja s DaySchedule
 Kad novi zahtjev dođe u `APPROVED` i prepisuje `DaySchedule`:
@@ -113,12 +144,13 @@ Za `employeeId + unavailabilityReasonId`:
     - `note = "prijenos u iduću godinu"`
   - U novoj godini kreirati `UnavailabilityLedgerEntry`:
     - `year = newYear`
-    - `type = CORRECTION`
-    - `changeDays = +prevBalance` (dodaje prenesene dane na novu godinu)
+    - `type = TRANSFER`
+    - `changeDays = +prevBalance` (dodaje prenesene dane iz prethodne godine)
     - `note = "prijenos iz prethodne godine"`
 
 Napomene:
-- `TRANSFER` se ovdje koristi kao “prijenos između godina”; **smjer** se vidi iz znaka `changeDays`.
+- `TRANSFER` se koristi u oba smjera (iz stare godine i u novu godinu); **smjer** se vidi iz znaka `changeDays` (+/-).
+- `CORRECTION` je rezerviran za ručne ispravke i vraćanje dana kod preklapanja (sekcija 6).
 - `note` je obavezan za ova dva automatska unosa (audit i UX).
 
 

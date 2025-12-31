@@ -138,8 +138,7 @@ export function DaysBalanceTableClient({
               <TableRow>
                 <TableHead>{t("employee")}</TableHead>
                 <TableHead>{t("department")}</TableHead>
-                <TableHead className="text-right">{t("activeYear")}</TableHead>
-                <TableHead className="text-right">{t("allocated")}</TableHead>
+                <TableHead className="text-right">{t("totalAvailable")}</TableHead>
                 <TableHead className="text-right">{t("used")}</TableHead>
                 <TableHead className="text-right">{t("pending")}</TableHead>
                 <TableHead className="text-right">{t("remaining")}</TableHead>
@@ -149,7 +148,7 @@ export function DaysBalanceTableClient({
             <TableBody>
               {filteredEmployees.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center text-muted-foreground">
+                  <TableCell colSpan={7} className="text-center text-muted-foreground">
                     {t("noEmployees")}
                   </TableCell>
                 </TableRow>
@@ -166,19 +165,32 @@ export function DaysBalanceTableClient({
                   // Check if allocation exists for nextYear (should not happen, but safety check)
                   const hasNextYearAllocation = false; // This would require a server check, but we rely on backend validation
                   
+                  // Calculate total available (entitlementTotal = balance + used)
+                  const totalAvailable = emp.balance.breakdown.balance + emp.balance.breakdown.used;
+                  
                   return (
                     <TableRow key={emp.employeeId}>
                       <TableCell className="font-medium">
-                        {emp.employeeFirstName} {emp.employeeLastName}
+                        <div className="flex flex-col gap-1">
+                          <span>
+                            {emp.employeeFirstName} {emp.employeeLastName}
+                          </span>
+                          {openYear !== null ? (
+                            <span className="text-xs text-muted-foreground">
+                              {t("plannedThrough", { year: openYear })}
+                            </span>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">
+                              {t("notPlanned")}
+                            </span>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline">{emp.departmentName}</Badge>
                       </TableCell>
                       <TableCell className="text-right">
-                        {openYear ?? t("notPlanned")}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {emp.balance.breakdown.allocated}
+                        {totalAvailable}
                       </TableCell>
                       <TableCell className="text-right">
                         {emp.balance.breakdown.used}

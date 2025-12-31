@@ -480,7 +480,9 @@
     "addNewYear": "Planiranje",
     "cannotOpenFutureYear": "Ne možete otvoriti godinu unaprijed (maksimalno {maxYear})",
     "activeYear": "Aktivna godina",
-    "notPlanned": "nije planirano"
+    "notPlanned": "nije planirano",
+    "totalAvailable": "Ukupno na raspolaganju",
+    "plannedThrough": "Planirano do: {year}"
   },
   "allocateDays": {
     "title": "Dodjela dana",

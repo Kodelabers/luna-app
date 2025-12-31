@@ -639,7 +639,7 @@ export async function allocateDays(
       },
     });
 
-    // Create CORRECTION entry in new year (adds transferred days)
+    // Create TRANSFER entry in new year (adds transferred days)
     await db.unavailabilityLedgerEntry.create({
       data: {
         organisationId: ctx.organisationId,
@@ -647,7 +647,7 @@ export async function allocateDays(
         unavailabilityReasonId,
         year,
         changeDays: prevBalance,
-        type: "CORRECTION",
+        type: "TRANSFER",
         createdById: ctx.organisationUser.id,
         note: "prijenos iz prethodne godine",
       },

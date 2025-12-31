@@ -52,7 +52,7 @@ U bazi nema “Allocation” tablice; sve ide preko internal ledger mehanizma:
   - veza na zahtjev: `applicationId` (opc.)
 
 Napomena (UI):
-- `UnavailabilityLedgerEntry` se u UI-u prikazuje kao **stanje dana** (Dodijeljeno/Iskorišteno/Na čekanju/Preostalo) i eventualno “povijest promjena”, bez ledger/alokacija/knjiženje terminologije (vidi `/.cursor/docs/09_terminology_glossary.md`).
+- `UnavailabilityLedgerEntry` se u UI-u prikazuje kao **stanje dana** (Ukupno na raspolaganju/Iskorišteno/Na čekanju/Preostalo) i eventualno “povijest promjena”, bez ledger/alokacija/knjiženje terminologije (vidi `/.cursor/docs/09_terminology_glossary.md`).
 
 ## Praznici
 - **Holiday**: `Holiday`
