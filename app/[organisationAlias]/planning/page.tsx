@@ -139,7 +139,7 @@ export default async function PlanningPage({ params, searchParams }: Props) {
             })}
           </CardDescription>
         </CardHeader>
-        <CardContent className="p-0">
+        <CardContent>
           <PlanningTableClient data={planningData} organisationAlias={organisationAlias} />
         </CardContent>
       </Card>

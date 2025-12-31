@@ -84,14 +84,12 @@ export function PlanningCellDialog({
                 <span>{formattedDate}</span>
               </div>
               {day.isWeekend && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">{t("cellDetails.type")}</span>
+                <div className="flex justify-end">
                   <Badge variant="outline">{t("cellDetails.weekend")}</Badge>
                 </div>
               )}
               {day.isHoliday && (
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">{t("cellDetails.type")}</span>
+                <div className="flex justify-end">
                   <Badge variant="outline">{day.holidayName}</Badge>
                 </div>
               )}

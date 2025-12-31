@@ -29,8 +29,8 @@ const statusColorMap: Record<EmployeeStatus, string> = {
 };
 
 // Layout constants for consistent sizing
-const ROW_HEIGHT = "h-16";
-const HEADER_HEIGHT = "h-14";
+const ROW_HEIGHT = "h-10";
+const HEADER_HEIGHT = "h-10";
 const DAY_COL_WIDTH = "w-[60px] min-w-[60px]";
 const EMP_COL_WIDTH = "w-[200px] min-w-[200px]";
 
@@ -160,12 +160,12 @@ export function PlanningTable({ data, organisationAlias }: PlanningTableProps) {
   return (
     <div className="space-y-4">
       {/* Split layout container: Left (Fixed) + Right (Scrollable) */}
-      <div className="flex w-full border rounded-md bg-background overflow-hidden">
+      <div className="flex w-full rounded-md bg-background overflow-hidden">
         
         {/* Left Column: Employees (Fixed) */}
-        <div className={cn("flex-none border-r z-20 bg-background shadow-[4px_0_24px_-12px_rgba(0,0,0,0.1)]", EMP_COL_WIDTH)}>
+        <div className={cn("flex-none z-20 bg-background shadow-[4px_0_24px_-12px_rgba(0,0,0,0.1)]", EMP_COL_WIDTH)}>
           {/* Header */}
-          <div className={cn(HEADER_HEIGHT, "border-b p-2 flex items-center font-medium")}>
+          <div className={cn(HEADER_HEIGHT, "p-1 flex items-center font-medium")}>
             {t("employee")}
           </div>
           
@@ -174,16 +174,11 @@ export function PlanningTable({ data, organisationAlias }: PlanningTableProps) {
             {employees.map((employee) => (
               <div 
                 key={employee.id} 
-                className={cn(ROW_HEIGHT, "border-b p-2 flex flex-col justify-center last:border-b-0")}
+                className={cn(ROW_HEIGHT, "mt-2 first:mt-0 p-1 flex items-center")}
               >
-                <div className="flex flex-col overflow-hidden">
-                  <span className="text-sm font-medium truncate" title={`${employee.firstName} ${employee.lastName}`}>
-                    {employee.firstName} {employee.lastName}
-                  </span>
-                  <span className="text-xs text-muted-foreground truncate" title={employee.departmentName}>
-                    {employee.departmentName}
-                  </span>
-                </div>
+                <span className="text-sm font-medium truncate" title={`${employee.firstName} ${employee.lastName}`}>
+                  {employee.firstName} {employee.lastName}
+                </span>
               </div>
             ))}
           </div>
@@ -193,13 +188,13 @@ export function PlanningTable({ data, organisationAlias }: PlanningTableProps) {
         <div className="flex-1 overflow-x-auto">
           <div className="min-w-max">
             {/* Header Row */}
-            <div className={cn("flex border-b", HEADER_HEIGHT)}>
+            <div className={cn("flex", HEADER_HEIGHT)}>
               {days.map((day) => (
                 <div
                   key={day.dateLocalISO}
-                  className={cn(DAY_COL_WIDTH, "p-2 flex flex-col items-center justify-center text-xs font-medium border-l first:border-l-0")}
+                  className={cn(DAY_COL_WIDTH, "p-1 flex flex-col items-center justify-center text-xs font-medium")}
                 >
-                  <div className="flex flex-col items-center gap-1">
+                  <div className="flex flex-col items-center gap-0.5">
                     <span>
                       {format(parseISO(day.dateLocalISO), "dd.MM.", {
                         locale: dateLocale,
@@ -218,7 +213,7 @@ export function PlanningTable({ data, organisationAlias }: PlanningTableProps) {
             {/* Data Rows */}
             <div className="flex flex-col">
               {employees.map((employee) => (
-                <div key={employee.id} className={cn("flex border-b last:border-b-0", ROW_HEIGHT)}>
+                <div key={employee.id} className={cn("flex mt-2 first:mt-0", ROW_HEIGHT)}>
                   {days.map((day) => {
                     const cell = getCell(employee.id, day.dateLocalISO);
                     
@@ -278,7 +273,7 @@ export function PlanningTable({ data, organisationAlias }: PlanningTableProps) {
                         key={`${employee.id}:${day.dateLocalISO}`}
                         className={cn(
                           DAY_COL_WIDTH,
-                          "p-1 flex items-center justify-center relative cursor-pointer hover:ring-2 hover:ring-ring transition-colors border-l first:border-l-0",
+                          "p-1 flex items-center justify-center relative cursor-pointer hover:ring-2 hover:ring-ring transition-colors",
                           bgColor,
                           textColor
                         )}
