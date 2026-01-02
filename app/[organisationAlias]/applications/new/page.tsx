@@ -51,7 +51,7 @@ export default async function NewApplicationPage(props: PageProps) {
   const isDepartmentManager = managerRecord?.departmentId !== null && managerRecord?.departmentId !== undefined;
 
   // Fetch employees for manager selection
-  let selectableEmployees: Array<{ id: number; firstName: string; lastName: string; email: string; departmentId: number | null }> = [];
+  let selectableEmployees: Array<{ id: string; firstName: string; lastName: string; email: string; departmentId: string | null }> = [];
   
   if (isGeneralManager) {
     // GM can create applications for any employee

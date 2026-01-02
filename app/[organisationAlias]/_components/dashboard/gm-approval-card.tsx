@@ -28,8 +28,8 @@ export function GmApprovalCard({ applications, organisationAlias }: GmApprovalCa
   const [dialogMode, setDialogMode] = useState<"approve" | "reject">("approve");
 
   // Wrapper function for the action to match expected type
-  const handleAction = async (prevState: unknown, formData: FormData): Promise<unknown> => {
-    return await gmDecideApplicationAction(organisationAlias, prevState as FormState, formData);
+  const handleAction = async (prevState: FormState, formData: FormData): Promise<FormState> => {
+    return await gmDecideApplicationAction(organisationAlias, prevState, formData);
   };
 
   const handleApprove = (app: ApplicationSummary) => {

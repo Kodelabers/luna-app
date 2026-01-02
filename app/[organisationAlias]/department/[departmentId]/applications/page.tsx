@@ -17,18 +17,18 @@ export default async function DepartmentApplicationsPage({ params }: Props) {
   const t = await getTranslations("applications");
   const ctx = await resolveTenantContext(organisationAlias);
 
-  const deptId = parseInt(departmentId, 10);
-  if (isNaN(deptId)) {
+  
+  if (!departmentId) {
     notFound();
   }
 
   // Check department access (DM or GM)
-  await requireDepartmentAccess(ctx, deptId);
+  await requireDepartmentAccess(ctx, departmentId);
 
   // Get department info
   const department = await db.department.findFirst({
     where: {
-      id: deptId,
+      id: departmentId,
       organisationId: ctx.organisationId,
       active: true,
     },
@@ -70,7 +70,7 @@ export default async function DepartmentApplicationsPage({ params }: Props) {
         <Suspense fallback={<Skeleton className="h-64 w-full" />}>
           <DepartmentApplicationsClient
             organisationAlias={organisationAlias}
-            departmentId={deptId}
+            departmentId={departmentId}
             reasons={reasons}
           />
         </Suspense>

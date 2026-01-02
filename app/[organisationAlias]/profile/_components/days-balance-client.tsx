@@ -16,7 +16,7 @@ type DaysBalanceClientProps = {
 export function DaysBalanceClient({ organisationAlias }: DaysBalanceClientProps) {
   const t = useTranslations("daysBalance");
   const [balances, setBalances] = useState<Array<{
-    unavailabilityReasonId: number;
+    unavailabilityReasonId: string;
     unavailabilityReasonName: string;
     unavailabilityReasonColorCode: string | null;
     openYear: number | null;

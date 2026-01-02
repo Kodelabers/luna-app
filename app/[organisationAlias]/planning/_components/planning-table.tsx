@@ -54,7 +54,7 @@ export function PlanningTable({ data, organisationAlias }: PlanningTableProps) {
   }
 
   // Get cell for employee and day
-  const getCell = (employeeId: number, dateLocalISO: string): PlanningCell | null => {
+  const getCell = (employeeId: string, dateLocalISO: string): PlanningCell | null => {
     const key = `${employeeId}:${dateLocalISO}`;
     return cellMap.get(key) ?? null;
   };
@@ -98,9 +98,9 @@ export function PlanningTable({ data, organisationAlias }: PlanningTableProps) {
 
   // Determine position of a day within DaySchedule NOT_AVAILABLE range (same as "Moj kalendar")
   const getDaySchedulePosition = (
-    employeeId: number,
+    employeeId: string,
     dateLocalISO: string,
-    unavailabilityReasonId: number | null
+    unavailabilityReasonId: string | null
   ): "start" | "middle" | "end" | "single" => {
     if (!unavailabilityReasonId) return "single";
     
@@ -386,55 +386,55 @@ export function PlanningTable({ data, organisationAlias }: PlanningTableProps) {
         </div>
         
         {/* Show unique unavailability reasons with their colors */}
-        {Array.from(
-          new Map(
-            [
-              ...cells
-                .filter(
-                  (cell) =>
-                    cell.daySchedule?.unavailabilityReasonName &&
-                    cell.daySchedule?.unavailabilityReasonColor &&
-                    cell.daySchedule.status === "NOT_AVAILABLE"
-                )
-                .map((cell) => [
-                  cell.daySchedule!.unavailabilityReasonId!,
-                  {
-                    name: cell.daySchedule!.unavailabilityReasonName!,
-                    color: cell.daySchedule!.unavailabilityReasonColor!,
-                    type: "background" as const,
-                  },
-                ]),
-              ...cells
-                .flatMap((cell) => cell.applications)
-                .filter(
-                  (app) => app.unavailabilityReasonName && app.unavailabilityReasonColor
-                )
-                .map((app) => [
-                  app.unavailabilityReasonId,
-                  {
-                    name: app.unavailabilityReasonName,
-                    color: app.unavailabilityReasonColor!,
-                    type: "border" as const,
-                  },
-                ]),
-            ]
-          ).values()
-        ).map((reason) => (
-          <div key={reason.name} className="flex items-center gap-2">
-            {reason.type === "background" ? (
-              <div
-                className="h-4 w-4 rounded border"
-                style={{ backgroundColor: reason.color }}
-              />
-            ) : (
-              <div
-                className="h-4 w-4 rounded border"
-                style={{ border: `2px solid ${reason.color}` }}
-              />
-            )}
-            <span className="text-muted-foreground">{reason.name}</span>
-          </div>
-        ))}
+        {(() => {
+          type ReasonEntry = { name: string; color: string; type: "background" | "border" };
+          const reasonEntries: [string, ReasonEntry][] = [
+            ...cells
+              .filter(
+                (cell) =>
+                  cell.daySchedule?.unavailabilityReasonName &&
+                  cell.daySchedule?.unavailabilityReasonColor &&
+                  cell.daySchedule.status === "NOT_AVAILABLE"
+              )
+              .map((cell): [string, ReasonEntry] => [
+                cell.daySchedule!.unavailabilityReasonId!,
+                {
+                  name: cell.daySchedule!.unavailabilityReasonName!,
+                  color: cell.daySchedule!.unavailabilityReasonColor!,
+                  type: "background",
+                },
+              ]),
+            ...cells
+              .flatMap((cell) => cell.applications)
+              .filter(
+                (app) => app.unavailabilityReasonName && app.unavailabilityReasonColor
+              )
+              .map((app): [string, ReasonEntry] => [
+                app.unavailabilityReasonId,
+                {
+                  name: app.unavailabilityReasonName,
+                  color: app.unavailabilityReasonColor!,
+                  type: "border",
+                },
+              ]),
+          ];
+          return Array.from(new Map(reasonEntries).values()).map((reason) => (
+            <div key={reason.name} className="flex items-center gap-2">
+              {reason.type === "background" ? (
+                <div
+                  className="h-4 w-4 rounded border"
+                  style={{ backgroundColor: reason.color }}
+                />
+              ) : (
+                <div
+                  className="h-4 w-4 rounded border"
+                  style={{ border: `2px solid ${reason.color}` }}
+                />
+              )}
+              <span className="text-muted-foreground">{reason.name}</span>
+            </div>
+          ));
+        })()}
       </div>
 
       {/* Cell details dialog */}

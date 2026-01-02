@@ -17,9 +17,9 @@ type ApplicationFiltersProps = {
   onSearchChange: (value: string) => void;
   statusFilter: ApplicationStatus | "ALL";
   onStatusChange: (value: ApplicationStatus | "ALL") => void;
-  reasonFilter: number | "ALL";
-  onReasonChange: (value: number | "ALL") => void;
-  reasons: Array<{ id: number; name: string }>;
+  reasonFilter: string | "ALL";
+  onReasonChange: (value: string | "ALL") => void;
+  reasons: Array<{ id: string; name: string }>;
 };
 
 export function ApplicationFilters({
@@ -69,7 +69,7 @@ export function ApplicationFilters({
       <Select
         value={reasonFilter.toString()}
         onValueChange={(value) =>
-          onReasonChange(value === "ALL" ? "ALL" : parseInt(value))
+          onReasonChange(value === "ALL" ? "ALL" : value)
         }
       >
         <SelectTrigger className="w-full sm:w-[200px]">

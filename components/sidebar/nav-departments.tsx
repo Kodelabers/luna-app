@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/sidebar";
 
 export type Department = {
-  id: number;
+  id: string;
   name: string;
   alias: string;
   colorCode: string | null;

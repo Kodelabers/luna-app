@@ -41,8 +41,8 @@ type AllocateDaysFormValues = z.infer<typeof allocateDaysSchema>;
 
 type AllocateDaysDialogProps = {
   organisationAlias: string;
-  employeeId: number;
-  unavailabilityReasonId: number;
+  employeeId: string;
+  unavailabilityReasonId: string;
   openYear: number | null;
   currentYear: number;
   openYearBalance: number | null;
@@ -93,7 +93,8 @@ export function AllocateDaysDialog({
   const canOpenNextYear = nextYear !== null && nextYear <= currentYear + 1;
 
   const form = useForm<AllocateDaysFormValues>({
-    resolver: zodResolver(allocateDaysSchema),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(allocateDaysSchema) as any,
     defaultValues: {
       employeeId,
       unavailabilityReasonId,
@@ -196,7 +197,7 @@ export function AllocateDaysDialog({
             )}
 
             {/* Show error if cannot open next year and not stale */}
-            {openYear !== null && !isStaleOpenYear && !canOpenNextYear && (
+            {openYear !== null && !isStaleOpenYear && !canOpenNextYear && nextYear !== null && (
               <Alert variant="destructive">
                 <AlertDescription>
                   {t("maxYearExceeded", {

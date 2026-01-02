@@ -56,7 +56,7 @@ import { CalendarDay } from "@/lib/services/calendar";
 import { parseISO } from "date-fns";
 
 type UnavailabilityReason = {
-  id: number;
+  id: string;
   name: string;
   needApproval: boolean;
   needSecondApproval: boolean;
@@ -65,7 +65,7 @@ type UnavailabilityReason = {
 };
 
 type PendingApplication = {
-  id: number;
+  id: string;
   startDate: Date;
   endDate: Date;
   status: string;
@@ -75,7 +75,7 @@ type PendingApplication = {
 };
 
 type LedgerBalance = {
-  reasonId: number;
+  reasonId: string;
   reasonName: string;
   byYear: Array<{
     year: number;
@@ -86,27 +86,27 @@ type LedgerBalance = {
 };
 
 type SelectableEmployee = {
-  id: number;
+  id: string;
   firstName: string;
   lastName: string;
   email: string;
-  departmentId: number | null;
+  departmentId: string | null;
 };
 
 type ApplicationFormProps = {
   organisationAlias: string;
   reasons: UnavailabilityReason[];
-  currentEmployeeId: number;
+  currentEmployeeId: string;
   selectableEmployees?: SelectableEmployee[];
   isManager?: boolean;
-  applicationId?: number;
+  applicationId?: string;
   initialData?: {
-    unavailabilityReasonId: number;
+    unavailabilityReasonId: string;
     startDate: Date;
     endDate: Date;
     description?: string;
   };
-  onSuccess?: (applicationId: number) => void;
+  onSuccess?: (applicationId: string) => void;
 };
 
 export function ApplicationForm({
@@ -125,8 +125,8 @@ export function ApplicationForm({
   const locale = useLocale();
   const dateLocale = locale === "hr" ? hr : enUS;
 
-  const [selectedEmployeeId, setSelectedEmployeeId] = useState<number>(currentEmployeeId);
-  const [selectedReasonId, setSelectedReasonId] = useState<number | undefined>(
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>(currentEmployeeId);
+  const [selectedReasonId, setSelectedReasonId] = useState<string | undefined>(
     initialData?.unavailabilityReasonId
   );
   const [dateRange, setDateRange] = useState<DateRange | undefined>(
@@ -334,7 +334,7 @@ export function ApplicationForm({
               <label className="text-sm font-medium">{t("employee")}</label>
               <Select
                 value={selectedEmployeeId.toString()}
-                onValueChange={(value) => setSelectedEmployeeId(parseInt(value))}
+                onValueChange={(value) => setSelectedEmployeeId(value)}
               >
                 <SelectTrigger>
                   <SelectValue />
@@ -463,7 +463,7 @@ export function ApplicationForm({
             <label className="text-sm font-medium">{t("reason")}</label>
             <Select
               value={selectedReasonId?.toString()}
-              onValueChange={(value) => setSelectedReasonId(parseInt(value))}
+              onValueChange={(value) => setSelectedReasonId(value)}
               name="unavailabilityReasonId"
             >
               <SelectTrigger>

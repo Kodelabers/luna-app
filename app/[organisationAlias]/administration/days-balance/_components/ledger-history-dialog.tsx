@@ -18,8 +18,8 @@ import { hr } from "date-fns/locale";
 
 type LedgerHistoryDialogProps = {
   organisationAlias: string;
-  employeeId: number;
-  unavailabilityReasonId: number;
+  employeeId: string;
+  unavailabilityReasonId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 };
@@ -33,13 +33,13 @@ export function LedgerHistoryDialog({
 }: LedgerHistoryDialogProps) {
   const t = useTranslations("ledgerHistory");
   const [entries, setEntries] = useState<Array<{
-    id: number;
+    id: string;
     year: number;
     type: string;
     typeLabel: string;
     changeDays: number;
     note: string | null;
-    applicationId: number | null;
+    applicationId: string | null;
     createdAt: Date;
     createdBy: {
       firstName: string;

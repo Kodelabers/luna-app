@@ -35,7 +35,7 @@ export default async function DaysBalanceByYearPage(props: PageProps) {
   }
 
   // Get unavailability reason
-  const reasonId = Number(params.reasonId);
+  const reasonId = params.reasonId;
   const reason = await db.unavailabilityReason.findFirst({
     where: {
       id: reasonId,

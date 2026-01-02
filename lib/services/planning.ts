@@ -9,11 +9,11 @@ import { parseISO, format, eachDayOfInterval, getDay } from "date-fns";
  * Planning employee model (UC-PLAN-01)
  */
 export type PlanningEmployee = {
-  id: number;
+  id: string;
   firstName: string;
   lastName: string;
   email: string;
-  departmentId: number;
+  departmentId: string;
   departmentName: string;
 };
 
@@ -31,21 +31,21 @@ export type PlanningDay = {
  * Planning cell model (UC-PLAN-01)
  */
 export type PlanningCell = {
-  employeeId: number;
+  employeeId: string;
   dateLocalISO: string;
   // Plan (DaySchedule) - pozadina
   daySchedule: {
     status: EmployeeStatus;
-    unavailabilityReasonId: number | null;
+    unavailabilityReasonId: string | null;
     unavailabilityReasonName: string | null;
     unavailabilityReasonColor: string | null;
-    applicationId: number | null;
+    applicationId: string | null;
   } | null;
   // Overlay (Application) - zahtjevi
   applications: Array<{
-    id: number;
+    id: string;
     status: ApplicationStatus;
-    unavailabilityReasonId: number;
+    unavailabilityReasonId: string;
     unavailabilityReasonName: string;
     unavailabilityReasonColor: string | null;
     startDateLocalISO: string;
@@ -69,7 +69,7 @@ export type GetPlanningDataInput = {
   fromLocalISO: string; // YYYY-MM-DD
   toLocalISO: string; // YYYY-MM-DD
   clientTimeZone: string; // IANA tz
-  departmentIds?: number[]; // Array of department IDs (if empty/undefined, show all accessible departments)
+  departmentIds?: string[]; // Array of department IDs (if empty/undefined, show all accessible departments)
 };
 
 /**
@@ -89,7 +89,7 @@ export async function getPlanningData(
   }
 
   // 2. Determine department scope
-  let departmentScope: number[] = [];
+  let departmentScope: string[] = [];
   if (managerStatus.isGeneralManager) {
     // GM: all departments or selected departmentIds
     if (departmentIds && departmentIds.length > 0) {

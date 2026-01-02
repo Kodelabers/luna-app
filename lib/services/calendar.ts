@@ -15,10 +15,10 @@ export type CalendarDay = {
   holidayName?: string;
   dayCode: DayCode;
   status: EmployeeStatus;
-  unavailabilityReasonId: number | null;
+  unavailabilityReasonId: string | null;
   unavailabilityReasonName: string | null;
   unavailabilityReasonColor: string | null;
-  applicationId: number | null;
+  applicationId: string | null;
 };
 
 /**
@@ -28,7 +28,7 @@ export type CalendarDay = {
 export async function getEmployeeMonthCalendar(
   ctx: TenantContext,
   params: {
-    employeeId: number;
+    employeeId: string;
     month: number; // 1-12
     year: number;
     clientTimeZone: string; // IANA tz

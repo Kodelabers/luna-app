@@ -7,7 +7,7 @@ import type { Organisation, OrganisationUser, User, UserRole } from "@prisma/cli
  * Tenant context returned by resolveTenantContext
  */
 export type TenantContext = {
-  organisationId: number;
+  organisationId: string;
   organisation: Organisation;
   user: User;
   organisationUser: OrganisationUser & {
@@ -84,7 +84,7 @@ export function requireAdmin(ctx: TenantContext): void {
  */
 export async function hasDepartmentAccess(
   ctx: TenantContext,
-  departmentId: number
+  departmentId: string
 ): Promise<boolean> {
   // First verify department belongs to this organisation
   const department = await db.department.findFirst({
@@ -132,7 +132,7 @@ export async function hasDepartmentAccess(
  */
 export async function requireDepartmentAccess(
   ctx: TenantContext,
-  departmentId: number
+  departmentId: string
 ): Promise<void> {
   const hasAccess = await hasDepartmentAccess(ctx, departmentId);
   if (!hasAccess) {
@@ -160,7 +160,7 @@ export async function getEmployeeForUser(ctx: TenantContext) {
 export async function getManagerStatus(ctx: TenantContext): Promise<{
   isGeneralManager: boolean;
   isDepartmentManager: boolean;
-  managedDepartmentIds: number[];
+  managedDepartmentIds: string[];
 }> {
   const employee = await getEmployeeForUser(ctx);
 

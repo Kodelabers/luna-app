@@ -41,8 +41,8 @@ type UpdateAllocationFormValues = z.infer<typeof updateAllocationSchema>;
 
 type UpdateAllocationDialogProps = {
   organisationAlias: string;
-  employeeId: number;
-  unavailabilityReasonId: number;
+  employeeId: string;
+  unavailabilityReasonId: string;
   openYear: number | null;
   currentAllocated: number;
   currentUsed: number;
@@ -72,7 +72,8 @@ export function UpdateAllocationDialog({
   const [currentUsed, setCurrentUsed] = useState<number>(propCurrentUsed);
 
   const form = useForm<UpdateAllocationFormValues>({
-    resolver: zodResolver(updateAllocationSchema),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(updateAllocationSchema) as any,
     defaultValues: {
       employeeId,
       unavailabilityReasonId,

@@ -24,7 +24,7 @@ export async function getMyDaysBalanceAction(
   currentYear?: number
 ): Promise<{
   balances: Array<{
-    unavailabilityReasonId: number;
+    unavailabilityReasonId: string;
     unavailabilityReasonName: string;
     unavailabilityReasonColorCode: string | null;
     openYear: number | null;
@@ -63,7 +63,7 @@ export async function getMyDaysBalanceAction(
  */
 export async function getMyDaysBalanceByYearAction(
   organisationAlias: string,
-  unavailabilityReasonId: number,
+  unavailabilityReasonId: string,
   years?: number[]
 ): Promise<{
   balances: Array<{
@@ -105,17 +105,17 @@ export async function getMyDaysBalanceByYearAction(
 export async function getEmployeeDaysBalanceAction(
   organisationAlias: string,
   currentYear?: number,
-  departmentIds?: number[]
+  departmentIds?: string[]
 ): Promise<{
   employees: Array<{
-    employeeId: number;
+    employeeId: string;
     employeeFirstName: string;
     employeeLastName: string;
     employeeEmail: string;
-    departmentId: number;
+    departmentId: string;
     departmentName: string;
     balances: Array<{
-      unavailabilityReasonId: number;
+      unavailabilityReasonId: string;
       unavailabilityReasonName: string;
       unavailabilityReasonColorCode: string | null;
       openYear: number | null;
@@ -145,7 +145,7 @@ export async function getEmployeeDaysBalanceAction(
   const year = currentYear ?? defaultYear;
 
   // Get employees in manager scope
-  let employeeIds: number[];
+  let employeeIds: string[];
 
   if (managerStatus.isGeneralManager) {
     // GM: all employees in organisation
@@ -356,18 +356,18 @@ export async function updateAllocationAction(
  */
 export async function getLedgerHistoryAction(
   organisationAlias: string,
-  employeeId: number,
-  unavailabilityReasonId: number,
+  employeeId: string,
+  unavailabilityReasonId: string,
   year?: number
 ): Promise<{
   entries: Array<{
-    id: number;
+    id: string;
     year: number;
     type: string;
     typeLabel: string;
     changeDays: number;
     note: string | null;
-    applicationId: number | null;
+    applicationId: string | null;
     createdAt: Date;
     createdBy: {
       firstName: string;

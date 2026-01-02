@@ -10,7 +10,7 @@ import { ApplicationStatus } from "@prisma/client";
  * Decision input for DM/GM
  */
 export type DecisionInput = {
-  applicationId: number;
+  applicationId: string;
   decision: "APPROVE" | "REJECT";
   comment?: string;
   clientTimeZone: string;
@@ -321,16 +321,16 @@ export type ValidationResult = {
   isValid: boolean;
   fieldErrors?: Record<string, string[]>;
   blockingOverlaps?: Array<{
-    applicationId: number;
+    applicationId: string;
     status: ApplicationStatus;
     startLocalISO: string;
     endLocalISO: string;
   }>;
   dayScheduleOverlaps?: Array<{
     dateLocalISO: string;
-    previousReasonId?: number;
+    previousReasonId?: string;
     previousHasPlanning?: boolean;
-    previousApplicationId?: number;
+    previousApplicationId?: string;
   }>;
   warnings?: string[];
 };
@@ -339,32 +339,32 @@ export type ValidationResult = {
  * Input for validating application draft
  */
 export type ValidateApplicationInput = {
-  unavailabilityReasonId: number;
+  unavailabilityReasonId: string;
   startDateLocalISO: string;
   endDateLocalISO: string;
   clientTimeZone: string;
-  editingApplicationId?: number;
-  employeeId?: number;
+  editingApplicationId?: string;
+  employeeId?: string;
 };
 
 /**
  * Input for saving draft application
  */
 export type SaveDraftInput = {
-  unavailabilityReasonId: number;
+  unavailabilityReasonId: string;
   startDateLocalISO: string;
   endDateLocalISO: string;
   description?: string;
   clientTimeZone: string;
-  applicationId?: number;
-  employeeId?: number;
+  applicationId?: string;
+  employeeId?: string;
 };
 
 /**
  * Input for submitting application
  */
 export type SubmitApplicationInput = {
-  applicationId: number;
+  applicationId: string;
   clientTimeZone: string;
 };
 
@@ -645,7 +645,7 @@ export async function validateApplicationDraft(
 export async function saveDraftApplication(
   ctx: TenantContext,
   input: SaveDraftInput
-): Promise<{ applicationId: number; status: ApplicationStatus }> {
+): Promise<{ applicationId: string; status: ApplicationStatus }> {
   const { unavailabilityReasonId, startDateLocalISO, endDateLocalISO, description, clientTimeZone, applicationId, employeeId } =
     input;
 
@@ -880,7 +880,7 @@ export async function submitApplication(
 /**
  * Delete draft application (UC-APP-04)
  */
-export async function deleteDraftApplication(ctx: TenantContext, applicationId: number): Promise<void> {
+export async function deleteDraftApplication(ctx: TenantContext, applicationId: string): Promise<void> {
   // Get employee
   const employee = await db.employee.findFirst({
     where: {
@@ -940,16 +940,16 @@ export async function listMyApplications(
   filters?: {
     status?: ApplicationStatus;
     year?: number;
-    reasonId?: number;
+    reasonId?: string;
     clientTimeZone?: string;
   }
 ): Promise<
   Array<{
-    applicationId: number;
+    applicationId: string;
     startLocalISO: string;
     endLocalISO: string;
     status: ApplicationStatus;
-    reasonId: number;
+    reasonId: string;
     reasonName: string;
     workdays: number | null;
     description: string | null;
@@ -1031,24 +1031,24 @@ export async function listMyApplications(
  */
 export async function listDepartmentApplications(
   ctx: TenantContext,
-  departmentId: number,
+  departmentId: string,
   filters?: {
     status?: ApplicationStatus;
-    reasonId?: number;
+    reasonId?: string;
     clientTimeZone?: string;
   }
 ): Promise<
   Array<{
-    applicationId: number;
+    applicationId: string;
     startLocalISO: string;
     endLocalISO: string;
     status: ApplicationStatus;
-    reasonId: number;
+    reasonId: string;
     reasonName: string;
     workdays: number | null;
     description: string | null;
     createdAtISO: string;
-    employeeId: number;
+    employeeId: string;
     employeeName: string;
   }>
 > {

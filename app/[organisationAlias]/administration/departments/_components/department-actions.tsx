@@ -23,7 +23,7 @@ import { DepartmentDialog } from "./department-dialog";
 import { deleteDepartment } from "@/lib/actions/department";
 
 type Department = {
-  id: number;
+  id: string;
   name: string;
   alias: string;
   description: string | null;

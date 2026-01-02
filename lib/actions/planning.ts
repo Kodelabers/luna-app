@@ -14,7 +14,7 @@ export async function getPlanningDataAction(
   fromLocalISO: string,
   toLocalISO: string,
   clientTimeZone: string,
-  departmentIds?: number[]
+  departmentIds?: string[]
 ): Promise<{ success: true; data: PlanningData } | { success: false; formError: string; fieldErrors?: Record<string, string[]> }> {
   try {
     // 1. Resolve tenant context

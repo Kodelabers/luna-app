@@ -18,7 +18,7 @@ type DepartmentPlanningFiltersProps = {
   toLocalISO: string;
   clientTimeZone: string;
   organisationAlias: string;
-  departmentId: number;
+  departmentId: string;
 };
 
 export function DepartmentPlanningFilters({

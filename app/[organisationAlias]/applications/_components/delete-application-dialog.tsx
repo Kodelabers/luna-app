@@ -18,7 +18,7 @@ import { FormState } from "@/lib/errors";
 type DeleteApplicationDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  applicationId: number | null;
+  applicationId: string | null;
   organisationAlias: string;
   onSuccess?: () => void;
 };

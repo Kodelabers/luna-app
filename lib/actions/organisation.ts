@@ -20,7 +20,7 @@ import {
  * 
  * Creates OrganisationUser and updates Employee.userId in a transaction.
  */
-export async function joinOrganisation(employeeId: number): Promise<FormState> {
+export async function joinOrganisation(employeeId: string): Promise<FormState> {
   try {
     // Get current authenticated user
     const user = await getCurrentUser();

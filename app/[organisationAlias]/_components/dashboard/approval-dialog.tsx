@@ -19,12 +19,13 @@ import { ApplicationSummary } from "@/lib/services/dashboard";
 import { format } from "date-fns";
 import { hr, enUS } from "date-fns/locale";
 import { useLocale } from "next-intl";
+import { type FormState, initialFormState } from "@/lib/errors";
 
 type ApprovalDialogProps = {
   application: ApplicationSummary | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  action: (prevState: unknown, formData: FormData) => Promise<unknown>;
+  action: (prevState: FormState, formData: FormData) => Promise<FormState>;
   organisationAlias: string;
   mode: "approve" | "reject";
 };
@@ -42,10 +43,7 @@ export function ApprovalDialog({
   const locale = useLocale();
   const dateLocale = locale === "hr" ? hr : enUS;
 
-  const [state, formAction, isPending] = useActionState(action, {
-    success: undefined,
-    message: undefined,
-  });
+  const [state, formAction, isPending] = useActionState(action, initialFormState);
 
   // Handle success/error toasts
   useEffect(() => {

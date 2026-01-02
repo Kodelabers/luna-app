@@ -23,7 +23,7 @@ import { UnavailabilityReasonDialog } from "./unavailability-reason-dialog";
 import { deleteUnavailabilityReason } from "@/lib/actions/unavailability-reason";
 
 type UnavailabilityReason = {
-  id: number;
+  id: string;
   name: string;
   colorCode: string | null;
   needApproval: boolean;

@@ -11,7 +11,7 @@ import { useRouter } from "next/navigation";
 
 type SubmitApplicationButtonProps = {
   organisationAlias: string;
-  applicationId: number;
+  applicationId: string;
 };
 
 export function SubmitApplicationButton({

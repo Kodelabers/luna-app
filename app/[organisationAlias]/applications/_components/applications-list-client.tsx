@@ -10,7 +10,7 @@ import { useRouter } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type UnavailabilityReason = {
-  id: number;
+  id: string;
   name: string;
   needApproval: boolean;
   needSecondApproval: boolean;
@@ -34,11 +34,11 @@ export function ApplicationsListClient({
   const [statusFilter, setStatusFilter] = useState<ApplicationStatus | "ALL">(
     "ALL"
   );
-  const [reasonFilter, setReasonFilter] = useState<number | "ALL">("ALL");
+  const [reasonFilter, setReasonFilter] = useState<string | "ALL">("ALL");
 
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedApplicationId, setSelectedApplicationId] = useState<
-    number | null
+    string | null
   >(null);
 
   // Fetch applications
@@ -78,15 +78,15 @@ export function ApplicationsListClient({
     );
   });
 
-  const handleView = (id: number) => {
+  const handleView = (id: string) => {
     router.push(`/${organisationAlias}/applications/${id}`);
   };
 
-  const handleEdit = (id: number) => {
+  const handleEdit = (id: string) => {
     router.push(`/${organisationAlias}/applications/${id}/edit`);
   };
 
-  const handleDelete = (id: number) => {
+  const handleDelete = (id: string) => {
     setSelectedApplicationId(id);
     setDeleteDialogOpen(true);
   };

@@ -2,14 +2,14 @@ import { db } from "@/lib/db";
 import type { TenantContext } from "@/lib/tenant/resolveTenantContext";
 
 export type ManagedDepartment = {
-  id: number;
+  id: string;
   name: string;
   alias: string;
   colorCode: string | null;
 };
 
 export type PlanningAbsenceReason = {
-  id: number;
+  id: string;
   name: string;
   colorCode: string | null;
 };

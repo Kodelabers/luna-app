@@ -18,7 +18,7 @@ import {
 import { Separator } from "../ui/separator";
 
 type PlanningAbsenceReason = {
-  id: number;
+  id: string;
   name: string;
   colorCode: string | null;
 };

@@ -17,26 +17,26 @@ import { format, parseISO } from "date-fns";
 import { hr } from "date-fns/locale";
 
 type Application = {
-  applicationId: number;
+  applicationId: string;
   startLocalISO: string;
   endLocalISO: string;
   status: ApplicationStatus;
-  reasonId: number;
+  reasonId: string;
   reasonName: string;
   workdays: number | null;
   description: string | null;
   createdAtISO: string;
-  employeeId?: number;
+  employeeId?: string;
   employeeName?: string;
 };
 
 type ApplicationTableProps = {
   applications: Application[];
-  onView: (id: number) => void;
-  onEdit?: (id: number) => void;
-  onDelete?: (id: number) => void;
+  onView: (id: string) => void;
+  onEdit?: (id: string) => void;
+  onDelete?: (id: string) => void;
   showEmployee?: boolean;
-  onRowClick?: (id: number) => void;
+  onRowClick?: (id: string) => void;
 };
 
 const statusColorMap: Record<ApplicationStatus, string> = {

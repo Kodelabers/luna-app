@@ -10,7 +10,7 @@ import { getMyDaysBalanceByYearAction } from "@/lib/actions/days-balance";
 
 type DaysBalanceByYearClientProps = {
   organisationAlias: string;
-  unavailabilityReasonId: number;
+  unavailabilityReasonId: string;
 };
 
 export function DaysBalanceByYearClient({

@@ -36,7 +36,7 @@ export default async function DaysBalanceByReasonPage(props: PageProps) {
   }
 
   // Get unavailability reason
-  const reasonId = Number(params.reasonId);
+  const reasonId = params.reasonId;
   const reason = await db.unavailabilityReason.findFirst({
     where: {
       id: reasonId,
@@ -59,15 +59,15 @@ export default async function DaysBalanceByReasonPage(props: PageProps) {
   const managedDepartments = await getManagedDepartments(ctx);
 
   // Parse comma-separated department IDs
-  const departmentIds: number[] = searchParams.department
+  const departmentIds: string[] = searchParams.department
     ? searchParams.department
         .split(",")
-        .map((id) => parseInt(id.trim(), 10))
-        .filter((id) => !isNaN(id) && id > 0)
+        .map((id) => id.trim())
+        .filter((id) => id.length > 0)
     : [];
 
   // Validate departmentIds if provided
-  const validDepartmentIds: number[] = [];
+  const validDepartmentIds: string[] = [];
   if (departmentIds.length > 0) {
     for (const deptId of departmentIds) {
       if (managerStatus.isGeneralManager) {

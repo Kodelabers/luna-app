@@ -27,8 +27,8 @@ export default async function DepartmentEmployeesPage({ params, searchParams }: 
   const ctx = await resolveTenantContext(organisationAlias);
   const t = await getTranslations("employees");
 
-  const deptId = parseInt(departmentId, 10);
-  if (isNaN(deptId)) {
+  const deptId = departmentId;
+  if (!deptId) {
     notFound();
   }
 

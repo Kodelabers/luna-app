@@ -7,15 +7,15 @@ import { ApplicationStatus } from "@prisma/client";
  */
 export type EmployeeDashboardContext = {
   employee: {
-    id: number;
+    id: string;
     firstName: string;
     lastName: string;
     email: string;
-    departmentId: number;
+    departmentId: string;
   } | null;
   isGeneralManager: boolean;
   isDepartmentManager: boolean;
-  managedDepartmentIds: number[];
+  managedDepartmentIds: string[];
 };
 
 /**
@@ -77,12 +77,12 @@ export async function getEmployeeDashboardContext(
  * Application summary for dashboard lists
  */
 export type ApplicationSummary = {
-  id: number;
-  employeeId: number;
+  id: string;
+  employeeId: string;
   employeeName: string;
-  departmentId: number;
+  departmentId: string;
   departmentName: string;
-  unavailabilityReasonId: number;
+  unavailabilityReasonId: string;
   unavailabilityReasonName: string;
   unavailabilityReasonColor: string | null;
   startDate: string; // ISO string for serialization
@@ -99,7 +99,7 @@ export type ApplicationSummary = {
  */
 export async function getOpenApplicationsForEmployee(
   ctx: TenantContext,
-  employeeId: number
+  employeeId: string
 ): Promise<ApplicationSummary[]> {
   const applications = await db.application.findMany({
     where: {
@@ -165,7 +165,7 @@ export type DmApprovalQueues = {
  */
 export async function getDmApprovalQueues(
   ctx: TenantContext,
-  managedDepartmentIds: number[]
+  managedDepartmentIds: string[]
 ): Promise<DmApprovalQueues> {
   if (managedDepartmentIds.length === 0) {
     return { submitted: [], awaitingGm: [] };

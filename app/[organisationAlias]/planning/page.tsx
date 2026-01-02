@@ -44,15 +44,15 @@ export default async function PlanningPage({ params, searchParams }: Props) {
   const toLocalISO = to || format(defaultTo, "yyyy-MM-dd");
   
   // Parse comma-separated department IDs
-  const departmentIds: number[] = department
+  const departmentIds: string[] = department
     ? department
         .split(",")
-        .map((id) => parseInt(id.trim(), 10))
-        .filter((id) => !isNaN(id) && id > 0)
+        .map((id) => id.trim())
+        .filter((id) => id.length > 0)
     : [];
 
   // Validate departmentIds if provided
-  const validDepartmentIds: number[] = [];
+  const validDepartmentIds: string[] = [];
   if (departmentIds.length > 0) {
     for (const deptId of departmentIds) {
       if (managerStatus.isGeneralManager) {

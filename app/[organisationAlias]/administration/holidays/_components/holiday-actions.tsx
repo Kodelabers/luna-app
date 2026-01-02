@@ -23,7 +23,7 @@ import { HolidayDialog } from "./holiday-dialog";
 import { deleteHoliday } from "@/lib/actions/holiday";
 
 type Holiday = {
-  id: number;
+  id: string;
   name: string;
   date: Date;
   repeatYearly: boolean;

@@ -46,37 +46,37 @@ export const createEmployeeSchema = z.object({
   lastName: z.string().min(1, "Prezime je obavezno").max(100),
   email: z.string().email("Neispravan email format"),
   title: z.string().max(100).optional(),
-  departmentId: z.coerce.number().positive("Odjel je obavezan"),
+  departmentId: z.string().min(1, "Odjel je obavezan"),
 });
 
 export const updateEmployeeSchema = createEmployeeSchema.partial();
 
 // Application (leave request) schemas
 export const validateApplicationDraftSchema = z.object({
-  unavailabilityReasonId: z.coerce.number().positive("Razlog je obavezan"),
+  unavailabilityReasonId: z.string().min(1, "Razlog je obavezan"),
   startDateLocalISO: z.string().min(1, "Datum početka je obavezan"),
   endDateLocalISO: z.string().min(1, "Datum završetka je obavezan"),
   clientTimeZone: ianaTimezoneSchema,
-  editingApplicationId: z.coerce.number().positive().optional(),
+  editingApplicationId: z.string().min(1).optional(),
 });
 
 export const saveDraftApplicationSchema = z.object({
-  unavailabilityReasonId: z.coerce.number().positive("Razlog je obavezan"),
+  unavailabilityReasonId: z.string().min(1, "Razlog je obavezan"),
   startDateLocalISO: z.string().min(1, "Datum početka je obavezan"),
   endDateLocalISO: z.string().min(1, "Datum završetka je obavezan"),
   description: z.string().max(1000).optional(),
   clientTimeZone: ianaTimezoneSchema,
-  applicationId: z.coerce.number().positive().optional(),
-  employeeId: z.coerce.number().positive().optional(), // For managers creating applications for others
+  applicationId: z.string().min(1).optional(),
+  employeeId: z.string().min(1).optional(), // For managers creating applications for others
 });
 
 export const submitApplicationSchema = z.object({
-  applicationId: z.coerce.number().positive("ID zahtjeva je obavezan"),
+  applicationId: z.string().min(1, "ID zahtjeva je obavezan"),
   clientTimeZone: ianaTimezoneSchema,
 });
 
 export const deleteApplicationSchema = z.object({
-  applicationId: z.coerce.number().positive("ID zahtjeva je obavezan"),
+  applicationId: z.string().min(1, "ID zahtjeva je obavezan"),
 });
 
 // UnavailabilityReason schemas
@@ -109,23 +109,23 @@ export const calendarMonthSchema = z.object({
 // Pagination schemas
 export const paginationSchema = z.object({
   limit: z.coerce.number().min(1).max(100).default(20),
-  cursor: z.coerce.number().optional(),
+  cursor: z.string().optional(),
 });
 
 // Manager schemas
 export const createManagerSchema = z.object({
-  employeeId: z.coerce.number().positive("Zaposlenik je obavezan"),
-  // null = general manager, number = department manager
+  employeeId: z.string().min(1, "Zaposlenik je obavezan"),
+  // null = general manager, string = department manager
   departmentId: z.preprocess(
-    (val) => (val === null || val === undefined ? null : val),
-    z.union([z.coerce.number().positive(), z.null()])
+    (val) => (val === null || val === undefined || val === "" ? null : val),
+    z.union([z.string().min(1), z.null()])
   ).optional(),
 });
 
 // Ledger entry schemas
 export const createLedgerEntrySchema = z.object({
-  employeeId: z.coerce.number().positive("Zaposlenik je obavezan"),
-  unavailabilityReasonId: z.coerce.number().positive("Razlog je obavezan"),
+  employeeId: z.string().min(1, "Zaposlenik je obavezan"),
+  unavailabilityReasonId: z.string().min(1, "Razlog je obavezan"),
   year: yearSchema,
   changeDays: z.coerce.number().int("Broj dana mora biti cijeli broj"),
   type: z.enum(["ALLOCATION", "USAGE", "TRANSFER", "CORRECTION"]),
@@ -134,30 +134,26 @@ export const createLedgerEntrySchema = z.object({
 
 // Application decision schemas (DM/GM approval)
 export const applicationDecisionSchema = z.object({
-  applicationId: z.coerce.number().positive("ID zahtjeva je obavezan"),
-  decision: z.enum(["APPROVE", "REJECT"], {
-    message: "Odluka mora biti APPROVE ili REJECT",
-  }),
+  applicationId: z.string().min(1, "ID zahtjeva je obavezan"),
+  decision: z.enum(["APPROVE", "REJECT"]),
   comment: z.string().max(1000).optional(),
   clientTimeZone: ianaTimezoneSchema,
 });
 
 // Days balance schemas (UC-DAYS-04, UC-DAYS-05)
 export const allocateDaysSchema = z.object({
-  employeeId: z.coerce.number().positive("Zaposlenik je obavezan"),
-  unavailabilityReasonId: z.coerce.number().positive("Vrsta odsutnosti je obavezna"),
+  employeeId: z.string().min(1, "Zaposlenik je obavezan"),
+  unavailabilityReasonId: z.string().min(1, "Vrsta odsutnosti je obavezna"),
   year: yearSchema,
   days: z.coerce.number().int("Broj dana mora biti cijeli broj").min(1, "Broj dana mora biti najmanje 1").max(50, "Broj dana može biti najviše 50"),
   clientTimeZone: ianaTimezoneSchema,
 });
 
 export const updateAllocationSchema = z.object({
-  employeeId: z.coerce.number().positive("Zaposlenik je obavezan"),
-  unavailabilityReasonId: z.coerce.number().positive("Vrsta odsutnosti je obavezna"),
+  employeeId: z.string().min(1, "Zaposlenik je obavezan"),
+  unavailabilityReasonId: z.string().min(1, "Vrsta odsutnosti je obavezna"),
   year: yearSchema,
-  adjustmentType: z.enum(["INCREASE", "DECREASE"], {
-    required_error: "Odaberite da li želite povećati ili smanjiti dodjelu",
-  }),
+  adjustmentType: z.enum(["INCREASE", "DECREASE"]),
   adjustmentDays: z.coerce.number().int("Broj dana mora biti cijeli broj").min(1, "Broj dana mora biti najmanje 1").max(50, "Broj dana može biti najviše 50"),
   clientTimeZone: ianaTimezoneSchema,
 });
@@ -172,7 +168,7 @@ export const getPlanningDataSchema = z
       .string()
       .regex(/^\d{4}-\d{2}-\d{2}$/, "Datum mora biti u formatu YYYY-MM-DD"),
     clientTimeZone: ianaTimezoneSchema,
-    departmentIds: z.array(z.coerce.number().positive()).optional(),
+    departmentIds: z.array(z.string().min(1)).optional(),
   })
   .refine(
     (data) => {

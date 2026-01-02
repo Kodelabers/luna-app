@@ -12,7 +12,7 @@ import {
 import { EmployeeProfile } from "@/components/employee-profile";
 
 type Employee = {
-  id: number;
+  id: string;
   firstName: string;
   lastName: string;
   email: string;

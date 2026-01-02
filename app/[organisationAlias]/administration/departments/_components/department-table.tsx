@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { DepartmentActions } from "./department-actions";
 
 type Department = {
-  id: number;
+  id: string;
   name: string;
   alias: string;
   description: string | null;

@@ -94,9 +94,9 @@ export async function POST(
 
     // Group by reason and year, calculate balance
     const ledgerBalance = new Map<
-      number,
+      string,
       {
-        reasonId: number;
+        reasonId: string;
         reasonName: string;
         byYear: Map<number, { allocated: number; used: number; remaining: number }>;
       }

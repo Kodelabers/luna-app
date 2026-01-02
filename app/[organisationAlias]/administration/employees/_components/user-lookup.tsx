@@ -9,7 +9,7 @@ import { searchUsers, getUserById } from "@/lib/actions/employee";
 import { cn } from "@/lib/utils";
 
 type UserResult = {
-  id: number;
+  id: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -17,8 +17,8 @@ type UserResult = {
 
 type UserLookupProps = {
   organisationAlias: string;
-  value: number | null;
-  onChange: (userId: number | null) => void;
+  value: string | null;
+  onChange: (userId: string | null) => void;
   disabled?: boolean;
 };
 

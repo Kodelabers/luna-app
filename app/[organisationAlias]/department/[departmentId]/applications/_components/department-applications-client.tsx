@@ -9,13 +9,13 @@ import { useRouter } from "next/navigation";
 import { Skeleton } from "@/components/ui/skeleton";
 
 type UnavailabilityReason = {
-  id: number;
+  id: string;
   name: string;
 };
 
 type DepartmentApplicationsClientProps = {
   organisationAlias: string;
-  departmentId: number;
+  departmentId: string;
   reasons: UnavailabilityReason[];
 };
 
@@ -32,7 +32,7 @@ export function DepartmentApplicationsClient({
   const [statusFilter, setStatusFilter] = useState<ApplicationStatus | "ALL">(
     "ALL"
   );
-  const [reasonFilter, setReasonFilter] = useState<number | "ALL">("ALL");
+  const [reasonFilter, setReasonFilter] = useState<string | "ALL">("ALL");
 
   // Fetch applications
   const fetchApplications = async () => {
@@ -76,11 +76,11 @@ export function DepartmentApplicationsClient({
     );
   });
 
-  const handleView = (id: number) => {
+  const handleView = (id: string) => {
     router.push(`/${organisationAlias}/applications/${id}`);
   };
 
-  const handleRowClick = (id: number) => {
+  const handleRowClick = (id: string) => {
     router.push(`/${organisationAlias}/applications/${id}`);
   };
 

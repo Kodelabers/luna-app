@@ -91,7 +91,7 @@ export async function applyApprovalEffects(
 
   // Track correction info for ledger
   let correctionDays = 0;
-  const correctedApplicationIds = new Set<number>();
+  const correctedApplicationIds = new Set<string>();
 
   // Upsert DaySchedule for each day
   for (const utcDay of daysInRange) {
@@ -260,8 +260,7 @@ export async function applyApprovalEffects(
       for (const correctedAppId of correctedApplicationIds) {
         const correctedApp = await db.application.findUnique({
           where: { id: correctedAppId },
-          select: {
-            unavailabilityReasonId: true,
+          include: {
             unavailabilityReason: {
               select: {
                 hasPlanning: true,

@@ -20,7 +20,7 @@ import { dmDecideApplicationAction, gmDecideApplicationAction } from "@/lib/acti
 type ApplicationApprovalDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  applicationId: number;
+  applicationId: string;
   decision: "APPROVE" | "REJECT";
   organisationAlias: string;
   isGeneralManager: boolean;

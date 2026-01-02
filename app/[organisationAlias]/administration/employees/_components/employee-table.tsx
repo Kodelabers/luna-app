@@ -13,21 +13,21 @@ import { Badge } from "@/components/ui/badge";
 import { EmployeeActions } from "./employee-actions";
 
 type Department = {
-  id: number;
+  id: string;
   name: string;
   colorCode: string | null;
 };
 
 type Employee = {
-  id: number;
+  id: string;
   firstName: string;
   lastName: string;
   email: string;
   title: string | null;
-  departmentId: number;
-  userId: number | null;
+  departmentId: string;
+  userId: string | null;
   department: {
-    id: number;
+    id: string;
     name: string;
     colorCode: string | null;
   };

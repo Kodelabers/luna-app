@@ -47,7 +47,7 @@ import { cn } from "@/lib/utils";
 type HolidayFormValues = z.infer<typeof createHolidaySchema>;
 
 type Holiday = {
-  id: number;
+  id: string;
   name: string;
   date: Date;
   repeatYearly: boolean;
@@ -81,7 +81,8 @@ export function HolidayDialog({
   const tCommon = useTranslations("common");
 
   const form = useForm<HolidayFormValues>({
-    resolver: zodResolver(createHolidaySchema),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(createHolidaySchema) as any,
     defaultValues: {
       name: holiday?.name || "",
       date: holiday?.date || new Date(),

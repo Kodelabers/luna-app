@@ -12,9 +12,9 @@ import { ApplicationApprovalDialog } from "./application-approval-dialog";
 
 type ApplicationActionsProps = {
   organisationAlias: string;
-  applicationId: number;
+  applicationId: string;
   status: ApplicationStatus;
-  departmentId: number;
+  departmentId: string;
   isOwner: boolean;
   isDepartmentManager: boolean;
   isGeneralManager: boolean;

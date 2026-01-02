@@ -33,7 +33,7 @@ import {
 import { ApplicationStatus } from "@prisma/client";
 
 type EmployeeProfileProps = {
-  employeeId: number;
+  employeeId: string;
   organisationAlias: string;
   children: React.ReactNode;
 };

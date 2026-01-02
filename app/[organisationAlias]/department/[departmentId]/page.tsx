@@ -26,8 +26,8 @@ export default async function DepartmentPage({ params, searchParams }: Props) {
   const t = await getTranslations("planning");
   const ctx = await resolveTenantContext(organisationAlias);
 
-  const deptId = parseInt(departmentId, 10);
-  if (isNaN(deptId)) {
+  const deptId = departmentId;
+  if (!deptId) {
     notFound();
   }
 

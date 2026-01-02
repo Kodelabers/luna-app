@@ -19,8 +19,8 @@ import {
  */
 export async function createManager(
   organisationAlias: string,
-  employeeId: number,
-  departmentId?: number | null
+  employeeId: string,
+  departmentId?: string | null
 ): Promise<FormState> {
   try {
     // #region agent log
@@ -129,7 +129,7 @@ export async function createManager(
  */
 export async function deleteManager(
   organisationAlias: string,
-  managerId: number
+  managerId: string
 ): Promise<FormState> {
   try {
     const ctx = await resolveTenantContext(organisationAlias);
@@ -171,8 +171,8 @@ export async function deleteManager(
 export async function searchEmployeesForManager(
   organisationAlias: string,
   query: string,
-  departmentId?: number | null
-): Promise<{ id: number; firstName: string; lastName: string; email: string }[]> {
+  departmentId?: string | null
+): Promise<{ id: string; firstName: string; lastName: string; email: string }[]> {
   try {
     const ctx = await resolveTenantContext(organisationAlias);
     requireAdmin(ctx);
@@ -231,7 +231,7 @@ export async function searchEmployeesForManager(
 const PAGE_SIZE = 20;
 
 type PaginatedEmployeesResult = {
-  employees: { id: number; firstName: string; lastName: string; email: string }[];
+  employees: { id: string; firstName: string; lastName: string; email: string }[];
   totalCount: number;
   totalPages: number;
   currentPage: number;
@@ -245,7 +245,7 @@ type PaginatedEmployeesResult = {
 export async function getEmployeesForManager(
   organisationAlias: string,
   page: number = 1,
-  departmentId?: number | null
+  departmentId?: string | null
 ): Promise<PaginatedEmployeesResult> {
   try {
     const ctx = await resolveTenantContext(organisationAlias);

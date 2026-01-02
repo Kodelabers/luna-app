@@ -26,10 +26,10 @@ import { AddManagerDialog } from "./add-manager-dialog";
 import { deleteManager } from "@/lib/actions/manager";
 
 type Manager = {
-  id: number;
-  departmentId: number | null;
+  id: string;
+  departmentId: string | null;
   employee: {
-    id: number;
+    id: string;
     firstName: string;
     lastName: string;
     email: string;
@@ -37,7 +37,7 @@ type Manager = {
 };
 
 type Department = {
-  id: number;
+  id: string;
   name: string;
   colorCode: string | null;
   managers: Manager[];
@@ -47,7 +47,7 @@ type ManagerTableProps = {
   generalManagers: Manager[];
   departments: Department[];
   organisationAlias: string;
-  filteredDepartmentId?: number | null;
+  filteredDepartmentId?: string | null;
 };
 
 export function ManagerTable({

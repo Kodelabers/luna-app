@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/select";
 
 type Department = {
-  id: number;
+  id: string;
   name: string;
   colorCode: string | null;
 };

@@ -85,7 +85,7 @@ export async function deleteFile(path: string): Promise<void> {
  * @param extension - File extension (e.g., "png", "pdf")
  */
 export function generateFilePath(
-  organisationId: number,
+  organisationId: string,
   prefix: string,
   extension: string
 ): string {

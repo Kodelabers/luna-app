@@ -19,7 +19,7 @@ import {
 import { cn } from "@/lib/utils";
 
 type EmployeeResult = {
-  id: number;
+  id: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -27,7 +27,7 @@ type EmployeeResult = {
 
 type EmployeeSearchProps = {
   organisationAlias: string;
-  departmentId?: number | null;
+  departmentId?: string | null;
   onSelect: (employee: EmployeeResult) => void;
   disabled?: boolean;
 };

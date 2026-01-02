@@ -9,16 +9,16 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Checkbox } from "@/components/ui/checkbox";
 
 type Department = {
-  id: number;
+  id: string;
   name: string;
   colorCode: string | null;
 };
 
 type DepartmentFilterProps = {
-  departmentIds: number[];
+  departmentIds: string[];
   departments: Department[];
   organisationAlias: string;
-  reasonId?: number;
+  reasonId?: string;
 };
 
 export function DepartmentFilter({
@@ -32,7 +32,7 @@ export function DepartmentFilter({
   const searchParams = useSearchParams();
 
   // Initialize selected departments - if empty or all departments selected, show all
-  const [selectedDepartmentIds, setSelectedDepartmentIds] = useState<number[]>(
+  const [selectedDepartmentIds, setSelectedDepartmentIds] = useState<string[]>(
     departmentIds.length === 0 || departmentIds.length === departments.length
       ? departments.map((d) => d.id)
       : departmentIds

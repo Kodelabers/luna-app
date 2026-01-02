@@ -15,8 +15,8 @@ import { Plus, Edit, History } from "lucide-react";
 
 type DaysBalanceTableClientProps = {
   organisationAlias: string;
-  unavailabilityReasonId: number;
-  departmentIds?: number[];
+  unavailabilityReasonId: string;
+  departmentIds?: string[];
 };
 
 export function DaysBalanceTableClient({
@@ -26,14 +26,14 @@ export function DaysBalanceTableClient({
 }: DaysBalanceTableClientProps) {
   const t = useTranslations("daysBalance");
   const [employees, setEmployees] = useState<Array<{
-    employeeId: number;
+    employeeId: string;
     employeeFirstName: string;
     employeeLastName: string;
     employeeEmail: string;
-    departmentId: number;
+    departmentId: string;
     departmentName: string;
     balances: Array<{
-      unavailabilityReasonId: number;
+      unavailabilityReasonId: string;
       unavailabilityReasonName: string;
       unavailabilityReasonColorCode: string | null;
       openYear: number | null;
@@ -48,8 +48,8 @@ export function DaysBalanceTableClient({
     }>;
   }>>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedEmployee, setSelectedEmployee] = useState<number | null>(null);
-  const [selectedReason, setSelectedReason] = useState<number | null>(null);
+  const [selectedEmployee, setSelectedEmployee] = useState<string | null>(null);
+  const [selectedReason, setSelectedReason] = useState<string | null>(null);
   const [allocateDialogOpen, setAllocateDialogOpen] = useState(false);
   const [updateDialogOpen, setUpdateDialogOpen] = useState(false);
   const [historyDialogOpen, setHistoryDialogOpen] = useState(false);

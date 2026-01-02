@@ -36,7 +36,7 @@ export default async function EditApplicationPage(props: PageProps) {
   // Fetch application (allow editing if user is owner or creator)
   const application = await db.application.findFirst({
     where: {
-      id: parseInt(params.applicationId),
+      id: params.applicationId,
       organisationId: ctx.organisationId,
       status: "DRAFT",
       active: true,

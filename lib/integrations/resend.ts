@@ -54,7 +54,7 @@ export async function sendApplicationSubmittedEmail(params: {
   managerEmail: string;
   managerName: string;
   employeeName: string;
-  applicationId: number;
+  applicationId: string;
   startDate: string;
   endDate: string;
   reasonName: string;

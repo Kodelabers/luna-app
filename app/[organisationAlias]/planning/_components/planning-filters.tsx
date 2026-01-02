@@ -15,7 +15,7 @@ import { cn } from "@/lib/utils";
 import type { DateRange } from "react-day-picker";
 
 type Department = {
-  id: number;
+  id: string;
   name: string;
   colorCode: string | null;
 };
@@ -23,7 +23,7 @@ type Department = {
 type PlanningFiltersProps = {
   fromLocalISO: string;
   toLocalISO: string;
-  departmentIds: number[];
+  departmentIds: string[];
   departments: Department[];
   isGeneralManager: boolean;
   clientTimeZone: string;
@@ -57,7 +57,7 @@ export function PlanningFilters({
   });
 
   // Initialize selected departments - if empty or all departments selected, show all
-  const [selectedDepartmentIds, setSelectedDepartmentIds] = useState<number[]>(
+  const [selectedDepartmentIds, setSelectedDepartmentIds] = useState<string[]>(
     departmentIds.length === 0 || departmentIds.length === departments.length
       ? departments.map((d) => d.id)
       : departmentIds

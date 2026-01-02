@@ -83,8 +83,8 @@ async function calculateWorkdays(
  */
 export async function getDaysBalance(
   ctx: TenantContext,
-  employeeId: number,
-  unavailabilityReasonId: number,
+  employeeId: string,
+  unavailabilityReasonId: string,
   year: number
 ): Promise<number> {
   const ledgerEntries = await db.unavailabilityLedgerEntry.findMany({
@@ -106,8 +106,8 @@ export async function getDaysBalance(
  */
 export async function getOpenYear(
   ctx: TenantContext,
-  employeeId: number,
-  unavailabilityReasonId: number
+  employeeId: string,
+  unavailabilityReasonId: string
 ): Promise<number | null> {
   const latestAllocation = await db.unavailabilityLedgerEntry.findFirst({
     where: {
@@ -132,8 +132,8 @@ export async function getOpenYear(
  */
 export async function getOpenYearBalance(
   ctx: TenantContext,
-  employeeId: number,
-  unavailabilityReasonId: number,
+  employeeId: string,
+  unavailabilityReasonId: string,
   openYear: number
 ): Promise<number> {
   return getDaysBalance(ctx, employeeId, unavailabilityReasonId, openYear);
@@ -144,8 +144,8 @@ export async function getOpenYearBalance(
  */
 export async function getPendingDays(
   ctx: TenantContext,
-  employeeId: number,
-  unavailabilityReasonId: number,
+  employeeId: string,
+  unavailabilityReasonId: string,
   year: number,
   clientTimeZone: string
 ): Promise<number> {
@@ -196,8 +196,8 @@ export type DaysBalanceBreakdown = {
  */
 export async function getDaysBalanceBreakdown(
   ctx: TenantContext,
-  employeeId: number,
-  unavailabilityReasonId: number,
+  employeeId: string,
+  unavailabilityReasonId: string,
   year: number,
   clientTimeZone: string
 ): Promise<DaysBalanceBreakdown> {
@@ -253,8 +253,8 @@ export type DaysBalanceByYear = {
  */
 export async function getDaysBalanceByYear(
   ctx: TenantContext,
-  employeeId: number,
-  unavailabilityReasonId: number,
+  employeeId: string,
+  unavailabilityReasonId: string,
   years: number[],
   clientTimeZone: string
 ): Promise<DaysBalanceByYear[]> {
@@ -278,7 +278,7 @@ export async function getDaysBalanceByYear(
  * Days balance for an employee by unavailability reason (current year)
  */
 export type EmployeeDaysBalance = {
-  unavailabilityReasonId: number;
+  unavailabilityReasonId: string;
   unavailabilityReasonName: string;
   unavailabilityReasonColorCode: string | null;
   openYear: number | null; // NEW - zadnja godina s ALLOCATION
@@ -291,7 +291,7 @@ export type EmployeeDaysBalance = {
  */
 export async function getDaysBalanceForEmployee(
   ctx: TenantContext,
-  employeeId: number,
+  employeeId: string,
   currentYear: number,
   clientTimeZone: string
 ): Promise<EmployeeDaysBalance[]> {
@@ -346,11 +346,11 @@ export async function getDaysBalanceForEmployee(
  * Days balance for multiple employees (manager view)
  */
 export type ManagerEmployeeDaysBalance = {
-  employeeId: number;
+  employeeId: string;
   employeeFirstName: string;
   employeeLastName: string;
   employeeEmail: string;
-  departmentId: number;
+  departmentId: string;
   departmentName: string;
   balances: EmployeeDaysBalance[];
 };
@@ -360,7 +360,7 @@ export type ManagerEmployeeDaysBalance = {
  */
 export async function getDaysBalanceForManager(
   ctx: TenantContext,
-  employeeIds: number[],
+  employeeIds: string[],
   currentYear: number,
   clientTimeZone: string
 ): Promise<ManagerEmployeeDaysBalance[]> {
@@ -409,13 +409,13 @@ export async function getDaysBalanceForManager(
  * Ledger history entry
  */
 export type LedgerHistoryEntry = {
-  id: number;
+  id: string;
   year: number;
   type: LedgerEntryType;
   typeLabel: string; // UI label (Dodjela, Iskorištenje, Prijenos, Ispravak)
   changeDays: number;
   note: string | null;
-  applicationId: number | null;
+  applicationId: string | null;
   createdAt: Date;
   createdBy: {
     firstName: string;
@@ -428,8 +428,8 @@ export type LedgerHistoryEntry = {
  */
 export async function getLedgerHistory(
   ctx: TenantContext,
-  employeeId: number,
-  unavailabilityReasonId: number,
+  employeeId: string,
+  unavailabilityReasonId: string,
   year?: number
 ): Promise<LedgerHistoryEntry[]> {
   const where: any = {
@@ -491,8 +491,8 @@ export async function getLedgerHistory(
  * Input for allocating days
  */
 export type AllocateDaysInput = {
-  employeeId: number;
-  unavailabilityReasonId: number;
+  employeeId: string;
+  unavailabilityReasonId: string;
   year: number;
   days: number;
   clientTimeZone: string; // For calculating currentYear
@@ -669,8 +669,8 @@ export async function allocateDays(
  * Input for updating allocation
  */
 export type UpdateAllocationInput = {
-  employeeId: number;
-  unavailabilityReasonId: number;
+  employeeId: string;
+  unavailabilityReasonId: string;
   year: number;
   adjustmentType: "INCREASE" | "DECREASE";
   adjustmentDays: number;

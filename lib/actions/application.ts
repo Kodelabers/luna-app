@@ -126,11 +126,11 @@ export async function gmDecideApplicationAction(
 export async function validateApplicationDraftAction(
   organisationAlias: string,
   input: {
-    unavailabilityReasonId: number;
+    unavailabilityReasonId: string;
     startDateLocalISO: string;
     endDateLocalISO: string;
     clientTimeZone: string;
-    editingApplicationId?: number;
+    editingApplicationId?: string;
   }
 ) {
   try {
@@ -287,7 +287,7 @@ export async function listMyApplicationsAction(
   filters?: {
     status?: string;
     year?: number;
-    reasonId?: number;
+    reasonId?: string;
     clientTimeZone?: string;
   }
 ) {
@@ -313,10 +313,10 @@ export async function listMyApplicationsAction(
  */
 export async function listDepartmentApplicationsAction(
   organisationAlias: string,
-  departmentId: number,
+  departmentId: string,
   filters?: {
     status?: string;
-    reasonId?: number;
+    reasonId?: string;
     clientTimeZone?: string;
   }
 ) {

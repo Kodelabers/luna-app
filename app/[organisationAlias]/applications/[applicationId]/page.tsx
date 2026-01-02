@@ -74,7 +74,7 @@ export default async function ApplicationDetailsPage(props: PageProps) {
   // Fetch application (without authorization filter first)
   const application = await db.application.findFirst({
     where: {
-      id: parseInt(params.applicationId),
+      id: params.applicationId,
       organisationId: ctx.organisationId,
       active: true,
     },

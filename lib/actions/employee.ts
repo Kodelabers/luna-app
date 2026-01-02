@@ -76,7 +76,7 @@ export async function createEmployee(
 
     // Handle userId
     const userId = formData.get("userId");
-    const parsedUserId = userId ? parseInt(userId as string, 10) : null;
+    const parsedUserId = userId ? (userId as string) : null;
 
     // If userId provided, verify it exists
     if (parsedUserId) {
@@ -117,7 +117,7 @@ export async function createEmployee(
  */
 export async function updateEmployee(
   organisationAlias: string,
-  employeeId: number,
+  employeeId: string,
   _prevState: FormState,
   formData: FormData
 ): Promise<FormState> {
@@ -188,7 +188,7 @@ export async function updateEmployee(
 
     // Handle userId
     const userId = formData.get("userId");
-    const parsedUserId = userId ? parseInt(userId as string, 10) : null;
+    const parsedUserId = userId ? (userId as string) : null;
 
     // If userId provided, verify it exists
     if (parsedUserId) {
@@ -229,7 +229,7 @@ export async function updateEmployee(
  */
 export async function deleteEmployee(
   organisationAlias: string,
-  employeeId: number
+  employeeId: string
 ): Promise<FormState> {
   try {
     const ctx = await resolveTenantContext(organisationAlias);
@@ -268,7 +268,7 @@ export async function deleteEmployee(
 export async function searchUsers(
   organisationAlias: string,
   query: string
-): Promise<{ id: number; firstName: string; lastName: string; email: string }[]> {
+): Promise<{ id: string; firstName: string; lastName: string; email: string }[]> {
   try {
     const ctx = await resolveTenantContext(organisationAlias);
     requireAdmin(ctx);
@@ -312,8 +312,8 @@ export async function searchUsers(
  */
 export async function getUserById(
   organisationAlias: string,
-  userId: number
-): Promise<{ id: number; firstName: string; lastName: string; email: string } | null> {
+  userId: string
+): Promise<{ id: string; firstName: string; lastName: string; email: string } | null> {
   try {
     const ctx = await resolveTenantContext(organisationAlias);
     requireAdmin(ctx);
@@ -343,18 +343,18 @@ export async function getUserById(
  */
 export type EmployeeProfileData = {
   employee: {
-    id: number;
+    id: string;
     firstName: string;
     lastName: string;
     email: string;
     title: string | null;
     department: {
-      id: number;
+      id: string;
       name: string;
       colorCode: string | null;
     };
     user: {
-      id: number;
+      id: string;
       firstName: string;
       lastName: string;
       email: string;
@@ -362,7 +362,7 @@ export type EmployeeProfileData = {
   };
   daysBalance: EmployeeDaysBalance[];
   openApplications: Array<{
-    id: number;
+    id: string;
     status: ApplicationStatus;
     unavailabilityReasonName: string;
     unavailabilityReasonColor: string | null;
@@ -377,7 +377,7 @@ export type EmployeeProfileData = {
  */
 export async function getEmployeeProfileAction(
   organisationAlias: string,
-  employeeId: number,
+  employeeId: string,
   clientTimeZone: string
 ): Promise<
   | { success: true; data: EmployeeProfileData }

@@ -34,7 +34,7 @@ export default async function EmployeesPage({ params, searchParams }: Props) {
   const t = await getTranslations("employees");
 
   const currentPage = Math.max(1, parseInt(pageParam || "1", 10));
-  const departmentId = department ? parseInt(department, 10) : undefined;
+  const departmentId = department ? department : undefined;
 
   // Build where clause for reuse
   const whereClause = {
