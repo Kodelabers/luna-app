@@ -11,6 +11,9 @@ import {
   ConflictError,
   NotFoundError,
 } from "@/lib/errors";
+import { getDaysBalanceForEmployee, type EmployeeDaysBalance } from "@/lib/services/days-balance";
+import { toZonedTime } from "date-fns-tz";
+import { ApplicationStatus } from "@prisma/client";
 
 /**
  * Create a new employee
@@ -332,6 +335,156 @@ export async function getUserById(
   } catch (error) {
     console.error("Error getting user:", error);
     return null;
+  }
+}
+
+/**
+ * Employee profile data type
+ */
+export type EmployeeProfileData = {
+  employee: {
+    id: number;
+    firstName: string;
+    lastName: string;
+    email: string;
+    title: string | null;
+    department: {
+      id: number;
+      name: string;
+      colorCode: string | null;
+    };
+    user: {
+      id: number;
+      firstName: string;
+      lastName: string;
+      email: string;
+    } | null;
+  };
+  daysBalance: EmployeeDaysBalance[];
+  openApplications: Array<{
+    id: number;
+    status: ApplicationStatus;
+    unavailabilityReasonName: string;
+    unavailabilityReasonColor: string | null;
+    startDateLocalISO: string;
+    endDateLocalISO: string;
+  }>;
+};
+
+/**
+ * Get employee profile data for dialog
+ * Returns employee details, days balance, and open applications
+ */
+export async function getEmployeeProfileAction(
+  organisationAlias: string,
+  employeeId: number,
+  clientTimeZone: string
+): Promise<
+  | { success: true; data: EmployeeProfileData }
+  | { success: false; error: string }
+> {
+  try {
+    const ctx = await resolveTenantContext(organisationAlias);
+
+    // Fetch employee with department and user
+    const employee = await db.employee.findFirst({
+      where: {
+        id: employeeId,
+        organisationId: ctx.organisationId,
+        active: true,
+      },
+      include: {
+        department: {
+          select: {
+            id: true,
+            name: true,
+            colorCode: true,
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+          },
+        },
+      },
+    });
+
+    if (!employee) {
+      return { success: false, error: "Zaposlenik nije pronađen" };
+    }
+
+    // Get current year in client timezone
+    const now = new Date();
+    const currentYear = toZonedTime(now, clientTimeZone).getFullYear();
+
+    // Get days balance for employee
+    const daysBalance = await getDaysBalanceForEmployee(
+      ctx,
+      employeeId,
+      currentYear,
+      clientTimeZone
+    );
+
+    // Get open applications (SUBMITTED, APPROVED_FIRST_LEVEL)
+    const applications = await db.application.findMany({
+      where: {
+        organisationId: ctx.organisationId,
+        employeeId,
+        active: true,
+        status: {
+          in: ["SUBMITTED", "APPROVED_FIRST_LEVEL"],
+        },
+      },
+      include: {
+        unavailabilityReason: {
+          select: {
+            name: true,
+            colorCode: true,
+          },
+        },
+      },
+      orderBy: {
+        startDate: "asc",
+      },
+    });
+
+    // Format applications with local dates
+    const openApplications = applications.map((app) => {
+      const startLocal = toZonedTime(app.startDate, clientTimeZone);
+      const endLocal = toZonedTime(app.endDate, clientTimeZone);
+
+      return {
+        id: app.id,
+        status: app.status,
+        unavailabilityReasonName: app.unavailabilityReason.name,
+        unavailabilityReasonColor: app.unavailabilityReason.colorCode,
+        startDateLocalISO: startLocal.toISOString().split("T")[0],
+        endDateLocalISO: endLocal.toISOString().split("T")[0],
+      };
+    });
+
+    return {
+      success: true,
+      data: {
+        employee: {
+          id: employee.id,
+          firstName: employee.firstName,
+          lastName: employee.lastName,
+          email: employee.email,
+          title: employee.title,
+          department: employee.department,
+          user: employee.user,
+        },
+        daysBalance,
+        openApplications,
+      },
+    };
+  } catch (error) {
+    console.error("Error getting employee profile:", error);
+    return { success: false, error: "Greška pri dohvaćanju profila zaposlenika" };
   }
 }
 

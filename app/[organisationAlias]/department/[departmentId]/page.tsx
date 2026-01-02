@@ -1,16 +1,29 @@
 import { resolveTenantContext, requireDepartmentAccess } from "@/lib/tenant/resolveTenantContext";
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Users } from "lucide-react";
+import { getPlanningDataAction } from "@/lib/actions/planning";
+import { DepartmentPlanningFilters } from "./_components/department-planning-filters";
+import { PlanningTable } from "../../planning/_components/planning-table";
+import { format } from "date-fns";
+import { getTranslations } from "next-intl/server";
 
 type Props = {
   params: Promise<{ organisationAlias: string; departmentId: string }>;
+  searchParams: Promise<{
+    from?: string;
+    to?: string;
+  }>;
 };
 
-export default async function DepartmentPage({ params }: Props) {
+export default async function DepartmentPage({ params, searchParams }: Props) {
   const { organisationAlias, departmentId } = await params;
+  const { from, to } = await searchParams;
+  const t = await getTranslations("planning");
   const ctx = await resolveTenantContext(organisationAlias);
 
   const deptId = parseInt(departmentId, 10);
@@ -21,7 +34,7 @@ export default async function DepartmentPage({ params }: Props) {
   // Check department access
   await requireDepartmentAccess(ctx, deptId);
 
-  // Fetch department with employees
+  // Fetch department with managers
   const department = await db.department.findFirst({
     where: {
       id: deptId,
@@ -31,7 +44,7 @@ export default async function DepartmentPage({ params }: Props) {
     include: {
       employees: {
         where: { active: true },
-        orderBy: [{ lastName: "asc" }, { firstName: "asc" }],
+        select: { id: true },
       },
       managers: {
         where: { active: true },
@@ -45,6 +58,27 @@ export default async function DepartmentPage({ params }: Props) {
   if (!department) {
     notFound();
   }
+
+  // Determine date range (default: 1 month from today)
+  const today = new Date();
+  const defaultFrom = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const defaultTo = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  defaultTo.setMonth(defaultTo.getMonth() + 1);
+
+  const fromLocalISO = from || format(defaultFrom, "yyyy-MM-dd");
+  const toLocalISO = to || format(defaultTo, "yyyy-MM-dd");
+
+  // Get client timezone (TODO: get from user preferences)
+  const clientTimeZone = "Europe/Zagreb";
+
+  // Fetch planning data for this department only
+  const result = await getPlanningDataAction(
+    organisationAlias,
+    fromLocalISO,
+    toLocalISO,
+    clientTimeZone,
+    [deptId]
+  );
 
   return (
     <div className="space-y-6">
@@ -95,7 +129,7 @@ export default async function DepartmentPage({ params }: Props) {
             <CardTitle>Manageri odjela</CardTitle>
             <CardDescription>Osobe odgovorne za odobrenja</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
             {department.managers.length === 0 ? (
               <p className="text-sm text-muted-foreground">
                 Nema dodijeljenih managera.
@@ -112,46 +146,46 @@ export default async function DepartmentPage({ params }: Props) {
                 ))}
               </ul>
             )}
+            <div className="pt-2 border-t">
+              <Button asChild variant="outline" size="sm" className="w-full">
+                <Link href={`/${organisationAlias}/department/${deptId}/employees`}>
+                  <Users className="mr-2 h-4 w-4" />
+                  Pogledaj sve zaposlenike ({department.employees.length})
+                </Link>
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Employees table */}
-      <Card>
+      {/* Planning section */}
+      <Card className="overflow-hidden">
         <CardHeader>
-          <CardTitle>Zaposlenici</CardTitle>
-          <CardDescription>Svi zaposlenici u odjelu</CardDescription>
+          <CardTitle>{t("planningTable")}</CardTitle>
+          <CardDescription>
+            {result.success
+              ? t("planningTableDescription", {
+                  employeeCount: result.data.employees.length,
+                  dayCount: result.data.days.length,
+                })
+              : "Greška pri dohvaćanju podataka"}
+          </CardDescription>
         </CardHeader>
-        <CardContent className="p-0">
-          {department.employees.length === 0 ? (
-            <div className="p-6 text-center">
-              <p className="text-muted-foreground">Nema zaposlenika u odjelu.</p>
-            </div>
+        <CardContent className="space-y-6">
+          <DepartmentPlanningFilters
+            fromLocalISO={fromLocalISO}
+            toLocalISO={toLocalISO}
+            clientTimeZone={clientTimeZone}
+            organisationAlias={organisationAlias}
+            departmentId={deptId}
+          />
+          {result.success ? (
+            <PlanningTable data={result.data} organisationAlias={organisationAlias} />
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Ime i prezime</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Pozicija</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {department.employees.map((emp) => (
-                  <TableRow key={emp.id}>
-                    <TableCell className="font-medium">
-                      {emp.firstName} {emp.lastName}
-                    </TableCell>
-                    <TableCell>{emp.email}</TableCell>
-                    <TableCell>{emp.title || "-"}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+            <p className="text-destructive">{result.formError}</p>
           )}
         </CardContent>
       </Card>
     </div>
   );
 }
-
