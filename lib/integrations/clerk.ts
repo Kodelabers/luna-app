@@ -43,7 +43,7 @@ export async function ensureLocalUser(clerkUser: {
   if (existingByClerkId) {
     // Case 1: User found by clerkId - update their info
     return db.user.update({
-      where: { clerkId: clerkUser.id },
+      where: { id: existingByClerkId.id },
       data: {
         firstName: clerkUser.firstName ?? undefined,
         lastName: clerkUser.lastName ?? undefined,
@@ -62,7 +62,7 @@ export async function ensureLocalUser(clerkUser: {
     // This happens when Clerk user was deleted and recreated
     // Update their clerkId to the new one
     return db.user.update({
-      where: { email },
+      where: { id: existingByEmail.id },
       data: {
         clerkId: clerkUser.id,
         firstName: clerkUser.firstName ?? undefined,
