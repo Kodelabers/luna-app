@@ -31,29 +31,55 @@ export async function ensureLocalUser(clerkUser: {
     throw new Error("User has no email address");
   }
 
-  // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/b2b7332b-7e97-456c-84b1-92faf4f81900',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'clerk.ts:ensureLocalUser',message:'User upsert being called',data:{clerkId:clerkUser.id,email},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'B'})}).catch(()=>{});
-  // #endregion
-  // Upsert user by clerkId
+  // Handle the case where:
+  // 1. User exists by clerkId -> update
+  // 2. User exists by email but different clerkId -> update clerkId (Clerk user was recreated)
+  // 3. No user exists -> create
   // Only update firstName, lastName, email - never touch active flag
-  const user = await db.user.upsert({
-    where: {
-      clerkId: clerkUser.id,
-    },
-    create: {
+  const existingByClerkId = await db.user.findUnique({
+    where: { clerkId: clerkUser.id },
+  });
+
+  if (existingByClerkId) {
+    // Case 1: User found by clerkId - update their info
+    return db.user.update({
+      where: { clerkId: clerkUser.id },
+      data: {
+        firstName: clerkUser.firstName ?? undefined,
+        lastName: clerkUser.lastName ?? undefined,
+        email,
+      },
+    });
+  }
+
+  // Check if user exists by email (might have different clerkId)
+  const existingByEmail = await db.user.findUnique({
+    where: { email },
+  });
+
+  if (existingByEmail) {
+    // Case 2: User exists by email but with different clerkId
+    // This happens when Clerk user was deleted and recreated
+    // Update their clerkId to the new one
+    return db.user.update({
+      where: { email },
+      data: {
+        clerkId: clerkUser.id,
+        firstName: clerkUser.firstName ?? undefined,
+        lastName: clerkUser.lastName ?? undefined,
+      },
+    });
+  }
+
+  // Case 3: New user - create
+  return db.user.create({
+    data: {
       clerkId: clerkUser.id,
       firstName: clerkUser.firstName ?? "",
       lastName: clerkUser.lastName ?? "",
       email,
     },
-    update: {
-      firstName: clerkUser.firstName ?? undefined,
-      lastName: clerkUser.lastName ?? undefined,
-      email,
-    },
   });
-
-  return user;
 }
 
 /**
