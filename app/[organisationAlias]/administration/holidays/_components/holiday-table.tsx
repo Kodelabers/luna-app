@@ -17,7 +17,7 @@ import { useLocale } from "next-intl";
 import { Repeat, CalendarDays } from "lucide-react";
 
 type Holiday = {
-  id: number;
+  id: string;
   name: string;
   date: Date;
   repeatYearly: boolean;

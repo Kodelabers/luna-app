@@ -13,7 +13,7 @@ import { Check } from "lucide-react";
 import { UnavailabilityReasonActions } from "./unavailability-reason-actions";
 
 type UnavailabilityReason = {
-  id: number;
+  id: string;
   name: string;
   colorCode: string | null;
   needApproval: boolean;

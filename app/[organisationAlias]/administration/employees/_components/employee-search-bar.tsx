@@ -16,7 +16,7 @@ import {
 import { Search, Loader2, X } from "lucide-react";
 
 type Department = {
-  id: number;
+  id: string;
   name: string;
   colorCode: string | null;
 };

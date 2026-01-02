@@ -2,9 +2,16 @@ import { db } from "@/lib/db";
 import type { TenantContext } from "@/lib/tenant/resolveTenantContext";
 
 export type ManagedDepartment = {
-  id: number;
+  id: string;
   name: string;
   alias: string;
+  colorCode: string | null;
+};
+
+export type PlanningAbsenceReason = {
+  id: string;
+  name: string;
+  colorCode: string | null;
 };
 
 /**
@@ -81,6 +88,29 @@ export async function getManagedDepartments(
       id: true,
       name: true,
       alias: true,
+      colorCode: true,
+    },
+    orderBy: {
+      name: "asc",
+    },
+  });
+}
+
+/**
+ * Get unavailability reasons with hasPlanning=true for sidebar navigation
+ */
+export async function getPlanningAbsenceReasons(
+  ctx: TenantContext
+): Promise<PlanningAbsenceReason[]> {
+  return db.unavailabilityReason.findMany({
+    where: {
+      organisationId: ctx.organisationId,
+      active: true,
+      hasPlanning: true,
+    },
+    select: {
+      id: true,
+      name: true,
       colorCode: true,
     },
     orderBy: {

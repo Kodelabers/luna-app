@@ -59,7 +59,7 @@ enum LedgerEntryType {
 }
 
 model Organisation {
-  id         Int      @id @default(autoincrement())
+  id         String   @id @default(cuid())
   name       String
   alias      String   @unique
   logoUrl    String?
@@ -83,7 +83,7 @@ model Organisation {
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
+  id        String   @id @default(cuid())
   clerkId   String   @unique
   firstName String
   lastName  String
@@ -100,9 +100,9 @@ model User {
 }
 
 model OrganisationUser {
-  id             Int        @id @default(autoincrement())
-  organisationId Int
-  userId         Int
+  id             String     @id @default(cuid())
+  organisationId String
+  userId         String
   roles          UserRole[]
   joinedAt       DateTime   @default(now())
   active         Boolean    @default(true)
@@ -123,8 +123,8 @@ model OrganisationUser {
 }
 
 model Department {
-  id             Int      @id @default(autoincrement())
-  organisationId Int
+  id             String   @id @default(cuid())
+  organisationId String
   name           String
   alias          String
   description    String?
@@ -144,10 +144,10 @@ model Department {
 }
 
 model Employee {
-  id             Int          @id @default(autoincrement())
-  organisationId Int
+  id             String       @id @default(cuid())
+  organisationId String
   organisation   Organisation @relation(fields: [organisationId], references: [id])
-  departmentId   Int
+  departmentId   String
   department     Department   @relation(fields: [departmentId], references: [id])
 
   title     String?
@@ -158,8 +158,8 @@ model Employee {
   email     String
   active    Boolean  @default(true)
 
-  userId Int?
-  user   User? @relation(fields: [userId], references: [id])
+  userId String?
+  user   User?   @relation(fields: [userId], references: [id])
 
   applications  Application[]
   daySchedules  DaySchedule[]
@@ -174,10 +174,10 @@ model Employee {
 }
 
 model Manager {
-  id           Int         @id @default(autoincrement())
-  departmentId Int?
+  id           String      @id @default(cuid())
+  departmentId String?
   department   Department? @relation(fields: [departmentId], references: [id])
-  employeeId   Int
+  employeeId   String
   employee     Employee    @relation(fields: [employeeId], references: [id])
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
@@ -189,8 +189,8 @@ model Manager {
 }
 
 model UnavailabilityReason {
-  id                          Int                         @id @default(autoincrement())
-  organisationId              Int
+  id                          String                      @id @default(cuid())
+  organisationId              String
   organisation                Organisation                @relation(fields: [organisationId], references: [id])
   name                        String
   colorCode                   String?
@@ -209,14 +209,14 @@ model UnavailabilityReason {
 }
 
 model UnavailabilityLedgerEntry {
-  id             Int          @id @default(autoincrement())
-  organisationId Int
+  id             String       @id @default(cuid())
+  organisationId String
   organisation   Organisation @relation(fields: [organisationId], references: [id])
-  employeeId     Int
+  employeeId     String
   employee       Employee     @relation(fields: [employeeId], references: [id])
 
   // Tip izostanka (GO, SD...) koji ima hasPlanning = true
-  unavailabilityReasonId Int
+  unavailabilityReasonId String
   unavailabilityReason   UnavailabilityReason @relation(fields: [unavailabilityReasonId], references: [id])
 
   // Godina na koju se knjiži (ključ za brze upite i prijenos)
@@ -229,13 +229,13 @@ model UnavailabilityLedgerEntry {
   type LedgerEntryType
 
   // Veza na zahtjev (ako je nastalo iz Application-a)
-  applicationId Int?
+  applicationId String?
   application   Application? @relation(fields: [applicationId], references: [id])
 
   note String?
 
   createdAt   DateTime          @default(now())
-  createdById Int?
+  createdById String?
   createdBy   OrganisationUser? @relation(fields: [createdById], references: [id])
 
   @@index([organisationId])
@@ -245,8 +245,8 @@ model UnavailabilityLedgerEntry {
 }
 
 model Holiday {
-  id             Int          @id @default(autoincrement())
-  organisationId Int
+  id             String       @id @default(cuid())
+  organisationId String
   organisation   Organisation @relation(fields: [organisationId], references: [id])
   name           String
   date           DateTime
@@ -260,25 +260,25 @@ model Holiday {
 }
 
 model Application {
-  id                     Int                  @id @default(autoincrement())
-  organisationId         Int
+  id                     String               @id @default(cuid())
+  organisationId         String
   organisation           Organisation         @relation(fields: [organisationId], references: [id])
   description            String?
   startDate              DateTime
   endDate                DateTime
   requestedWorkdays      Int?
-  departmentId           Int
+  departmentId           String
   department             Department           @relation(fields: [departmentId], references: [id])
-  employeeId             Int
+  employeeId             String
   employee               Employee             @relation(fields: [employeeId], references: [id])
-  unavailabilityReasonId Int
+  unavailabilityReasonId String
   unavailabilityReason   UnavailabilityReason @relation(fields: [unavailabilityReasonId], references: [id])
   createdAt              DateTime             @default(now())
-  createdById            Int
+  createdById            String
 
   createdBy       OrganisationUser  @relation("createdByApplications", fields: [createdById], references: [id])
   updatedAt       DateTime          @updatedAt
-  lastUpdatedById Int?
+  lastUpdatedById String?
   lastUpdatedBy   OrganisationUser? @relation("lastUpdatedByApplications", fields: [lastUpdatedById], references: [id])
 
   status                      ApplicationStatus           @default(DRAFT)
@@ -297,14 +297,14 @@ model Application {
 }
 
 model ApplicationLog {
-  id             Int                @id @default(autoincrement())
-  organisationId Int
+  id             String             @id @default(cuid())
+  organisationId String
   organisation   Organisation       @relation(fields: [organisationId], references: [id])
-  applicationId  Int
+  applicationId  String
   application    Application        @relation(fields: [applicationId], references: [id])
   type           ApplicationLogType
   createdAt      DateTime           @default(now())
-  createdById    Int
+  createdById    String
   createdBy      OrganisationUser   @relation(fields: [createdById], references: [id])
 
   @@index([organisationId])
@@ -313,12 +313,12 @@ model ApplicationLog {
 }
 
 model ApplicationComment {
-  id            Int              @id @default(autoincrement())
-  applicationId Int
+  id            String           @id @default(cuid())
+  applicationId String
   application   Application      @relation(fields: [applicationId], references: [id])
   comment       String
   createdAt     DateTime         @default(now())
-  createdById   Int
+  createdById   String
   createdBy     OrganisationUser @relation(fields: [createdById], references: [id])
 
   @@index([applicationId])
@@ -326,18 +326,18 @@ model ApplicationComment {
 }
 
 model DaySchedule {
-  id                     Int                   @id @default(autoincrement())
-  organisationId         Int
+  id                     String                @id @default(cuid())
+  organisationId         String
   organisation           Organisation          @relation(fields: [organisationId], references: [id])
-  applicationId          Int?
+  applicationId          String?
   application            Application?          @relation(fields: [applicationId], references: [id])
   date                   DateTime
-  employeeId             Int
+  employeeId             String
   employee               Employee              @relation(fields: [employeeId], references: [id])
   isWeekend              Boolean               @default(false)
   isHoliday              Boolean               @default(false)
   dayCode                DayCode
-  unavailabilityReasonId Int?
+  unavailabilityReasonId String?
   unavailabilityReason   UnavailabilityReason? @relation(fields: [unavailabilityReasonId], references: [id])
   status                 EmployeeStatus        @default(AVAILABLE)
   createdAt              DateTime              @default(now())
@@ -352,4 +352,3 @@ model DaySchedule {
   @@index([status])
   @@index([active])
 }
-

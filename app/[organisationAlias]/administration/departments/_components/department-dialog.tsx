@@ -35,7 +35,7 @@ import { Loader2, Plus, Pencil } from "lucide-react";
 type DepartmentFormValues = z.infer<typeof createDepartmentSchema>;
 
 type Department = {
-  id: number;
+  id: string;
   name: string;
   alias: string;
   description: string | null;

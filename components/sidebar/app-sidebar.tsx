@@ -1,6 +1,6 @@
 "use client";
 
-import { LayoutDashboard, Settings } from "lucide-react";
+import { LayoutDashboard, Settings, FileText, CalendarDays, User, Calendar } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { NavMain, type NavItem } from "@/components/sidebar/nav-main";
@@ -17,6 +17,12 @@ import {
 } from "@/components/ui/sidebar";
 import { Separator } from "../ui/separator";
 
+type PlanningAbsenceReason = {
+  id: string;
+  name: string;
+  colorCode: string | null;
+};
+
 type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
   organisation: {
     name: string;
@@ -30,6 +36,7 @@ type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
   organisationAlias: string;
   isAdmin: boolean;
   managedDepartments: Department[];
+  planningAbsenceReasons: PlanningAbsenceReason[];
 };
 
 export function AppSidebar({
@@ -38,6 +45,7 @@ export function AppSidebar({
   organisationAlias,
   isAdmin,
   managedDepartments,
+  planningAbsenceReasons,
   ...props
 }: AppSidebarProps) {
   const t = useTranslations("nav");
@@ -48,6 +56,25 @@ export function AppSidebar({
       title: t("dashboard"),
       url: `/${organisationAlias}`,
       icon: LayoutDashboard,
+    },
+    {
+      title: t("applications"),
+      url: `/${organisationAlias}/applications`,
+      icon: FileText,
+    },
+    {
+      title: t("profile"),
+      url: `/${organisationAlias}/profile`,
+      icon: User,
+    },
+  ];
+
+  // Manager navigation items (visible to DM/GM)
+  const managerNavItems: NavItem[] = [
+    {
+      title: t("planning"),
+      url: `/${organisationAlias}/planning`,
+      icon: CalendarDays,
     },
   ];
 
@@ -82,6 +109,21 @@ export function AppSidebar({
           title: t("holidays"),
           url: `/${organisationAlias}/administration/holidays`,
         },
+        // Planning absence with sub-items for each reason
+        ...(planningAbsenceReasons.length > 0
+          ? [
+              {
+                title: t("planningAbsence"),
+                url: `/${organisationAlias}/administration/days-balance`,
+                colorCode: null,
+                items: planningAbsenceReasons.map((reason) => ({
+                  title: reason.name,
+                  url: `/${organisationAlias}/administration/days-balance/${reason.id}`,
+                  colorCode: reason.colorCode,
+                })),
+              },
+            ]
+          : []),
       ],
     },
   ];
@@ -94,6 +136,14 @@ export function AppSidebar({
       <SidebarContent>
         <NavMain items={mainNavItems} />
         
+        {/* Manager section - Planning */}
+        {managedDepartments.length > 0 && (
+          <>
+            <Separator />
+            <NavMain items={managerNavItems} />
+          </>
+        )}
+        
         {/* Manager departments section */}
         {managedDepartments.length > 0 && (
           <>
@@ -105,8 +155,8 @@ export function AppSidebar({
           </>
         )}
 
-        {/* Admin section */}
-        {isAdmin && (
+        {/* Admin section - visible to admins and managers with planning access */}
+        {(isAdmin || planningAbsenceReasons.length > 0) && (
           <>
             <Separator />
             <NavMain items={adminNavItems} label={t("management")} />

@@ -1,0 +1,39 @@
+---
+description: Koristi date-fns-tz v3.x API za timezone konverzije
+globs: 
+alwaysApply: true
+---
+
+# Timezone API pravila (date-fns-tz v3.x)
+
+## ✅ Koristi (date-fns-tz v3.x)
+
+- `toZonedTime(date, timeZone)` - Konvertira UTC datum u lokalno vrijeme u specificiranoj vremenskoj zoni
+- `fromZonedTime(date, timeZone)` - Konvertira lokalno vrijeme u UTC
+
+## ❌ NIKADA ne koristi (zastarjeli API)
+
+- `utcToZonedTime()` - Stari API, ne postoji u v3.x
+- `zonedTimeToUtc()` - Stari API, ne postoji u v3.x
+
+## Primjer korištenja
+
+```typescript
+import { toZonedTime, fromZonedTime } from "date-fns-tz";
+
+// UTC → lokalno vrijeme (za prikaz)
+const utcDate = new Date("2024-01-15T10:00:00Z");
+const localDate = toZonedTime(utcDate, "Europe/Zagreb");
+
+// Lokalno vrijeme → UTC (za spremanje u bazu)
+const localInput = new Date(2024, 0, 15, 10, 0, 0);
+const utcForDb = fromZonedTime(localInput, "Europe/Zagreb");
+```
+
+## Projektna pravila
+
+- Svi datumi u bazi spremaju se u **UTC** (Prisma DateTime)
+- Klijentska vremenska zona se šalje kao IANA string (npr. "Europe/Zagreb")
+- Koristi `fromZonedTime()` za konverziju korisničkog inputa (lokalno) → UTC za DB upite
+- Koristi `toZonedTime()` za prikaz datuma iz baze (UTC) → lokalno vrijeme za UI
+- Detaljna pravila u `/.cursor/docs/07_timezones_dates.md`

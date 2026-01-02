@@ -23,19 +23,19 @@ import { EmployeeDialog } from "./employee-dialog";
 import { deleteEmployee } from "@/lib/actions/employee";
 
 type Department = {
-  id: number;
+  id: string;
   name: string;
   colorCode: string | null;
 };
 
 type Employee = {
-  id: number;
+  id: string;
   firstName: string;
   lastName: string;
   email: string;
   title: string | null;
-  departmentId: number;
-  userId: number | null;
+  departmentId: string;
+  userId: string | null;
 };
 
 type EmployeeActionsProps = {

@@ -9,7 +9,7 @@ import { joinOrganisation } from "@/lib/actions/organisation";
 import { toast } from "sonner";
 
 type PendingInvitation = {
-  id: number;
+  id: string;
   organisation: {
     name: string;
     alias: string;
@@ -27,7 +27,7 @@ export function PendingInvitations({ invitations }: PendingInvitationsProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
 
-  const handleJoin = (employeeId: number, organisationAlias: string) => {
+  const handleJoin = (employeeId: string, organisationAlias: string) => {
     startTransition(async () => {
       const result = await joinOrganisation(employeeId);
       

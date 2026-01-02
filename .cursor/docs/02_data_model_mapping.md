@@ -28,8 +28,8 @@ Ovo je “brzi prevoditelj” između user stories termina i stvarnog Prisma mod
 - **Audit**: `ApplicationLog` (`type: ApplicationLogType`)
 - **Komentari/razlozi**: `ApplicationComment`
 
-## Razlozi nedostupnosti (UnavailabilityReason)
-`UnavailabilityReason` definira poslovna pravila:
+## Vrste odsutnosti (UnavailabilityReason)
+`UnavailabilityReason` definira poslovna pravila za **vrstu odsutnosti** (UI pojam):
 - **needApproval**: treba li uopće approval flow (ako false, može ići direktno na APPROVED – ovisno o pravilima)
 - **needSecondApproval**: treba li 2. razina (SUBMITTED → APPROVED_FIRST_LEVEL → APPROVED)
 - **hasPlanning**: troši li dane i ima li ledger entries
@@ -43,13 +43,16 @@ Ovo je “brzi prevoditelj” između user stories termina i stvarnog Prisma mod
 - Link na zahtjev: `applicationId` (opc.)
 - Oznake: `isWeekend`, `isHoliday`, `dayCode`
 
-## Alokacije i potrošnja dana (Ledger)
-Nema “Allocation” tablice; sve ide preko:
+## Stanje dana (internal: Ledger)
+U bazi nema “Allocation” tablice; sve ide preko internal ledger mehanizma:
 - **Ledger entry**: `UnavailabilityLedgerEntry`
   - ključevi za upite: `employeeId`, `unavailabilityReasonId`, `year`
   - promjena: `changeDays` (+/-)
   - tip: `LedgerEntryType` (ALLOCATION/USAGE/TRANSFER/CORRECTION)
   - veza na zahtjev: `applicationId` (opc.)
+
+Napomena (UI):
+- `UnavailabilityLedgerEntry` se u UI-u prikazuje kao **stanje dana** (Ukupno na raspolaganju/Iskorišteno/Na čekanju/Preostalo) i eventualno “povijest promjena”, bez ledger/alokacija/knjiženje terminologije (vidi `/.cursor/docs/09_terminology_glossary.md`).
 
 ## Praznici
 - **Holiday**: `Holiday`

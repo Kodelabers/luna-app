@@ -7,6 +7,7 @@ export type FormState = {
   message?: string;
   fieldErrors?: Record<string, string[]>;
   formError?: string;
+  data?: Record<string, unknown>;
 };
 
 /**

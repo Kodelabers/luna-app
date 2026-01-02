@@ -42,19 +42,19 @@ import { UserLookup } from "./user-lookup";
 type EmployeeFormValues = z.infer<typeof createEmployeeSchema>;
 
 type Department = {
-  id: number;
+  id: string;
   name: string;
   colorCode: string | null;
 };
 
 type Employee = {
-  id: number;
+  id: string;
   firstName: string;
   lastName: string;
   email: string;
   title: string | null;
-  departmentId: number;
-  userId: number | null;
+  departmentId: string;
+  userId: string | null;
 };
 
 type EmployeeDialogProps = {
@@ -75,7 +75,7 @@ export function EmployeeDialog({
   onOpenChange: controlledOnOpenChange,
 }: EmployeeDialogProps) {
   const [internalOpen, setInternalOpen] = useState(false);
-  const [selectedUserId, setSelectedUserId] = useState<number | null>(
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(
     employee?.userId || null
   );
 
@@ -94,7 +94,7 @@ export function EmployeeDialog({
       lastName: employee?.lastName || "",
       email: employee?.email || "",
       title: employee?.title || "",
-      departmentId: employee?.departmentId || 0,
+      departmentId: employee?.departmentId || "",
     },
   });
 
@@ -141,7 +141,7 @@ export function EmployeeDialog({
         lastName: employee?.lastName || "",
         email: employee?.email || "",
         title: employee?.title || "",
-        departmentId: employee?.departmentId || 0,
+        departmentId: employee?.departmentId || "",
       });
       setSelectedUserId(employee?.userId || null);
     }
@@ -251,7 +251,7 @@ export function EmployeeDialog({
                   <Select
                     name="departmentId"
                     value={field.value?.toString() || ""}
-                    onValueChange={(value) => field.onChange(parseInt(value, 10))}
+                    onValueChange={(value) => field.onChange(value)}
                   >
                     <FormControl>
                       <SelectTrigger>

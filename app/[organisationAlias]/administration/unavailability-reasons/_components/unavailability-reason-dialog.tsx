@@ -41,7 +41,7 @@ type UnavailabilityReasonFormValues = z.infer<
 >;
 
 type UnavailabilityReason = {
-  id: number;
+  id: string;
   name: string;
   colorCode: string | null;
   needApproval: boolean;
@@ -80,7 +80,8 @@ export function UnavailabilityReasonDialog({
   const hasPlanningRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<UnavailabilityReasonFormValues>({
-    resolver: zodResolver(createUnavailabilityReasonSchema),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    resolver: zodResolver(createUnavailabilityReasonSchema) as any,
     defaultValues: {
       name: reason?.name || "",
       colorCode: reason?.colorCode || "#3b82f6",

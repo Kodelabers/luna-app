@@ -18,7 +18,7 @@ import { EmployeeSearch } from "./employee-search";
 import { createManager } from "@/lib/actions/manager";
 
 type EmployeeResult = {
-  id: number;
+  id: string;
   firstName: string;
   lastName: string;
   email: string;
@@ -26,7 +26,7 @@ type EmployeeResult = {
 
 type AddManagerDialogProps = {
   organisationAlias: string;
-  departmentId?: number | null;
+  departmentId?: string | null;
   departmentName?: string;
   trigger?: React.ReactNode;
 };
@@ -78,7 +78,7 @@ export function AddManagerDialog({
           <DialogDescription>
             {isGeneralManager
               ? t("selectEmployeeGeneral")
-              : t("selectEmployeeDepartment", { department: departmentName })}
+              : t("selectEmployeeDepartment", { department: departmentName || "" })}
           </DialogDescription>
         </DialogHeader>
 

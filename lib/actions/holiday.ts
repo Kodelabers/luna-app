@@ -25,7 +25,7 @@ export async function createHoliday(
     requireAdmin(ctx);
 
     // Parse and validate form data
-    const rawData = Object.fromEntries(formData.entries());
+    const rawData: Record<string, unknown> = Object.fromEntries(formData.entries());
 
     // Explicitly parse boolean values from FormData strings
     if (rawData.repeatYearly !== undefined) {
@@ -89,7 +89,7 @@ export async function createHoliday(
  */
 export async function updateHoliday(
   organisationAlias: string,
-  holidayId: number,
+  holidayId: string,
   _prevState: FormState,
   formData: FormData
 ): Promise<FormState> {
@@ -111,7 +111,7 @@ export async function updateHoliday(
     }
 
     // Parse and validate form data
-    const rawData = Object.fromEntries(formData.entries());
+    const rawData: Record<string, unknown> = Object.fromEntries(formData.entries());
 
     // Explicitly parse boolean values from FormData strings
     if (rawData.repeatYearly !== undefined) {
@@ -176,7 +176,7 @@ export async function updateHoliday(
  */
 export async function deleteHoliday(
   organisationAlias: string,
-  holidayId: number
+  holidayId: string
 ): Promise<FormState> {
   try {
     const ctx = await resolveTenantContext(organisationAlias);

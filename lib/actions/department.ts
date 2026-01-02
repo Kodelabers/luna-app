@@ -83,7 +83,7 @@ export async function createDepartment(
  */
 export async function updateDepartment(
   organisationAlias: string,
-  departmentId: number,
+  departmentId: string,
   _prevState: FormState,
   formData: FormData
 ): Promise<FormState> {
@@ -161,7 +161,7 @@ export async function updateDepartment(
  */
 export async function deleteDepartment(
   organisationAlias: string,
-  departmentId: number
+  departmentId: string
 ): Promise<FormState> {
   try {
     const ctx = await resolveTenantContext(organisationAlias);

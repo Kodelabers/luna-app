@@ -27,6 +27,12 @@ export type NavItem = {
   items?: {
     title: string;
     url: string;
+    colorCode?: string | null;
+    items?: {
+      title: string;
+      url: string;
+      colorCode?: string | null;
+    }[];
   }[];
 };
 
@@ -46,7 +52,8 @@ export function NavMain({
         {items.map((item) => {
           const isActive =
             pathname === item.url ||
-            item.items?.some((subItem) => pathname === subItem.url);
+            pathname.startsWith(item.url + "/") ||
+            item.items?.some((subItem) => pathname === subItem.url || pathname.startsWith(subItem.url + "/"));
 
           if (!item.items || item.items.length === 0) {
             // Simple menu item without subitems
@@ -80,18 +87,91 @@ export function NavMain({
                 </CollapsibleTrigger>
                 <CollapsibleContent>
                   <SidebarMenuSub>
-                    {item.items.map((subItem) => (
-                      <SidebarMenuSubItem key={subItem.title}>
-                        <SidebarMenuSubButton
-                          asChild
-                          isActive={pathname === subItem.url}
-                        >
-                          <Link href={subItem.url}>
-                            <span>{subItem.title}</span>
-                          </Link>
-                        </SidebarMenuSubButton>
-                      </SidebarMenuSubItem>
-                    ))}
+                    {item.items.map((subItem) => {
+                      const hasSubItems = subItem.items && subItem.items.length > 0;
+                      const isSubItemActive =
+                        pathname === subItem.url ||
+                        pathname.startsWith(subItem.url + "/") ||
+                        (hasSubItems &&
+                          subItem.items!.some(
+                            (nestedItem) =>
+                              pathname === nestedItem.url || pathname.startsWith(nestedItem.url + "/")
+                          ));
+
+                      if (hasSubItems) {
+                        // Sub-item with nested items (3rd level)
+                        return (
+                          <Collapsible
+                            key={subItem.title}
+                            asChild
+                            defaultOpen={isSubItemActive}
+                            className="group/nested"
+                          >
+                            <SidebarMenuSubItem>
+                              <CollapsibleTrigger asChild>
+                                <SidebarMenuSubButton isActive={isSubItemActive}>
+                                  <div className="flex items-center gap-2 flex-1">
+                                    {subItem.colorCode && (
+                                      <div
+                                        className="h-3 w-3 rounded-sm shrink-0"
+                                        style={{ backgroundColor: subItem.colorCode }}
+                                      />
+                                    )}
+                                    <span>{subItem.title}</span>
+                                  </div>
+                                  <ChevronRight className="ml-auto h-3 w-3 transition-transform duration-200 group-data-[state=open]/nested:rotate-90" />
+                                </SidebarMenuSubButton>
+                              </CollapsibleTrigger>
+                              <CollapsibleContent>
+                                <SidebarMenuSub>
+                                  {subItem.items!.map((nestedItem) => (
+                                    <SidebarMenuSubItem key={nestedItem.title}>
+                                      <SidebarMenuSubButton
+                                        asChild
+                                        isActive={
+                                          pathname === nestedItem.url ||
+                                          pathname.startsWith(nestedItem.url + "/")
+                                        }
+                                      >
+                                        <Link href={nestedItem.url} className="flex items-center gap-2">
+                                          {nestedItem.colorCode && (
+                                            <div
+                                              className="h-3 w-3 rounded-sm shrink-0"
+                                              style={{ backgroundColor: nestedItem.colorCode }}
+                                            />
+                                          )}
+                                          <span>{nestedItem.title}</span>
+                                        </Link>
+                                      </SidebarMenuSubButton>
+                                    </SidebarMenuSubItem>
+                                  ))}
+                                </SidebarMenuSub>
+                              </CollapsibleContent>
+                            </SidebarMenuSubItem>
+                          </Collapsible>
+                        );
+                      }
+
+                      // Regular sub-item (2nd level)
+                      return (
+                        <SidebarMenuSubItem key={subItem.title}>
+                          <SidebarMenuSubButton
+                            asChild
+                            isActive={pathname === subItem.url || pathname.startsWith(subItem.url + "/")}
+                          >
+                            <Link href={subItem.url} className="flex items-center gap-2">
+                              {subItem.colorCode && (
+                                <div
+                                  className="h-3 w-3 rounded-sm shrink-0"
+                                  style={{ backgroundColor: subItem.colorCode }}
+                                />
+                              )}
+                              <span>{subItem.title}</span>
+                            </Link>
+                          </SidebarMenuSubButton>
+                        </SidebarMenuSubItem>
+                      );
+                    })}
                   </SidebarMenuSub>
                 </CollapsibleContent>
               </SidebarMenuItem>

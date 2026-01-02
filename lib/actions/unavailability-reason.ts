@@ -27,7 +27,7 @@ export async function createUnavailabilityReason(
     requireAdmin(ctx);
 
     // Parse and validate form data
-    const rawData = Object.fromEntries(formData.entries());
+    const rawData: Record<string, unknown> = Object.fromEntries(formData.entries());
     
     // Explicitly parse boolean values from FormData strings
     // FormData returns strings, so "true"/"false" need to be converted to booleans
@@ -103,7 +103,7 @@ export async function createUnavailabilityReason(
  */
 export async function updateUnavailabilityReason(
   organisationAlias: string,
-  reasonId: number,
+  reasonId: string,
   _prevState: FormState,
   formData: FormData
 ): Promise<FormState> {
@@ -125,7 +125,7 @@ export async function updateUnavailabilityReason(
     }
 
     // Parse and validate form data
-    const rawData = Object.fromEntries(formData.entries());
+    const rawData: Record<string, unknown> = Object.fromEntries(formData.entries());
     
     // Explicitly parse boolean values from FormData strings
     // FormData returns strings, so "true"/"false" need to be converted to booleans
@@ -202,7 +202,7 @@ export async function updateUnavailabilityReason(
  */
 export async function deleteUnavailabilityReason(
   organisationAlias: string,
-  reasonId: number
+  reasonId: string
 ): Promise<FormState> {
   try {
     const ctx = await resolveTenantContext(organisationAlias);

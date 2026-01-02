@@ -8,6 +8,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PendingInvitations } from "./_components/pending-invitations";
+import { AutoRedirect } from "./_components/auto-redirect";
 
 export default async function HomePage() {
   const { userId } = await auth();
@@ -51,11 +52,14 @@ export default async function HomePage() {
     include: {
       organisation: true,
     },
+    orderBy: {
+      joinedAt: 'asc', // Use oldest membership for consistency
+    },
   });
 
   // If user belongs to only one organisation, redirect there
   if (organisationUsers.length === 1) {
-    redirect(`/${organisationUsers[0].organisation.alias}`);
+    return <AutoRedirect to={`/${organisationUsers[0].organisation.alias}`} />;
   }
 
   // If user belongs to multiple organisations, show picker

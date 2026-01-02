@@ -22,12 +22,12 @@ export default async function ManagersPage({ params, searchParams }: Props) {
   // Parse department filter
   // "all" or undefined = show all
   // "general" = show only general managers
-  // number = show only that department
-  let filteredDepartmentId: number | null | undefined = undefined;
+  // string = show only that department
+  let filteredDepartmentId: string | null | undefined = undefined;
   if (departmentParam === "general") {
     filteredDepartmentId = null;
   } else if (departmentParam && departmentParam !== "all") {
-    filteredDepartmentId = parseInt(departmentParam, 10);
+    filteredDepartmentId = departmentParam;
   }
 
   // Fetch general managers and departments with their managers in parallel
