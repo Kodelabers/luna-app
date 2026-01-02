@@ -1026,3 +1026,95 @@ export async function listMyApplications(
   });
 }
 
+/**
+ * List applications for a department (for DM/GM view)
+ */
+export async function listDepartmentApplications(
+  ctx: TenantContext,
+  departmentId: number,
+  filters?: {
+    status?: ApplicationStatus;
+    reasonId?: number;
+    clientTimeZone?: string;
+  }
+): Promise<
+  Array<{
+    applicationId: number;
+    startLocalISO: string;
+    endLocalISO: string;
+    status: ApplicationStatus;
+    reasonId: number;
+    reasonName: string;
+    workdays: number | null;
+    description: string | null;
+    createdAtISO: string;
+    employeeId: number;
+    employeeName: string;
+  }>
+> {
+  // Build where clause
+  const where: any = {
+    organisationId: ctx.organisationId,
+    departmentId,
+    active: true,
+  };
+
+  if (filters?.status) {
+    where.status = filters.status;
+  }
+
+  if (filters?.reasonId) {
+    where.unavailabilityReasonId = filters.reasonId;
+  }
+
+  // Fetch applications
+  const applications = await db.application.findMany({
+    where,
+    include: {
+      unavailabilityReason: {
+        select: {
+          id: true,
+          name: true,
+        },
+      },
+      employee: {
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+        },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+
+  // Use provided clientTimeZone or default to Europe/Zagreb
+  const clientTimeZone = filters?.clientTimeZone || "Europe/Zagreb";
+
+  return applications.map((app) => {
+    // Convert UTC dates from DB to local timezone
+    const startLocal = toZonedTime(app.startDate, clientTimeZone);
+    const endLocal = toZonedTime(app.endDate, clientTimeZone);
+    
+    // Format as YYYY-MM-DD (local date only, no time component)
+    const startLocalISO = `${startLocal.getFullYear()}-${String(startLocal.getMonth() + 1).padStart(2, '0')}-${String(startLocal.getDate()).padStart(2, '0')}`;
+    const endLocalISO = `${endLocal.getFullYear()}-${String(endLocal.getMonth() + 1).padStart(2, '0')}-${String(endLocal.getDate()).padStart(2, '0')}`;
+    
+    return {
+      applicationId: app.id,
+      startLocalISO,
+      endLocalISO,
+      status: app.status,
+      reasonId: app.unavailabilityReason.id,
+      reasonName: app.unavailabilityReason.name,
+      workdays: app.requestedWorkdays,
+      description: app.description,
+      createdAtISO: app.createdAt.toISOString(),
+      employeeId: app.employee.id,
+      employeeName: `${app.employee.firstName} ${app.employee.lastName}`,
+    };
+  });
+}
+

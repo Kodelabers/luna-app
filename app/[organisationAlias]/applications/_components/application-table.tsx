@@ -26,6 +26,8 @@ type Application = {
   workdays: number | null;
   description: string | null;
   createdAtISO: string;
+  employeeId?: number;
+  employeeName?: string;
 };
 
 type ApplicationTableProps = {
@@ -33,6 +35,8 @@ type ApplicationTableProps = {
   onView: (id: number) => void;
   onEdit?: (id: number) => void;
   onDelete?: (id: number) => void;
+  showEmployee?: boolean;
+  onRowClick?: (id: number) => void;
 };
 
 const statusColorMap: Record<ApplicationStatus, string> = {
@@ -49,8 +53,11 @@ export function ApplicationTable({
   onView,
   onEdit,
   onDelete,
+  showEmployee = false,
+  onRowClick,
 }: ApplicationTableProps) {
   const t = useTranslations("applications");
+  const tCommon = useTranslations("common");
 
   if (applications.length === 0) {
     return (
@@ -65,19 +72,27 @@ export function ApplicationTable({
       <Table>
         <TableHeader>
           <TableRow>
+            {showEmployee && <TableHead>{t("employee")}</TableHead>}
             <TableHead>{t("startDate")}</TableHead>
             <TableHead>{t("endDate")}</TableHead>
             <TableHead>{t("reason")}</TableHead>
             <TableHead>{t("workdays")}</TableHead>
             <TableHead>{t("status")}</TableHead>
             <TableHead className="text-right">
-              {useTranslations("common")("actions")}
+              {tCommon("actions")}
             </TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {applications.map((app) => (
-            <TableRow key={app.applicationId}>
+            <TableRow 
+              key={app.applicationId}
+              className={onRowClick ? "cursor-pointer hover:bg-muted/50" : ""}
+              onClick={() => onRowClick?.(app.applicationId)}
+            >
+              {showEmployee && (
+                <TableCell className="font-medium">{app.employeeName}</TableCell>
+              )}
               <TableCell>
                 {format(parseISO(app.startLocalISO), "dd.MM.yyyy", {
                   locale: hr,
@@ -99,7 +114,7 @@ export function ApplicationTable({
                 </Badge>
               </TableCell>
               <TableCell className="text-right">
-                <div className="flex justify-end gap-2">
+                <div className="flex justify-end gap-2" onClick={(e) => e.stopPropagation()}>
                   <Button
                     variant="ghost"
                     size="icon"

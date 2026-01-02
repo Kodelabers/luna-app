@@ -22,7 +22,9 @@ import {
   submitApplication,
   deleteDraftApplication,
   listMyApplications,
+  listDepartmentApplications,
 } from "@/lib/services/application";
+import { requireDepartmentAccess } from "@/lib/tenant/resolveTenantContext";
 
 /**
  * DM decides on application (UC-DASH-04)
@@ -300,6 +302,38 @@ export async function listMyApplicationsAction(
     } : undefined;
     
     const applications = await listMyApplications(ctx, parsedFilters);
+    return applications;
+  } catch (error) {
+    throw error;
+  }
+}
+
+/**
+ * List department applications (for DM/GM view)
+ */
+export async function listDepartmentApplicationsAction(
+  organisationAlias: string,
+  departmentId: number,
+  filters?: {
+    status?: string;
+    reasonId?: number;
+    clientTimeZone?: string;
+  }
+) {
+  try {
+    const ctx = await resolveTenantContext(organisationAlias);
+    
+    // Check department access (DM or GM)
+    await requireDepartmentAccess(ctx, departmentId);
+    
+    // Convert status string to ApplicationStatus if provided
+    const parsedFilters = filters ? {
+      ...filters,
+      status: filters.status as any,
+      clientTimeZone: filters.clientTimeZone,
+    } : undefined;
+    
+    const applications = await listDepartmentApplications(ctx, departmentId, parsedFilters);
     return applications;
   } catch (error) {
     throw error;

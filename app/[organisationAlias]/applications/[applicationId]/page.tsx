@@ -1,11 +1,11 @@
 import { getTranslations } from "next-intl/server";
 import { PageHeader } from "@/components/page-header";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, ShieldAlert, FileQuestion } from "lucide-react";
 import Link from "next/link";
 import { resolveTenantContext } from "@/lib/tenant/resolveTenantContext";
 import { db } from "@/lib/db";
-import { redirect, notFound } from "next/navigation";
+import { redirect } from "next/navigation";
 import {
   Card,
   CardContent,
@@ -54,40 +54,29 @@ export default async function ApplicationDetailsPage(props: PageProps) {
     redirect(`/${params.organisationAlias}`);
   }
 
-  // Check if user is DM or GM
-  // First check for GM (departmentId IS NULL)
-  const gmRecord = await db.manager.findFirst({
+  // Get all manager records for this employee
+  const managerRecords = await db.manager.findMany({
     where: {
       employeeId: employee.id,
-      departmentId: null,
       active: true,
+    },
+    select: {
+      departmentId: true,
     },
   });
 
-  // Then check for DM (departmentId IS NOT NULL)
-  const dmRecord = await db.manager.findFirst({
-    where: {
-      employeeId: employee.id,
-      departmentId: { not: null },
-      active: true,
-    },
-  });
+  const isGeneralManager = managerRecords.some((m) => m.departmentId === null);
+  const managedDepartmentIds = managerRecords
+    .filter((m) => m.departmentId !== null)
+    .map((m) => m.departmentId!);
+  const isDepartmentManager = managedDepartmentIds.length > 0;
 
-  const isGeneralManager = gmRecord !== null;
-  const isDepartmentManager = dmRecord !== null;
-
-  // Fetch application - expand query to allow DM/GM to view
+  // Fetch application (without authorization filter first)
   const application = await db.application.findFirst({
     where: {
       id: parseInt(params.applicationId),
       organisationId: ctx.organisationId,
       active: true,
-      // Allow owner, DM, or GM to view
-      OR: [
-        { employeeId: employee.id }, // Owner
-        isDepartmentManager ? { departmentId: dmRecord!.departmentId! } : {},
-        isGeneralManager ? { organisationId: ctx.organisationId } : {},
-      ].filter(obj => Object.keys(obj).length > 0),
     },
     include: {
       unavailabilityReason: {
@@ -145,20 +134,53 @@ export default async function ApplicationDetailsPage(props: PageProps) {
     },
   });
 
+  // If application not found in this organization, show custom not found page
   if (!application) {
-    notFound();
+    return (
+      <div className="flex flex-col items-center justify-center py-16 gap-4">
+        <FileQuestion className="h-16 w-16 text-muted-foreground" />
+        <h1 className="text-2xl font-bold">Zahtjev nije pronađen</h1>
+        <p className="text-muted-foreground text-center max-w-md">
+          Zahtjev #{params.applicationId} ne postoji u ovoj organizaciji ili je obrisan.
+        </p>
+        <Link href={`/${params.organisationAlias}/applications`}>
+          <Button variant="outline">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Natrag na moje zahtjeve
+          </Button>
+        </Link>
+      </div>
+    );
+  }
+
+  // Check authorization
+  const isOwner = application.employeeId === employee.id;
+  const hasDMAccess = managedDepartmentIds.includes(application.departmentId);
+  const hasAccess = isOwner || hasDMAccess || isGeneralManager;
+
+  // If no access, show access denied page
+  if (!hasAccess) {
+    return (
+      <div className="flex flex-col items-center justify-center py-16 gap-4">
+        <ShieldAlert className="h-16 w-16 text-muted-foreground" />
+        <h1 className="text-2xl font-bold">Pristup odbijen</h1>
+        <p className="text-muted-foreground text-center max-w-md">
+          Nemate ovlasti za pregled ovog zahtjeva. Možete pregledati samo vlastite zahtjeve
+          {isDepartmentManager && " te zahtjeve zaposlenika u odjelima kojima upravljate"}.
+        </p>
+        <Link href={`/${params.organisationAlias}/applications`}>
+          <Button variant="outline">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Natrag na moje zahtjeve
+          </Button>
+        </Link>
+      </div>
+    );
   }
 
   const clientTimeZone = "Europe/Zagreb";
   const startLocal = toZonedTime(application.startDate, clientTimeZone);
   const endLocal = toZonedTime(application.endDate, clientTimeZone);
-
-  // Check if current user is the owner
-  const isOwner = application.employeeId === employee.id;
-
-  // Check if DM has access to this department
-  const hasDMAccess = isDepartmentManager && 
-    dmRecord?.departmentId === application.departmentId;
 
   return (
     <div className="flex flex-col gap-6">
