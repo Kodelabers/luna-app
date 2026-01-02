@@ -68,7 +68,7 @@ export default async function DashboardPage({ params, searchParams }: Props) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="mx-auto max-w-7xl space-y-6">
       {/* Welcome section */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight">

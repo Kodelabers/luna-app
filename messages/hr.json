@@ -96,7 +96,16 @@
     "awaitingGmTab": "Čeka GM",
     "from": "Od",
     "to": "Do",
-    "createdAt": "Kreirano"
+    "createdAt": "Kreirano",
+    "previousMonth": "Prethodni mjesec",
+    "nextMonth": "Sljedeći mjesec",
+    "legend": {
+      "workday": "Radni dan",
+      "weekend": "Vikend",
+      "holiday": "Praznik",
+      "approved": "odobreno",
+      "pending": "u procesu"
+    }
   },
   "admin": {
     "accessDenied": "Pristup odbijen",

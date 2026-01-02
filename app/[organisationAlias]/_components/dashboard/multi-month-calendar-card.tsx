@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import {
   Card,
   CardContent,
@@ -10,12 +10,20 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { CalendarDay } from "@/lib/services/calendar";
 import { ApplicationSummary } from "@/lib/services/dashboard";
-import { parseISO } from "date-fns";
+import { parseISO, format } from "date-fns";
 import { toZonedTime } from "date-fns-tz";
-import { format } from "date-fns";
+import { hr, enUS } from "date-fns/locale";
 
 type MultiMonthCalendarCardProps = {
   calendarDays: CalendarDay[];
@@ -33,7 +41,30 @@ export function MultiMonthCalendarCard({
   clientTimeZone = "Europe/Zagreb",
 }: MultiMonthCalendarCardProps) {
   const t = useTranslations("dashboard");
+  const locale = useLocale();
+  const dateLocale = locale === "hr" ? hr : enUS;
+  
   const [numberOfMonths, setNumberOfMonths] = useState(3);
+  const [startMonth, setStartMonth] = useState(month);
+  const [startYear, setStartYear] = useState(year);
+
+  const goToPreviousMonth = () => {
+    if (startMonth === 1) {
+      setStartMonth(12);
+      setStartYear(startYear - 1);
+    } else {
+      setStartMonth(startMonth - 1);
+    }
+  };
+
+  const goToNextMonth = () => {
+    if (startMonth === 12) {
+      setStartMonth(1);
+      setStartYear(startYear + 1);
+    } else {
+      setStartMonth(startMonth + 1);
+    }
+  };
 
   // Create a map of dates to calendar day data for quick lookup
   const calendarMap = new Map<string, CalendarDay>();
@@ -291,72 +322,99 @@ export function MultiMonthCalendarCard({
             <CardTitle>{t("myCalendar")}</CardTitle>
             <CardDescription>{t("scheduleForCurrentMonth")}</CardDescription>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {monthOptions.map((option) => (
-              <Button
-                key={option.value}
-                variant={numberOfMonths === option.value ? "default" : "outline"}
-                size="sm"
-                onClick={() => setNumberOfMonths(option.value)}
-                className="flex-1 sm:flex-none"
-              >
-                {option.label}
-              </Button>
-            ))}
-          </div>
+          <Select
+            value={numberOfMonths.toString()}
+            onValueChange={(v) => setNumberOfMonths(Number(v))}
+          >
+            <SelectTrigger size="sm" className="w-[140px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {monthOptions.map((option) => (
+                <SelectItem key={option.value} value={option.value.toString()}>
+                  {option.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          <div className="flex justify-center">
-            <Calendar
-              mode="single"
-              defaultMonth={new Date(year, month - 1, 1)}
-              numberOfMonths={numberOfMonths}
-              className="rounded-lg"
-              showOutsideDays={false}
-              modifiers={modifiers}
-              modifiersStyles={modifiersStyles}
-              modifiersClassNames={modifiersClassNames}
-              classNames={{
-                months: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6",
-                month: "space-y-4",
-                caption: "flex justify-center pt-1 relative items-center mb-2",
-                caption_label: "text-sm font-medium",
-                nav: "hidden",
-                table: "w-full border-collapse space-y-1",
-                head_row: "flex",
-                head_cell:
-                  "text-muted-foreground rounded-md w-10 font-normal text-[0.8rem]",
-                row: "flex w-full mt-2",
-                cell: "h-10 w-10 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
-                day: "h-10 w-10 p-0 font-normal aria-selected:opacity-100 hover:bg-accent hover:text-accent-foreground rounded-md",
-                day_range_end: "day-range-end",
-                day_selected:
-                  "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
-                day_today: "bg-accent text-accent-foreground font-bold ring-2 ring-primary ring-offset-2",
-                day_outside: "hidden",
-                day_disabled: "text-muted-foreground opacity-50",
-                day_range_middle:
-                  "aria-selected:bg-accent aria-selected:text-accent-foreground",
-                day_hidden: "invisible",
-              }}
-            />
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="icon"
+              className="shrink-0"
+              onClick={goToPreviousMonth}
+            >
+              <ChevronLeft className="h-4 w-4" />
+              <span className="sr-only">{t("previousMonth")}</span>
+            </Button>
+            <div className="flex-1 overflow-x-auto pb-2 scrollbar-thin scrollbar-track-transparent scrollbar-thumb-muted-foreground/20 hover:scrollbar-thumb-muted-foreground/40">
+              <Calendar
+                mode="single"
+                month={new Date(startYear, startMonth - 1, 1)}
+                onMonthChange={(date) => {
+                  setStartMonth(date.getMonth() + 1);
+                  setStartYear(date.getFullYear());
+                }}
+                numberOfMonths={numberOfMonths}
+                locale={dateLocale}
+                className="rounded-lg"
+                showOutsideDays={false}
+                modifiers={modifiers}
+                modifiersStyles={modifiersStyles}
+                modifiersClassNames={modifiersClassNames}
+                classNames={{
+                  months: "flex flex-nowrap gap-6",
+                  month: "space-y-4 shrink-0",
+                  caption: "flex justify-center pt-1 relative items-center mb-2",
+                  caption_label: "text-sm font-medium",
+                  nav: "hidden",
+                  table: "w-full border-collapse space-y-1",
+                  head_row: "flex",
+                  head_cell:
+                    "text-muted-foreground rounded-md w-10 font-normal text-[0.8rem]",
+                  row: "flex w-full mt-2",
+                  cell: "h-10 w-10 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+                  day: "h-10 w-10 p-0 font-normal aria-selected:opacity-100 hover:bg-accent hover:text-accent-foreground rounded-md",
+                  day_range_end: "day-range-end",
+                  day_selected:
+                    "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
+                  day_today: "bg-accent text-accent-foreground font-bold ring-2 ring-primary ring-offset-2",
+                  day_outside: "hidden",
+                  day_disabled: "text-muted-foreground opacity-50",
+                  day_range_middle:
+                    "aria-selected:bg-accent aria-selected:text-accent-foreground",
+                  day_hidden: "invisible",
+                }}
+              />
+            </div>
+            <Button
+              variant="outline"
+              size="icon"
+              className="shrink-0"
+              onClick={goToNextMonth}
+            >
+              <ChevronRight className="h-4 w-4" />
+              <span className="sr-only">{t("nextMonth")}</span>
+            </Button>
           </div>
 
           {/* Legend */}
           <div className="flex flex-wrap gap-3 border-t pt-4 text-xs">
             <div className="flex items-center gap-1">
               <div className="h-3 w-3 rounded border bg-background" />
-              <span className="text-muted-foreground">Radni dan</span>
+              <span className="text-muted-foreground">{t("legend.workday")}</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="h-3 w-3 rounded border bg-muted" />
-              <span className="text-muted-foreground">Vikend</span>
+              <span className="text-muted-foreground">{t("legend.weekend")}</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="h-3 w-3 rounded border bg-red-100 dark:bg-red-950" />
-              <span className="text-muted-foreground">Praznik</span>
+              <span className="text-muted-foreground">{t("legend.holiday")}</span>
             </div>
             {/* Show unique unavailability reasons with their colors (approved) */}
             {Array.from(
@@ -377,7 +435,7 @@ export function MultiMonthCalendarCard({
                   className="h-3 w-3 rounded border"
                   style={{ backgroundColor: reason.color }}
                 />
-                <span className="text-muted-foreground">{reason.name} (odobreno)</span>
+                <span className="text-muted-foreground">{reason.name} ({t("legend.approved")})</span>
               </div>
             ))}
             {/* Show pending applications with border styling */}
@@ -399,7 +457,7 @@ export function MultiMonthCalendarCard({
                   className="h-3 w-3 rounded border-2"
                   style={{ borderColor: reason.color, backgroundColor: "transparent" }}
                 />
-                <span className="text-muted-foreground">{reason.name} (u procesu)</span>
+                <span className="text-muted-foreground">{reason.name} ({t("legend.pending")})</span>
               </div>
             ))}
           </div>

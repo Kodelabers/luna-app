@@ -96,7 +96,16 @@
     "awaitingGmTab": "Awaiting GM",
     "from": "From",
     "to": "To",
-    "createdAt": "Created"
+    "createdAt": "Created",
+    "previousMonth": "Previous month",
+    "nextMonth": "Next month",
+    "legend": {
+      "workday": "Workday",
+      "weekend": "Weekend",
+      "holiday": "Holiday",
+      "approved": "approved",
+      "pending": "pending"
+    }
   },
   "admin": {
     "accessDenied": "Access Denied",
