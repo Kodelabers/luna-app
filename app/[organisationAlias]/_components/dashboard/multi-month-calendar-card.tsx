@@ -246,7 +246,7 @@ export function MultiMonthCalendarCard({
 
   // Create modifiers for pending applications with range-aware border styling
   let pendingIndex = 0;
-  pendingAppsByColor.forEach((group, key) => {
+  pendingAppsByColor.forEach((group) => {
     if (group.dates.length > 0) {
       const color = group.color;
       

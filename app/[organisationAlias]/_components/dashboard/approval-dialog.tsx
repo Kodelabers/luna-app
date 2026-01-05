@@ -26,7 +26,6 @@ type ApprovalDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   action: (prevState: FormState, formData: FormData) => Promise<FormState>;
-  organisationAlias: string;
   mode: "approve" | "reject";
 };
 
@@ -35,7 +34,6 @@ export function ApprovalDialog({
   open,
   onOpenChange,
   action,
-  organisationAlias,
   mode,
 }: ApprovalDialogProps) {
   const t = useTranslations("dashboard");

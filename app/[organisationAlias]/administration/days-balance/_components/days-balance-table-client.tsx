@@ -56,12 +56,6 @@ export function DaysBalanceTableClient({
 
   // Get current year in client timezone
   const getCurrentYear = (): number => {
-    if (typeof window !== "undefined") {
-      const clientTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-      const now = new Date();
-      // Use a simple approach: get year from local date
-      return now.getFullYear();
-    }
     return new Date().getFullYear();
   };
 
@@ -156,7 +150,6 @@ export function DaysBalanceTableClient({
                 filteredEmployees.map((emp) => {
                   const hasAllocation = emp.balance.breakdown.allocated > 0;
                   const openYear = emp.balance.openYear;
-                  const openYearBalance = emp.balance.openYearBalance;
                   
                   // Calculate nextYear and check if it can be opened
                   const nextYear = openYear !== null ? openYear + 1 : null;

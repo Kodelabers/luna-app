@@ -35,7 +35,7 @@ import {
 } from "@/components/ui/select";
 import { createEmployeeSchema } from "@/lib/validation/schemas";
 import { createEmployee, updateEmployee } from "@/lib/actions/employee";
-import { initialFormState, type FormState } from "@/lib/errors";
+import { initialFormState } from "@/lib/errors";
 import { Loader2, Plus } from "lucide-react";
 import { UserLookup } from "./user-lookup";
 

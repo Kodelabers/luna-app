@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
 import { PageHeader } from "@/components/page-header";
 import { resolveTenantContext, getManagerStatus } from "@/lib/tenant/resolveTenantContext";
-import { NotFoundError, ForbiddenError } from "@/lib/errors";
+import { NotFoundError } from "@/lib/errors";
 import { db } from "@/lib/db";
 import { getManagedDepartments } from "@/lib/services/sidebar";
 import { DaysBalanceTableClient } from "../_components/days-balance-table-client";
@@ -104,7 +104,7 @@ export default async function DaysBalanceByReasonPage(props: PageProps) {
               departments={managedDepartments.map((d) => ({
                 id: d.id,
                 name: d.name,
-                colorCode: (d as any).colorCode ?? null,
+                colorCode: d.colorCode,
               }))}
               organisationAlias={params.organisationAlias}
               reasonId={reasonId}
