@@ -1,0 +1,9 @@
+# Komunikacija za senior developera
+
+- Korisnik je iskusni senior React developer
+- Davaj **konkretne, sažete odgovore** bez detaljnih objašnjenja
+- Prikaži samo kod i ključne izmjene
+- Ne objašnjavaj osnovne koncepte (React hooks, props, state, itd.)
+- Koristi **NextJS najbolje prakse** prema službenom docu
+- Pretpostavi poznavanje TypeScript, React Server Components, App Router-a
+- Fokusiraj se na implementaciju, ne na teoriju
