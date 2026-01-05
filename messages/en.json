@@ -405,7 +405,18 @@
       "filterByYear": "Filter by year",
       "allReasons": "All reasons",
       "allYears": "All years"
-    }
+    },
+    "logType": {
+      "CREATED": "Application created",
+      "DELETED": "Application deleted",
+      "REQUESTED": "Application submitted for approval",
+      "REJECTED": "Application rejected",
+      "REJECTED_ON_FIRST_APPROVAL": "Application rejected at first level",
+      "APPROVED": "Application approved",
+      "POST_APPROVAL_IMPACT_CHANGED": "Change after approval"
+    },
+    "dangerZone": "Danger Zone",
+    "deleteWarning": "Deleting an application is permanent and cannot be undone."
   },
   "planning": {
     "title": "Absence Planning",

@@ -405,7 +405,18 @@
       "filterByYear": "Filtriraj po godini",
       "allReasons": "Svi razlozi",
       "allYears": "Sve godine"
-    }
+    },
+    "logType": {
+      "CREATED": "Zahtjev kreiran",
+      "DELETED": "Zahtjev obrisan",
+      "REQUESTED": "Zahtjev poslan na odobrenje",
+      "REJECTED": "Zahtjev odbijen",
+      "REJECTED_ON_FIRST_APPROVAL": "Zahtjev odbijen na prvoj razini",
+      "APPROVED": "Zahtjev odobren",
+      "POST_APPROVAL_IMPACT_CHANGED": "Promjena nakon odobrenja"
+    },
+    "dangerZone": "Opasna zona",
+    "deleteWarning": "Brisanje zahtjeva je trajna akcija i ne može se poništiti."
   },
   "planning": {
     "title": "Planiranje odsutnosti",

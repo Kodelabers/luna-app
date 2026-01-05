@@ -2,12 +2,9 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Pencil, Send, Trash2 } from "lucide-react";
-import Link from "next/link";
 import { ApplicationStatus } from "@prisma/client";
 import { useTranslations } from "next-intl";
 import { SubmitApplicationButton } from "./submit-application-button";
-import { DeleteApplicationDialog } from "./delete-application-dialog";
 import { ApplicationApprovalDialog } from "./application-approval-dialog";
 
 type ApplicationActionsProps = {
@@ -31,16 +28,13 @@ export function ApplicationActions({
   isGeneralManager,
   onActionComplete,
 }: ApplicationActionsProps) {
-  const t = useTranslations("applications");
   const tActions = useTranslations("applications.actions");
-  const tDashboard = useTranslations("dashboard");
   
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [approvalDialogOpen, setApprovalDialogOpen] = useState(false);
   const [approvalDecision, setApprovalDecision] = useState<"APPROVE" | "REJECT">("APPROVE");
 
-  // Owner actions for DRAFT
-  const showOwnerDraftActions = isOwner && status === "DRAFT";
+  // Owner actions for DRAFT - only Submit (Edit moved to page, Delete moved to edit page)
+  const showSubmitAction = isOwner && status === "DRAFT";
   
   // DM actions for SUBMITTED (only if not GM - GM takes precedence)
   const showDMActions = isDepartmentManager && !isGeneralManager && status === "SUBMITTED";
@@ -61,34 +55,19 @@ export function ApplicationActions({
     onActionComplete?.();
   };
 
-  const handleDeleteSuccess = () => {
-    setDeleteDialogOpen(false);
-    onActionComplete?.();
-  };
+  // If no actions to show, return null
+  if (!showSubmitAction && !showDMActions && !showGMActions) {
+    return null;
+  }
 
   return (
-    <div className="flex flex-wrap gap-2">
-      {/* Owner actions for DRAFT */}
-      {showOwnerDraftActions && (
-        <>
-          <SubmitApplicationButton
-            organisationAlias={organisationAlias}
-            applicationId={applicationId}
-          />
-          <Link href={`/${organisationAlias}/applications/${applicationId}/edit`}>
-            <Button variant="outline">
-              <Pencil className="mr-2 h-4 w-4" />
-              {tActions("edit")}
-            </Button>
-          </Link>
-          <Button
-            variant="outline"
-            onClick={() => setDeleteDialogOpen(true)}
-          >
-            <Trash2 className="mr-2 h-4 w-4" />
-            {tActions("delete")}
-          </Button>
-        </>
+    <>
+      {/* Owner action for DRAFT - Submit */}
+      {showSubmitAction && (
+        <SubmitApplicationButton
+          organisationAlias={organisationAlias}
+          applicationId={applicationId}
+        />
       )}
 
       {/* DM actions for SUBMITTED */}
@@ -109,7 +88,7 @@ export function ApplicationActions({
         </>
       )}
 
-      {/* GM actions for APPROVED_FIRST_LEVEL */}
+      {/* GM actions for SUBMITTED or APPROVED_FIRST_LEVEL */}
       {showGMActions && (
         <>
           <Button
@@ -127,15 +106,7 @@ export function ApplicationActions({
         </>
       )}
 
-      {/* Dialogs */}
-      <DeleteApplicationDialog
-        open={deleteDialogOpen}
-        onOpenChange={setDeleteDialogOpen}
-        applicationId={applicationId}
-        organisationAlias={organisationAlias}
-        onSuccess={handleDeleteSuccess}
-      />
-
+      {/* Approval Dialog */}
       {(showDMActions || showGMActions) && (
         <ApplicationApprovalDialog
           open={approvalDialogOpen}
@@ -147,7 +118,6 @@ export function ApplicationActions({
           onSuccess={handleApprovalSuccess}
         />
       )}
-    </div>
+    </>
   );
 }
-

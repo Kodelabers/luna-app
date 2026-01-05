@@ -5,6 +5,7 @@ import { resolveTenantContext } from "@/lib/tenant/resolveTenantContext";
 import { db } from "@/lib/db";
 import { redirect, notFound } from "next/navigation";
 import { toZonedTime } from "date-fns-tz";
+import { DeleteApplicationSection } from "./_components/delete-application-section";
 
 type PageProps = {
   params: Promise<{ organisationAlias: string; applicationId: string }>;
@@ -102,8 +103,13 @@ export default async function EditApplicationPage(props: PageProps) {
           }}
           backHref={`/${params.organisationAlias}/applications/${params.applicationId}`}
         />
+
+        {/* Delete section - only for DRAFT applications */}
+        <DeleteApplicationSection
+          applicationId={application.id}
+          organisationAlias={params.organisationAlias}
+        />
       </div>
     </div>
   );
 }
-
