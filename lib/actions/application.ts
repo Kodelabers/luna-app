@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { resolveTenantContext } from "@/lib/tenant/resolveTenantContext";
 import {
   applicationDecisionSchema,
-  saveDraftApplicationSchema,
+  createApplicationSchema,
   submitApplicationSchema,
   deleteApplicationSchema,
   validateApplicationDraftSchema,
@@ -18,7 +18,7 @@ import {
   decideAsDepartmentManager,
   decideAsGeneralManager,
   validateApplicationDraft,
-  saveDraftApplication,
+  createApplication,
   submitApplication,
   deleteDraftApplication,
   listMyApplications,
@@ -143,9 +143,10 @@ export async function validateApplicationDraftAction(
 }
 
 /**
- * Save draft application (UC-APP-02)
+ * Create application (UC-APP-02)
+ * When a manager creates for another employee, it goes directly to SUBMITTED.
  */
-export async function saveDraftApplicationAction(
+export async function createApplicationAction(
   organisationAlias: string,
   _prevState: FormState,
   formData: FormData
@@ -155,7 +156,7 @@ export async function saveDraftApplicationAction(
 
     // Parse and validate form data
     const rawData = Object.fromEntries(formData.entries());
-    const result = saveDraftApplicationSchema.safeParse(rawData);
+    const result = createApplicationSchema.safeParse(rawData);
 
     if (!result.success) {
       const fieldErrors: Record<string, string[]> = {};
@@ -175,13 +176,20 @@ export async function saveDraftApplicationAction(
     const data = result.data;
 
     // Call service
-    const saved = await saveDraftApplication(ctx, data);
+    const saved = await createApplication(ctx, data);
 
     revalidatePath(`/${organisationAlias}/applications`);
+    revalidatePath(`/${organisationAlias}`);
     
-    const message = data.applicationId 
-      ? "Nacrt je uspješno ažuriran"
-      : "Nacrt je uspješno spremljen";
+    // Determine message based on status
+    let message: string;
+    if (data.applicationId) {
+      message = "Nacrt je uspješno ažuriran";
+    } else if (saved.status === "SUBMITTED") {
+      message = "Zahtjev je uspješno poslan na odobrenje";
+    } else {
+      message = "Nacrt je uspješno spremljen";
+    }
     
     return {
       ...successState(message),

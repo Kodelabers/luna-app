@@ -155,8 +155,8 @@ export function AppSidebar({
           </>
         )}
 
-        {/* Admin section - visible to admins and managers with planning access */}
-        {(isAdmin || planningAbsenceReasons.length > 0) && (
+        {/* Admin section - visible only to admins */}
+        {isAdmin && (
           <>
             <Separator />
             <NavMain items={adminNavItems} label={t("management")} />

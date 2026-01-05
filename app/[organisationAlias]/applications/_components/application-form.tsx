@@ -46,7 +46,7 @@ import { CalendarIcon, AlertCircle, Info } from "lucide-react";
 import { format } from "date-fns";
 import { hr, enUS } from "date-fns/locale";
 import { cn } from "@/lib/utils";
-import { saveDraftApplicationAction } from "@/lib/actions/application";
+import { createApplicationAction } from "@/lib/actions/application";
 import { FormState } from "@/lib/errors";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -147,7 +147,7 @@ export function ApplicationForm({
   const [isValidating, setIsValidating] = useState(false);
 
   const [state, formAction, isPending] = useActionState<FormState, FormData>(
-    saveDraftApplicationAction.bind(null, organisationAlias),
+    createApplicationAction.bind(null, organisationAlias),
     { success: false }
   );
 

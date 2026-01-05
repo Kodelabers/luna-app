@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
-import { resolveTenantContext, getManagerStatus } from "@/lib/tenant/resolveTenantContext";
-import { ForbiddenError } from "@/lib/errors";
+import { resolveTenantContext, getManagerStatus, isAdmin } from "@/lib/tenant/resolveTenantContext";
 import { db } from "@/lib/db";
 
 type PageProps = {
@@ -13,10 +12,14 @@ export default async function DaysBalancePage(props: PageProps) {
   // Resolve tenant context
   const ctx = await resolveTenantContext(params.organisationAlias);
 
+  // Check if user is admin
+  const isAdminUser = isAdmin(ctx);
+
   // Check manager status
   const managerStatus = await getManagerStatus(ctx);
 
-  if (!managerStatus.isGeneralManager && !managerStatus.isDepartmentManager) {
+  // Allow access if user is ADMIN, GM, or DM
+  if (!isAdminUser && !managerStatus.isGeneralManager && !managerStatus.isDepartmentManager) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <p className="text-muted-foreground">

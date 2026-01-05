@@ -33,7 +33,7 @@
     "departments": "Odjeli",
     "employees": "Zaposlenici",
     "managers": "Manageri",
-    "members": "Članovi",
+    "members": "Korisnici",
     "unavailabilityReasons": "Vrste odsutnosti",
     "holidays": "Praznici",
     "planningAbsence": "Planiranje odsutnosti",
@@ -116,7 +116,7 @@
     "description": "Upravljanje organizacijom i postavkama",
     "departmentsDescription": "Upravljanje odjelima i njihovom strukturom",
     "employeesDescription": "Upravljanje zaposlenicima u organizaciji",
-    "membersDescription": "Korisnici s pristupom sustavu",
+    "membersDescription": "Korisnici s pristupom organizaciji",
     "holidaysDescription": "Neradni dani i praznici",
     "absenceReasonsDescription": "Vrste odsutnosti koje zaposlenici mogu zatražiti"
   },
