@@ -3,10 +3,13 @@ import { getTranslations } from "next-intl/server";
 import { resolveTenantContext, requireDepartmentAccess } from "@/lib/tenant/resolveTenantContext";
 import { db } from "@/lib/db";
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageHeader } from "@/components/page-header";
 import { DepartmentApplicationsClient } from "./_components/department-applications-client";
+import { Plus } from "lucide-react";
 
 type Props = {
   params: Promise<{ organisationAlias: string; departmentId: string }>;
@@ -63,6 +66,14 @@ export default async function DepartmentApplicationsPage({ params }: Props) {
         <PageHeader
           title={`${t("title")} - ${department.name}`}
           description={t("description")}
+          action={
+            <Link href={`/${organisationAlias}/applications/new`}>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                {t("newApplication")}
+              </Button>
+            </Link>
+          }
         />
       </CardHeader>
 
