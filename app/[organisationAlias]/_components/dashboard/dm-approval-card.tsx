@@ -192,7 +192,6 @@ export function DmApprovalCard({ queues, organisationAlias }: DmApprovalCardProp
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         action={dmDecideApplicationAction.bind(null, organisationAlias)}
-        organisationAlias={organisationAlias}
         mode={dialogMode}
       />
     </>

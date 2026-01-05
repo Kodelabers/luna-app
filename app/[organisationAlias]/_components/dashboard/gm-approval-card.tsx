@@ -125,7 +125,6 @@ export function GmApprovalCard({ applications, organisationAlias }: GmApprovalCa
         open={dialogOpen}
         onOpenChange={setDialogOpen}
         action={handleAction}
-        organisationAlias={organisationAlias}
         mode={dialogMode}
       />
     </>

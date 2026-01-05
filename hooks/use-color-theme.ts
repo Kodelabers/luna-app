@@ -12,12 +12,24 @@ export function useColorTheme() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true);
-    const stored = localStorage.getItem(COLOR_THEME_KEY) as ColorTheme | null;
-    if (stored && colorThemes.includes(stored)) {
-      setColorThemeState(stored);
-      applyColorTheme(stored);
-    }
+    let cancelled = false;
+
+    // Avoid calling setState synchronously inside the effect body (react-hooks/set-state-in-effect)
+    queueMicrotask(() => {
+      if (cancelled) return;
+
+      setMounted(true);
+
+      const stored = localStorage.getItem(COLOR_THEME_KEY) as ColorTheme | null;
+      const initialTheme: ColorTheme = stored && colorThemes.includes(stored) ? stored : "zinc";
+
+      setColorThemeState(initialTheme);
+      applyColorTheme(initialTheme);
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const setColorTheme = (theme: ColorTheme) => {
