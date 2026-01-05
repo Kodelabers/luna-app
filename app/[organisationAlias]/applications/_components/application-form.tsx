@@ -3,6 +3,7 @@
 import React, { useActionState, useEffect, useState, useMemo } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -29,14 +30,6 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import {
   Popover,
   PopoverContent,
@@ -107,6 +100,7 @@ type ApplicationFormProps = {
     description?: string;
   };
   onSuccess?: (applicationId: string) => void;
+  backHref?: string;
 };
 
 export function ApplicationForm({
@@ -118,6 +112,7 @@ export function ApplicationForm({
   applicationId,
   initialData,
   onSuccess,
+  backHref,
 }: ApplicationFormProps) {
   const t = useTranslations("applications");
   const tCommon = useTranslations("common");
@@ -321,12 +316,12 @@ export function ApplicationForm({
   return (
     <form action={formAction} className="space-y-6">
       <Card>
-        <CardHeader>
+        {/* <CardHeader>
           <CardTitle>{t(applicationId ? "editApplication" : "newApplication")}</CardTitle>
           <CardDescription>
             {t(applicationId ? "editDescription" : "createDescription")}
           </CardDescription>
-        </CardHeader>
+        </CardHeader> */}
         <CardContent className="space-y-4">
           {/* Employee Selection (for managers) */}
           {isManager && selectableEmployees.length > 0 && (
@@ -354,109 +349,36 @@ export function ApplicationForm({
             </div>
           )}
 
-          {/* Ledger Balance Display */}
-          {ledgerBalance.length > 0 && (() => {
-            // Get unique years from selected date range, or default to current and next year
-            const selectedYears = new Set<number>();
-            
-            if (startDate && endDate) {
-              const start = new Date(startDate);
-              const end = new Date(endDate);
-              for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-                selectedYears.add(d.getFullYear());
-              }
-            } else {
-              // Default to current and next year
-              const currentYear = new Date().getFullYear();
-              selectedYears.add(currentYear);
-              selectedYears.add(currentYear + 1);
-            }
-            
-            const years = Array.from(selectedYears).sort();
-            
-            return (
-              <div className="rounded-lg border bg-muted/50 p-4">
-                <h4 className="text-sm font-medium mb-3">{t("ledgerBalance")}</h4>
-                <div className="rounded-md border">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="font-semibold">{t("reason")}</TableHead>
-                        {years.map((year) => (
-                          <TableHead key={year} className="text-center" colSpan={3}>
-                            {year}
-                          </TableHead>
-                        ))}
-                      </TableRow>
-                      <TableRow>
-                        <TableHead></TableHead>
-                        {years.map((year) => (
-                          <React.Fragment key={year}>
-                            <TableHead className="text-center text-xs">
-                              {t("allocated")}
-                            </TableHead>
-                            <TableHead className="text-center text-xs">
-                              {t("used")}
-                            </TableHead>
-                            <TableHead className="text-center text-xs font-semibold">
-                              {t("remaining")}
-                            </TableHead>
-                          </React.Fragment>
-                        ))}
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {ledgerBalance.map((balance) => {
-                        // Filter balance data to only show years in the selected range
-                        const relevantYears = balance.byYear.filter((yearData) =>
-                          selectedYears.has(yearData.year)
-                        );
-                        
-                        // Don't show reason if no relevant years
-                        if (relevantYears.length === 0) return null;
-                        
-                        // Create a map for quick lookup
-                        const yearDataMap = new Map(
-                          relevantYears.map((y) => [y.year, y])
-                        );
-                        
-                        return (
-                          <TableRow key={balance.reasonId}>
-                            <TableCell className="font-medium">{balance.reasonName}</TableCell>
-                            {years.map((year) => {
-                              const yearData = yearDataMap.get(year);
-                              if (!yearData) {
-                                return (
-                                  <React.Fragment key={`${balance.reasonId}-${year}`}>
-                                    <TableCell className="text-center text-muted-foreground">-</TableCell>
-                                    <TableCell className="text-center text-muted-foreground">-</TableCell>
-                                    <TableCell className="text-center text-muted-foreground">-</TableCell>
-                                  </React.Fragment>
-                                );
-                              }
-                              return (
-                                <React.Fragment key={`${balance.reasonId}-${year}`}>
-                                  <TableCell className="text-center">
-                                    {yearData.allocated}
-                                  </TableCell>
-                                  <TableCell className="text-center">
-                                    {yearData.used}
-                                  </TableCell>
-                                  <TableCell className="text-center font-semibold text-primary">
-                                    {yearData.remaining}
-                                  </TableCell>
-                                </React.Fragment>
-                              );
-                            })}
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </div>
-              </div>
-            );
-          })()}
+          {/* Ledger Balance Display - Compact Badges */}
+          {ledgerBalance.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {ledgerBalance.map((balance) => {
+                // Get current year's remaining balance
+                const currentYear = new Date().getFullYear();
+                const currentYearData = balance.byYear.find((y) => y.year === currentYear);
+                const remaining = currentYearData?.remaining ?? 0;
+                
+                // Find the reason to get its color
+                const reason = reasons.find((r) => r.id === balance.reasonId);
+                const colorCode = reason?.colorCode;
+                
+                return (
+                  <Badge 
+                    key={balance.reasonId} 
+                    variant="secondary"
+                    className="text-sm py-1.5 px-3 border"
+                    style={colorCode ? {
+                      backgroundColor: `${colorCode}20`,
+                      borderColor: `${colorCode}40`,
+                      color: `color-mix(in srgb, ${colorCode}, black 30%)`,
+                    } : undefined}
+                  >
+                    {balance.reasonName}: <span className="font-semibold ml-1">{remaining}</span> {t("remaining").toLowerCase()}
+                  </Badge>
+                );
+              })}
+            </div>
+          )}
 
           {/* Reason Selection */}
           <div className="space-y-2">
@@ -491,9 +413,11 @@ export function ApplicationForm({
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
+                  disabled={!selectedReasonId}
                   className={cn(
                     "w-full justify-start text-left font-normal",
-                    !dateRange?.from && "text-muted-foreground"
+                    !dateRange?.from && "text-muted-foreground",
+                    !selectedReasonId && "opacity-50 cursor-not-allowed"
                   )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
@@ -507,7 +431,7 @@ export function ApplicationForm({
                       format(dateRange.from, "PPP", { locale: dateLocale })
                     )
                   ) : (
-                    <span>{t("selectDateRange")}</span>
+                    <span>{!selectedReasonId ? t("selectReasonFirst") : t("selectDateRange")}</span>
                   )}
                 </Button>
               </PopoverTrigger>
@@ -695,7 +619,16 @@ export function ApplicationForm({
       )}
 
       {/* Actions */}
-      <div className="flex justify-end gap-2">
+      <div className="flex justify-between items-center">
+        {backHref ? (
+          <Link href={backHref}>
+            <Button type="button" variant="outline">
+              {tCommon("back")}
+            </Button>
+          </Link>
+        ) : (
+          <div />
+        )}
         <Button
           type="submit"
           disabled={
