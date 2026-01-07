@@ -33,7 +33,7 @@
     "departments": "Departments",
     "employees": "Employees",
     "managers": "Managers",
-    "members": "Members",
+    "members": "Users",
     "unavailabilityReasons": "Absence Types",
     "holidays": "Holidays",
     "planningAbsence": "Planning Absence",
@@ -116,7 +116,7 @@
     "description": "Manage organization and settings",
     "departmentsDescription": "Manage departments and their structure",
     "employeesDescription": "Manage employees in the organization",
-    "membersDescription": "Users with access to the system",
+    "membersDescription": "Users with access to the organization",
     "holidaysDescription": "Non-working days and holidays",
     "absenceReasonsDescription": "Absence types that employees can request"
   },
@@ -324,6 +324,7 @@
     "selectEndDate": "Select end date",
     "dateRange": "Date Range",
     "selectDateRange": "Select date range",
+    "selectReasonFirst": "Select reason first",
     "legend": "Legend",
     "pendingApproval": "Pending approval",
     "employee": "Employee",
@@ -404,7 +405,18 @@
       "filterByYear": "Filter by year",
       "allReasons": "All reasons",
       "allYears": "All years"
-    }
+    },
+    "logType": {
+      "CREATED": "Application created",
+      "DELETED": "Application deleted",
+      "REQUESTED": "Application submitted for approval",
+      "REJECTED": "Application rejected",
+      "REJECTED_ON_FIRST_APPROVAL": "Application rejected at first level",
+      "APPROVED": "Application approved",
+      "POST_APPROVAL_IMPACT_CHANGED": "Change after approval"
+    },
+    "dangerZone": "Danger Zone",
+    "deleteWarning": "Deleting an application is permanent and cannot be undone."
   },
   "planning": {
     "title": "Absence Planning",

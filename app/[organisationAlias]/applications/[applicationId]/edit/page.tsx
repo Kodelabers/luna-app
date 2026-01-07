@@ -1,13 +1,11 @@
 import { getTranslations } from "next-intl/server";
 import { PageHeader } from "@/components/page-header";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
 import { ApplicationForm } from "../../_components/application-form";
 import { resolveTenantContext } from "@/lib/tenant/resolveTenantContext";
 import { db } from "@/lib/db";
 import { redirect, notFound } from "next/navigation";
 import { toZonedTime } from "date-fns-tz";
+import { DeleteApplicationSection } from "./_components/delete-application-section";
 
 type PageProps = {
   params: Promise<{ organisationAlias: string; applicationId: string }>;
@@ -85,35 +83,33 @@ export default async function EditApplicationPage(props: PageProps) {
   const endLocal = toZonedTime(application.endDate, clientTimeZone);
 
   return (
-    <div className="flex flex-col gap-6">
-      <PageHeader
-        title={t("editApplication")}
-        description={t("editDescription")}
-        action={
-          <Link
-            href={`/${params.organisationAlias}/applications/${params.applicationId}`}
-          >
-            <Button variant="outline">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Natrag
-            </Button>
-          </Link>
-        }
-      />
+    <div className="max-w-2xl mx-auto w-full">
+      <div className="flex flex-col gap-6">
+        <PageHeader
+          title={t("editApplication")}
+          description={t("editDescription")}
+        />
 
-      <ApplicationForm
-        organisationAlias={params.organisationAlias}
-        reasons={reasons}
-        currentEmployeeId={application.employeeId}
-        applicationId={application.id}
-        initialData={{
-          unavailabilityReasonId: application.unavailabilityReasonId,
-          startDate: startLocal,
-          endDate: endLocal,
-          description: application.description ?? undefined,
-        }}
-      />
+        <ApplicationForm
+          organisationAlias={params.organisationAlias}
+          reasons={reasons}
+          currentEmployeeId={application.employeeId}
+          applicationId={application.id}
+          initialData={{
+            unavailabilityReasonId: application.unavailabilityReasonId,
+            startDate: startLocal,
+            endDate: endLocal,
+            description: application.description ?? undefined,
+          }}
+          backHref={`/${params.organisationAlias}/applications/${params.applicationId}`}
+        />
+
+        {/* Delete section - only for DRAFT applications */}
+        <DeleteApplicationSection
+          applicationId={application.id}
+          organisationAlias={params.organisationAlias}
+        />
+      </div>
     </div>
   );
 }
-

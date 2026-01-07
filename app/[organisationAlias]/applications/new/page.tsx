@@ -1,13 +1,9 @@
 import { getTranslations } from "next-intl/server";
 import { PageHeader } from "@/components/page-header";
-import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
-import Link from "next/link";
 import { ApplicationForm } from "../_components/application-form";
 import { resolveTenantContext } from "@/lib/tenant/resolveTenantContext";
 import { db } from "@/lib/db";
 import { redirect } from "next/navigation";
-import { getEmployeeMonthCalendar } from "@/lib/services/calendar";
 
 type PageProps = {
   params: Promise<{ organisationAlias: string }>;
@@ -117,27 +113,22 @@ export default async function NewApplicationPage(props: PageProps) {
   // based on selected employee (default: current employee)
 
   return (
-    <div className="flex flex-col gap-6">
-      <PageHeader
-        title={t("newApplication")}
-        description={t("createDescription")}
-        action={
-          <Link href={`/${params.organisationAlias}/applications`}>
-            <Button variant="outline">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Natrag
-            </Button>
-          </Link>
-        }
-      />
+    <div className="max-w-2xl mx-auto w-full">
+      <div className="flex flex-col gap-6">
+        <PageHeader
+          title={t("newApplication")}
+          description={t("createDescription")}
+        />
 
-      <ApplicationForm
-        organisationAlias={params.organisationAlias}
-        reasons={reasons}
-        currentEmployeeId={employee.id}
-        selectableEmployees={selectableEmployees}
-        isManager={isGeneralManager || isDepartmentManager}
-      />
+        <ApplicationForm
+          organisationAlias={params.organisationAlias}
+          reasons={reasons}
+          currentEmployeeId={employee.id}
+          selectableEmployees={selectableEmployees}
+          isManager={isGeneralManager || isDepartmentManager}
+          backHref={`/${params.organisationAlias}/applications`}
+        />
+      </div>
     </div>
   );
 }

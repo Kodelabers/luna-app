@@ -60,7 +60,7 @@ export const validateApplicationDraftSchema = z.object({
   editingApplicationId: z.string().min(1).optional(),
 });
 
-export const saveDraftApplicationSchema = z.object({
+export const createApplicationSchema = z.object({
   unavailabilityReasonId: z.string().min(1, "Razlog je obavezan"),
   startDateLocalISO: z.string().min(1, "Datum početka je obavezan"),
   endDateLocalISO: z.string().min(1, "Datum završetka je obavezan"),

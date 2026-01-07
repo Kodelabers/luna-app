@@ -33,7 +33,7 @@
     "departments": "Odjeli",
     "employees": "Zaposlenici",
     "managers": "Manageri",
-    "members": "Članovi",
+    "members": "Korisnici",
     "unavailabilityReasons": "Vrste odsutnosti",
     "holidays": "Praznici",
     "planningAbsence": "Planiranje odsutnosti",
@@ -116,7 +116,7 @@
     "description": "Upravljanje organizacijom i postavkama",
     "departmentsDescription": "Upravljanje odjelima i njihovom strukturom",
     "employeesDescription": "Upravljanje zaposlenicima u organizaciji",
-    "membersDescription": "Korisnici s pristupom sustavu",
+    "membersDescription": "Korisnici s pristupom organizaciji",
     "holidaysDescription": "Neradni dani i praznici",
     "absenceReasonsDescription": "Vrste odsutnosti koje zaposlenici mogu zatražiti"
   },
@@ -324,6 +324,7 @@
     "selectEndDate": "Odaberite datum završetka",
     "dateRange": "Period",
     "selectDateRange": "Odaberite period",
+    "selectReasonFirst": "Prvo odaberite razlog",
     "legend": "Legenda",
     "pendingApproval": "U procesu odobravanja",
     "employee": "Zaposlenik",
@@ -404,7 +405,18 @@
       "filterByYear": "Filtriraj po godini",
       "allReasons": "Svi razlozi",
       "allYears": "Sve godine"
-    }
+    },
+    "logType": {
+      "CREATED": "Zahtjev kreiran",
+      "DELETED": "Zahtjev obrisan",
+      "REQUESTED": "Zahtjev poslan na odobrenje",
+      "REJECTED": "Zahtjev odbijen",
+      "REJECTED_ON_FIRST_APPROVAL": "Zahtjev odbijen na prvoj razini",
+      "APPROVED": "Zahtjev odobren",
+      "POST_APPROVAL_IMPACT_CHANGED": "Promjena nakon odobrenja"
+    },
+    "dangerZone": "Opasna zona",
+    "deleteWarning": "Brisanje zahtjeva je trajna akcija i ne može se poništiti."
   },
   "planning": {
     "title": "Planiranje odsutnosti",

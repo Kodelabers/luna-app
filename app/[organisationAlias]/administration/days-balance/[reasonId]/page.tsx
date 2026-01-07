@@ -1,7 +1,7 @@
 import { Suspense } from "react";
 import { getTranslations } from "next-intl/server";
 import { PageHeader } from "@/components/page-header";
-import { resolveTenantContext, getManagerStatus } from "@/lib/tenant/resolveTenantContext";
+import { resolveTenantContext, getManagerStatus, isAdmin } from "@/lib/tenant/resolveTenantContext";
 import { NotFoundError } from "@/lib/errors";
 import { db } from "@/lib/db";
 import { getManagedDepartments } from "@/lib/services/sidebar";
@@ -22,10 +22,14 @@ export default async function DaysBalanceByReasonPage(props: PageProps) {
   // Resolve tenant context
   const ctx = await resolveTenantContext(params.organisationAlias);
 
+  // Check if user is admin
+  const isAdminUser = isAdmin(ctx);
+
   // Check manager status
   const managerStatus = await getManagerStatus(ctx);
 
-  if (!managerStatus.isGeneralManager && !managerStatus.isDepartmentManager) {
+  // Allow access if user is ADMIN, GM, or DM
+  if (!isAdminUser && !managerStatus.isGeneralManager && !managerStatus.isDepartmentManager) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <p className="text-muted-foreground">
@@ -56,7 +60,10 @@ export default async function DaysBalanceByReasonPage(props: PageProps) {
   }
 
   // Get managed departments for filter
-  const managedDepartments = await getManagedDepartments(ctx);
+  // ADMIN and GM have access to all departments
+  const managedDepartments = await getManagedDepartments(ctx, { 
+    includeForAdmin: isAdminUser 
+  });
 
   // Parse comma-separated department IDs
   const departmentIds: string[] = searchParams.department
@@ -70,8 +77,8 @@ export default async function DaysBalanceByReasonPage(props: PageProps) {
   const validDepartmentIds: string[] = [];
   if (departmentIds.length > 0) {
     for (const deptId of departmentIds) {
-      if (managerStatus.isGeneralManager) {
-        // GM can access any department in organisation
+      if (isAdminUser || managerStatus.isGeneralManager) {
+        // ADMIN and GM can access any department in organisation
         const dept = managedDepartments.find((d) => d.id === deptId);
         if (dept) {
           validDepartmentIds.push(deptId);

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { resolveTenantContext } from "@/lib/tenant/resolveTenantContext";
 import { getEmployeeMonthCalendar } from "@/lib/services/calendar";
+import { getDaysBalanceForEmployee } from "@/lib/services/days-balance";
 import { db } from "@/lib/db";
 
 export async function POST(
@@ -12,7 +13,7 @@ export async function POST(
     const ctx = await resolveTenantContext(organisationAlias);
 
     const body = await request.json();
-    const { employeeId } = body;
+    const { employeeId, clientTimeZone = "Europe/Zagreb" } = body;
 
     if (!employeeId) {
       return NextResponse.json(
@@ -39,7 +40,6 @@ export async function POST(
 
     // Fetch calendar data for the next 12 months
     const now = new Date();
-    const clientTimeZone = "Europe/Zagreb"; // TODO: Get from user preferences
     const calendarDays = await getEmployeeMonthCalendar(ctx, {
       employeeId,
       month: now.getMonth() + 1,
@@ -71,77 +71,25 @@ export async function POST(
       },
     });
 
-    // Fetch ledger balance for reasons with planning
+    // Get ledger balance using openYear logic from days-balance service
     const currentYear = now.getFullYear();
-    const ledgerEntries = await db.unavailabilityLedgerEntry.findMany({
-      where: {
-        organisationId: ctx.organisationId,
-        employeeId,
-        year: {
-          in: [currentYear - 1, currentYear, currentYear + 1],
-        },
-      },
-      include: {
-        unavailabilityReason: {
-          select: {
-            id: true,
-            name: true,
-            hasPlanning: true,
-          },
-        },
-      },
-    });
-
-    // Group by reason and year, calculate balance
-    const ledgerBalance = new Map<
-      string,
-      {
-        reasonId: string;
-        reasonName: string;
-        byYear: Map<number, { allocated: number; used: number; remaining: number }>;
-      }
-    >();
-
-    ledgerEntries.forEach((entry) => {
-      if (!entry.unavailabilityReason.hasPlanning) return;
-
-      if (!ledgerBalance.has(entry.unavailabilityReasonId)) {
-        ledgerBalance.set(entry.unavailabilityReasonId, {
-          reasonId: entry.unavailabilityReasonId,
-          reasonName: entry.unavailabilityReason.name,
-          byYear: new Map(),
-        });
-      }
-
-      const reasonData = ledgerBalance.get(entry.unavailabilityReasonId)!;
-      if (!reasonData.byYear.has(entry.year)) {
-        reasonData.byYear.set(entry.year, {
-          allocated: 0,
-          used: 0,
-          remaining: 0,
-        });
-      }
-
-      const yearData = reasonData.byYear.get(entry.year)!;
-      if (entry.type === "ALLOCATION") {
-        yearData.allocated += entry.changeDays;
-      } else if (entry.type === "USAGE") {
-        yearData.used += Math.abs(entry.changeDays);
-      }
-      yearData.remaining = yearData.allocated - yearData.used;
-    });
-
-    // Convert to serializable format
-    const ledgerBalanceSerialized = Array.from(ledgerBalance.values()).map(
-      (reason) => ({
-        reasonId: reason.reasonId,
-        reasonName: reason.reasonName,
-        byYear: Array.from(reason.byYear.entries()).map(([year, data]) => ({
-          year,
-          ...data,
-        })),
-      })
+    const daysBalance = await getDaysBalanceForEmployee(
+      ctx,
+      employeeId,
+      currentYear,
+      clientTimeZone
     );
+
+    // Convert to format expected by form (openYear-based)
+    const ledgerBalanceSerialized = daysBalance.map((balance) => ({
+      reasonId: balance.unavailabilityReasonId,
+      reasonName: balance.unavailabilityReasonName,
+      colorCode: balance.unavailabilityReasonColorCode,
+      openYear: balance.openYear,
+      remaining: balance.breakdown.remaining,
+      pending: balance.breakdown.pending,
+      balance: balance.breakdown.balance,
+    }));
 
     return NextResponse.json({
       calendarDays,

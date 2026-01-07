@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { TenantContext } from "@/lib/tenant/resolveTenantContext";
 import { ForbiddenError, NotFoundError, ConflictError, ValidationError } from "@/lib/errors";
 import { applyApprovalEffects } from "./approval-effects";
+import { getOpenYear, getDaysBalance } from "./days-balance";
 import { eachDayOfInterval, getDay, parseISO } from "date-fns";
 import { toZonedTime, fromZonedTime } from "date-fns-tz";
 import { ApplicationStatus } from "@prisma/client";
@@ -348,9 +349,9 @@ export type ValidateApplicationInput = {
 };
 
 /**
- * Input for saving draft application
+ * Input for creating application
  */
-export type SaveDraftInput = {
+export type CreateApplicationInput = {
   unavailabilityReasonId: string;
   startDateLocalISO: string;
   endDateLocalISO: string;
@@ -572,38 +573,13 @@ export async function validateApplicationDraft(
   const warnings: string[] = [];
 
   if (reason.hasPlanning) {
-    const startLocal = toZonedTime(startUTC, clientTimeZone);
-    const year = startLocal.getFullYear();
-
-    // Get ledger balance for current year
-    const ledgerEntries = await db.unavailabilityLedgerEntry.findMany({
-      where: {
-        organisationId: ctx.organisationId,
-        employeeId: employee.id,
-        unavailabilityReasonId,
-        year,
-      },
-    });
-
-    // Check if there's any allocation for this year
-    const hasAllocation = ledgerEntries.some((entry) => entry.type === "ALLOCATION");
+    // Use openYear logic per 06_ledger_rules.md
+    // openYear = latest year with ALLOCATION for this employee + reason
+    const openYear = await getOpenYear(ctx, employee.id, unavailabilityReasonId);
     
-    if (hasAllocation) {
-      // Use current year allocation
-      availableDays = ledgerEntries.reduce((sum, entry) => sum + entry.changeDays, 0);
-    } else {
-      // Check previous year for remaining days
-      const previousYear = year - 1;
-      const previousYearEntries = await db.unavailabilityLedgerEntry.findMany({
-        where: {
-          organisationId: ctx.organisationId,
-          employeeId: employee.id,
-          unavailabilityReasonId,
-          year: previousYear,
-        },
-      });
-
-      availableDays = previousYearEntries.reduce((sum, entry) => sum + entry.changeDays, 0);
+    if (openYear !== null) {
+      // Get balance from openYear (includes all entries: ALLOCATION, USAGE, TRANSFER, CORRECTION)
+      availableDays = await getDaysBalance(ctx, employee.id, unavailabilityReasonId, openYear);
     }
 
     // Check if enough days available
@@ -640,20 +616,30 @@ export async function validateApplicationDraft(
 }
 
 /**
- * Save draft application (UC-APP-02)
+ * Create application (UC-APP-02)
+ * When a manager creates an application for another employee, it goes directly to SUBMITTED status.
  */
-export async function saveDraftApplication(
+export async function createApplication(
   ctx: TenantContext,
-  input: SaveDraftInput
+  input: CreateApplicationInput
 ): Promise<{ applicationId: string; status: ApplicationStatus }> {
   const { unavailabilityReasonId, startDateLocalISO, endDateLocalISO, description, clientTimeZone, applicationId, employeeId } =
     input;
 
-  // Get employee
-  let employee;
+  // Get current user's employee record
+  const currentUserEmployee = await db.employee.findFirst({
+    where: {
+      organisationId: ctx.organisationId,
+      userId: ctx.user.id,
+      active: true,
+    },
+  });
+
+  // Get target employee (for whom the application is being created)
+  let targetEmployee;
   if (employeeId) {
     // Manager creating application for someone else
-    employee = await db.employee.findFirst({
+    targetEmployee = await db.employee.findFirst({
       where: {
         id: employeeId,
         organisationId: ctx.organisationId,
@@ -662,18 +648,15 @@ export async function saveDraftApplication(
     });
   } else {
     // User creating application for themselves
-    employee = await db.employee.findFirst({
-      where: {
-        organisationId: ctx.organisationId,
-        userId: ctx.user.id,
-        active: true,
-      },
-    });
+    targetEmployee = currentUserEmployee;
   }
 
-  if (!employee) {
+  if (!targetEmployee) {
     throw new ForbiddenError("Zaposlenik nije pronađen");
   }
+
+  // Determine if manager is creating for someone else
+  const isCreatingForOther = employeeId && currentUserEmployee && employeeId !== currentUserEmployee.id;
 
   // Validate first
   const validation = await validateApplicationDraft(ctx, {
@@ -682,7 +665,7 @@ export async function saveDraftApplication(
     endDateLocalISO,
     clientTimeZone,
     editingApplicationId: applicationId,
-    employeeId: employee.id,
+    employeeId: targetEmployee.id,
   });
 
   if (!validation.isValid) {
@@ -708,7 +691,7 @@ export async function saveDraftApplication(
       where: {
         id: applicationId,
         organisationId: ctx.organisationId,
-        employeeId: employee.id,
+        employeeId: targetEmployee.id,
         status: "DRAFT",
         active: true,
       },
@@ -735,24 +718,28 @@ export async function saveDraftApplication(
       status: updated.status,
     };
   } else {
-    // Create new draft
+    // Determine initial status
+    // If manager is creating for someone else, go directly to SUBMITTED
+    const initialStatus: ApplicationStatus = isCreatingForOther ? "SUBMITTED" : "DRAFT";
+
+    // Create new application
     const created = await db.application.create({
       data: {
         organisationId: ctx.organisationId,
-        employeeId: employee.id,
-        departmentId: employee.departmentId,
+        employeeId: targetEmployee.id,
+        departmentId: targetEmployee.departmentId,
         unavailabilityReasonId,
         startDate: startUTC,
         endDate: endUTC,
         description,
         requestedWorkdays: validation.workdays,
-        status: "DRAFT",
+        status: initialStatus,
         createdById: ctx.organisationUser.id,
         active: true,
       },
     });
 
-    // Add log
+    // Add CREATED log
     await db.applicationLog.create({
       data: {
         organisationId: ctx.organisationId,
@@ -761,6 +748,18 @@ export async function saveDraftApplication(
         createdById: ctx.organisationUser.id,
       },
     });
+
+    // If auto-submitted, add REQUESTED log as well
+    if (isCreatingForOther) {
+      await db.applicationLog.create({
+        data: {
+          organisationId: ctx.organisationId,
+          applicationId: created.id,
+          type: "REQUESTED",
+          createdById: ctx.organisationUser.id,
+        },
+      });
+    }
 
     return {
       applicationId: created.id,

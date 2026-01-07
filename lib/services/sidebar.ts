@@ -19,10 +19,31 @@ export type PlanningAbsenceReason = {
  * Returns departments where user is either:
  * - A department manager for that specific department
  * - A general manager (departmentId is null) - returns all departments
+ * - An ADMIN (if includeForAdmin is true) - returns all departments
  */
 export async function getManagedDepartments(
-  ctx: TenantContext
+  ctx: TenantContext,
+  options?: { includeForAdmin?: boolean }
 ): Promise<ManagedDepartment[]> {
+  // If user is ADMIN and includeForAdmin is true, return all departments
+  if (options?.includeForAdmin) {
+    return db.department.findMany({
+      where: {
+        organisationId: ctx.organisationId,
+        active: true,
+      },
+      select: {
+        id: true,
+        name: true,
+        alias: true,
+        colorCode: true,
+      },
+      orderBy: {
+        name: "asc",
+      },
+    });
+  }
+
   // Get employee for this user
   const employee = await db.employee.findFirst({
     where: {

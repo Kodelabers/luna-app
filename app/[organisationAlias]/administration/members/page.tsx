@@ -16,6 +16,7 @@ export default async function MembersPage({ params }: Props) {
   const { organisationAlias } = await params;
   const ctx = await resolveTenantContext(organisationAlias);
   const tNav = await getTranslations("nav");
+  const tAdmin = await getTranslations("admin");
 
   // Fetch organisation members (OrganisationUser)
   const members = await db.organisationUser.findMany({
@@ -35,15 +36,15 @@ export default async function MembersPage({ params }: Props) {
     <div className="space-y-6">
       <PageHeader
         title={tNav("members")}
-        description="Korisnici s pristupom organizaciji"
-        action={<Button>Pozovi člana</Button>}
+        description={tAdmin("membersDescription")}
+        action={<Button>Pozovi korisnika</Button>}
       />
 
       <Card>
         <CardContent className="p-0">
           {members.length === 0 ? (
             <div className="p-6 text-center">
-              <p className="text-muted-foreground">Nema članova u organizaciji.</p>
+              <p className="text-muted-foreground">Nema korisnika u organizaciji.</p>
             </div>
           ) : (
             <Table>
