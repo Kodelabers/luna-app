@@ -1,0 +1,36 @@
+# Server Actions pravila
+
+## Pravilo
+- **UVIJEK** koristi Server Actions za sve operacije (CRUD, validacije, mutacije)
+- **NIKADA** ne kreiraj API routes (`app/.../api/.../route.ts`) osim ako korisnik eksplicitno zatraži
+
+## Kada koristiti API routes (samo uz eksplicitni zahtjev korisnika)
+- Webhooks (npr. Stripe, Clerk)
+- Eksterni API pristup (third-party integracije)
+- File upload koji zahtijeva streaming
+
+## Primjer ispravnog pristupa
+
+```typescript
+// ✅ ISPRAVNO - Server Action
+"use server";
+
+export async function createItemAction(formData: FormData) {
+  const ctx = await resolveTenantContext(organisationAlias);
+  // ... logika
+}
+
+// ❌ POGREŠNO - API Route (osim ako eksplicitno zatraženo)
+// app/api/items/route.ts
+export async function POST(request: NextRequest) {
+  // ...
+}
+```
+
+## Razlog
+Server Actions su Next.js preporučeni pristup jer:
+- Type-safe od klijenta do servera
+- Automatski CSRF protection
+- Bolja integracija s React formama i useActionState
+- Manje boilerplate koda
+- Automatsko revalidiranje cache-a

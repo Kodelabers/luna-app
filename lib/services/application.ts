@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { TenantContext } from "@/lib/tenant/resolveTenantContext";
 import { ForbiddenError, NotFoundError, ConflictError, ValidationError } from "@/lib/errors";
 import { applyApprovalEffects } from "./approval-effects";
+import { getOpenYear, getDaysBalance } from "./days-balance";
 import { eachDayOfInterval, getDay, parseISO } from "date-fns";
 import { toZonedTime, fromZonedTime } from "date-fns-tz";
 import { ApplicationStatus } from "@prisma/client";
@@ -572,38 +573,13 @@ export async function validateApplicationDraft(
   const warnings: string[] = [];
 
   if (reason.hasPlanning) {
-    const startLocal = toZonedTime(startUTC, clientTimeZone);
-    const year = startLocal.getFullYear();
-
-    // Get ledger balance for current year
-    const ledgerEntries = await db.unavailabilityLedgerEntry.findMany({
-      where: {
-        organisationId: ctx.organisationId,
-        employeeId: employee.id,
-        unavailabilityReasonId,
-        year,
-      },
-    });
-
-    // Check if there's any allocation for this year
-    const hasAllocation = ledgerEntries.some((entry) => entry.type === "ALLOCATION");
+    // Use openYear logic per 06_ledger_rules.md
+    // openYear = latest year with ALLOCATION for this employee + reason
+    const openYear = await getOpenYear(ctx, employee.id, unavailabilityReasonId);
     
-    if (hasAllocation) {
-      // Use current year allocation
-      availableDays = ledgerEntries.reduce((sum, entry) => sum + entry.changeDays, 0);
-    } else {
-      // Check previous year for remaining days
-      const previousYear = year - 1;
-      const previousYearEntries = await db.unavailabilityLedgerEntry.findMany({
-        where: {
-          organisationId: ctx.organisationId,
-          employeeId: employee.id,
-          unavailabilityReasonId,
-          year: previousYear,
-        },
-      });
-
-      availableDays = previousYearEntries.reduce((sum, entry) => sum + entry.changeDays, 0);
+    if (openYear !== null) {
+      // Get balance from openYear (includes all entries: ALLOCATION, USAGE, TRANSFER, CORRECTION)
+      availableDays = await getDaysBalance(ctx, employee.id, unavailabilityReasonId, openYear);
     }
 
     // Check if enough days available

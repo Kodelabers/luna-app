@@ -131,6 +131,7 @@ export async function validateApplicationDraftAction(
     endDateLocalISO: string;
     clientTimeZone: string;
     editingApplicationId?: string;
+    employeeId?: string;
   }
 ) {
   try {

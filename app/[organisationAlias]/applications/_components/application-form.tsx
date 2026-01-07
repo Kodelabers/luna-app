@@ -39,7 +39,7 @@ import { CalendarIcon, AlertCircle, Info } from "lucide-react";
 import { format } from "date-fns";
 import { hr, enUS } from "date-fns/locale";
 import { cn } from "@/lib/utils";
-import { createApplicationAction } from "@/lib/actions/application";
+import { createApplicationAction, validateApplicationDraftAction } from "@/lib/actions/application";
 import { FormState } from "@/lib/errors";
 import { toast } from "sonner";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -70,12 +70,11 @@ type PendingApplication = {
 type LedgerBalance = {
   reasonId: string;
   reasonName: string;
-  byYear: Array<{
-    year: number;
-    allocated: number;
-    used: number;
-    remaining: number;
-  }>;
+  colorCode: string | null;
+  openYear: number | null;
+  remaining: number;
+  pending: number;
+  balance: number;
 };
 
 type SelectableEmployee = {
@@ -286,26 +285,15 @@ export function ApplicationForm({
 
     setIsValidating(true);
     try {
-      const response = await fetch(
-        `/${organisationAlias}/api/applications/validate`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            unavailabilityReasonId: selectedReasonId,
-            startDateLocalISO: format(startDate, "yyyy-MM-dd"),
-            endDateLocalISO: format(endDate, "yyyy-MM-dd"),
-            clientTimeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-            editingApplicationId: applicationId,
-            employeeId: selectedEmployeeId,
-          }),
-        }
-      );
-
-      if (response.ok) {
-        const result = await response.json();
-        setValidationResult(result);
-      }
+      const result = await validateApplicationDraftAction(organisationAlias, {
+        unavailabilityReasonId: selectedReasonId,
+        startDateLocalISO: format(startDate, "yyyy-MM-dd"),
+        endDateLocalISO: format(endDate, "yyyy-MM-dd"),
+        clientTimeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        editingApplicationId: applicationId,
+        employeeId: selectedEmployeeId,
+      });
+      setValidationResult(result);
     } catch (error) {
       console.error("Validation error:", error);
     } finally {
@@ -353,14 +341,9 @@ export function ApplicationForm({
           {ledgerBalance.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {ledgerBalance.map((balance) => {
-                // Get current year's remaining balance
-                const currentYear = new Date().getFullYear();
-                const currentYearData = balance.byYear.find((y) => y.year === currentYear);
-                const remaining = currentYearData?.remaining ?? 0;
-                
-                // Find the reason to get its color
-                const reason = reasons.find((r) => r.id === balance.reasonId);
-                const colorCode = reason?.colorCode;
+                // Use remaining from openYear (already calculated by server)
+                const remaining = balance.remaining;
+                const colorCode = balance.colorCode;
                 
                 return (
                   <Badge 
