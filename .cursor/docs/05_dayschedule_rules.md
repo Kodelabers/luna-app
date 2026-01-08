@@ -29,26 +29,32 @@ Napomena:
 ## 3B) Bolovanje (`SickLeave`) i DaySchedule
 Bolovanje se vodi kroz `SickLeave` (ne `Application`) i koristi `DaySchedule.sickLeaveId` za povezivanje.
 
+**Pravilo datuma:** `endDate >= startDate` (jednodnevno bolovanje je dozvoljeno).
+
 ### OPENED (open-ended)
 - `SickLeave.status = OPENED`, `endDate = null`
-- `DaySchedule` se materializira **samo za `startDate`** (jedan dan) s:
-  - `unavailabilityReasonId = SickLeave.unavailabilityReasonId`
-  - `sickLeaveId = SickLeave.id`
-  - `status = NOT_AVAILABLE`
-- UI prikaz (kalendar + planning) radi “virtualni raspon” od `startDate` do “danas” u `clientTimeZone` (bez dodatnih DaySchedule zapisa).
+- **NE materijalizira DaySchedule** (ni za startDate)
+- **NE radi korekcije** planiranih dana (GO itd.)
+- UI prikaz (kalendar + planning) radi "virtualni raspon" od `startDate` do "danas" u `clientTimeZone` koristeći `cell.sickLeave` podatke
+- Budući planirani dani ostaju vidljivi i netaknuti
 
 ### CLOSED
-- `SickLeave.status = CLOSED`, `endDate != null`
-- `DaySchedule` se upserta za sve dane u rasponu `[startDate..endDate]` s `sickLeaveId`.
+- `SickLeave.status = CLOSED`, `endDate != null` (`endDate >= startDate`)
+- **PRVO** radi korekcije za DaySchedule s `applicationId` i `hasPlanning=true` u rasponu `[startDate..endDate]`
+- **ZATIM** upserta `DaySchedule` za sve dane u rasponu `[startDate..endDate]` s `sickLeaveId`
 
 ### CANCELLED
-- `SickLeave.status = CANCELLED` je dozvoljen samo iz `OPENED` dok je `endDate=null`.
-- Efekt: **obrisati** `DaySchedule` zapise koje je bolovanje kreiralo (u OPENED to je start dan).
-- Cancel **ne revert-a** eventualne korekcije drugih planova (audit/ledger ostaje kako je).
+- `SickLeave.status = CANCELLED` je dozvoljen samo iz `OPENED` dok je `endDate=null`
+- **Nema DaySchedule za brisati** jer OPENED ne kreira DaySchedule zapise
+- Budući planirani dani ostaju netaknuti
 
-## 3C) Brisanje DaySchedule kod korekcije “preostali dani” (GO)
-Kad bolovanje (ili drugi event) uzrokuje korekciju “vrati preostale dane” za originalni `Application` (npr. GO) koji ima `hasPlanning=true` i `applicationId` postoji:
-- obrisati `DaySchedule` zapise koji imaju `applicationId = originalApplicationId` za interval korekcije (vidi `06_ledger_rules.md` za definiciju intervala).
+## 3C) Brisanje DaySchedule kod korekcije "preostali dani" (GO)
+Kad bolovanje postaje **CLOSED** (zatvaranje), uzrokuje korekciju "vrati preostale dane" za originalne `Application` (npr. GO) koji imaju `hasPlanning=true` i `applicationId` postoji u DaySchedule:
+- pronađi `DaySchedule` zapise s `applicationId` i `hasPlanning=true` **samo u rasponu bolovanja** `[startDate..endDate]`
+- obrisati te `DaySchedule` zapise
+- vidi `06_ledger_rules.md` za detalje korekcije ledgera
+
+**Napomena:** Korekcije se rade samo kod CLOSED, ne kod OPENED.
 
 ## 4) Vikendi i praznici
 - `isWeekend` i `isHoliday` služe primarno za prikaz i workday kalkulacije.

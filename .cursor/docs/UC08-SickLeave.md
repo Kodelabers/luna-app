@@ -13,12 +13,13 @@ Svi use caseovi moraju poštovati `spec.md` (SSoT Prisma schema, multitenancy, S
 
 ## Definicije (kanonsko)
 - **Bolovanje** je zaseban entitet `SickLeave` (nije `Application`).
-- `UnavailabilityReason.sickLeave=true` je kanonski marker da je reason “bolovanje”.
+- `UnavailabilityReason.sickLeave=true` je kanonski marker da je reason "bolovanje".
 - `SickLeaveStatus`:
   - `OPENED`: `endDate=null`
   - `CLOSED`: `endDate!=null`
   - `CANCELLED`: samo iz `OPENED` dok je `endDate=null`
-- “Trenutno na bolovanju” = postoji barem jedno `SickLeave(status=OPENED)` za zaposlenika (tenant-scoped).
+- "Trenutno na bolovanju" = postoji barem jedno `SickLeave(status=OPENED)` za zaposlenika (tenant-scoped).
+- **Pravilo datuma:** `endDate >= startDate` (jednodnevno bolovanje je dozvoljeno).
 
 ---
 
@@ -57,16 +58,12 @@ Evidentirati bolovanje bez `endDate` i omogućiti UI prikaz od početka do danas
 
 ### Efekti
 - Kreira `SickLeave(status=OPENED,endDate=null)`.
-- `DaySchedule`:
-  - materializira **samo start dan** s `sickLeaveId` (vidi `05_dayschedule_rules.md`).
-- Korekcije (GO i ostali `hasPlanning=true`):
-  - Ako bolovanje prekida već odobreni GO (ili drugi `hasPlanning=true`) koji ima `applicationId` u `DaySchedule`, primijeni korekciju po kanonskom pravilu “truncate” iz `06_ledger_rules.md`:
-    - vrati sve preostale dane od `max(sickLeaveStart, applicationStart)` do `applicationEnd`
-    - obriši `DaySchedule` originalnog `applicationId` za taj interval
-    - upiši `ApplicationLog(POST_APPROVAL_IMPACT_CHANGED)` u originalni zahtjev s napomenom da je korekcija zbog bolovanja.
+- **NE materijalizira DaySchedule** (ni za start dan).
+- **NE radi korekcije** - korekcije se rade tek kod zatvaranja bolovanja (UC-SL-02).
 
 ### UI prikaz (OPENED)
-- Planning (gantt) i “Moj kalendar” prikazuju “virtualni raspon” **start → danas** u `clientTimeZone`, iako `DaySchedule` postoji samo za start dan.
+- Planning (gantt) i "Moj kalendar" prikazuju "virtualni raspon" **start → danas** u `clientTimeZone` koristeći `cell.sickLeave` podatke.
+- Budući planirani dani (GO itd.) ostaju vidljivi jer DaySchedule nije modificiran.
 
 ---
 
@@ -81,14 +78,19 @@ Evidentirati bolovanje bez `endDate` i omogućiti UI prikaz od početka do danas
 ### Pravila
 - Samo DM/GM.
 - Dozvoljeno samo iz `OPENED`.
-- `endDateLocalISO` mora biti nakon `startDate`.
+- `endDateLocalISO` mora biti **jednak ili veći** od `startDate` (jednodnevno bolovanje je dozvoljeno).
 
 ### Efekti
 - Update `SickLeave(status=CLOSED,endDate=...)`.
-- `DaySchedule`:
+- **Korekcije (PRIJE materijalizacije):**
+  - Pronađi `DaySchedule` zapise s `applicationId` i `hasPlanning=true` **samo u rasponu bolovanja** `[startDate..endDate]`.
+  - Za svaki takav zapis primijeni korekciju po pravilu "truncate" iz `06_ledger_rules.md`:
+    - vrati dane u ledger (`CORRECTION +workdays`)
+    - obriši te `DaySchedule` zapise
+    - upiši `ApplicationLog(POST_APPROVAL_IMPACT_CHANGED)` s napomenom o bolovanju
+  - Primjer: GO 8.1.-15.1., bolovanje 10.1.-12.1. → korekcija samo za 10., 11., 12. (3 radna dana).
+- **DaySchedule (materijalizacija):**
   - upsert za sve dane u rasponu `[startDate..endDate]` s `sickLeaveId`.
-- Korekcije:
-  - Obuhvatiti sve odobrene `Application` (i druge `hasPlanning=true`) koji upadaju u period bolovanja i za svaki primijeniti pravilo korekcije (truncate) iz `06_ledger_rules.md`.
 
 ---
 
@@ -104,8 +106,8 @@ Evidentirati bolovanje bez `endDate` i omogućiti UI prikaz od početka do danas
 
 ### Efekti
 - Update `SickLeave(status=CANCELLED)`.
-- `DaySchedule`:
-  - **obrisati** `DaySchedule` zapise koje je bolovanje kreiralo (u OPENED to je start dan).
+- **Nema DaySchedule za brisati** jer OPENED bolovanja ne kreiraju DaySchedule zapise.
+- Budući planirani dani (GO itd.) ostaju netaknuti.
 
 ---
 

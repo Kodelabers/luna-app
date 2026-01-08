@@ -376,7 +376,10 @@ export async function openSickLeave(
   }
 
   // 5. Create SickLeave record (status=OPENED, endDate=null)
-  const sickLeave = await db.sickLeave.create({
+  // Note: NO DaySchedule materialization or corrections at this point
+  // DaySchedule and corrections are only created when sick leave is CLOSED
+  // UI displays virtual range using cell.sickLeave data
+  await db.sickLeave.create({
     data: {
       organisationId: ctx.organisationId,
       employeeId,
@@ -388,83 +391,6 @@ export async function openSickLeave(
       note,
     },
   });
-
-  // 6. Materialize ONLY start day in DaySchedule
-  const dayOfWeek = getDay(startDateUTC);
-  const dayCodeMap = ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"];
-  const dayCode = dayCodeMap[dayOfWeek];
-
-  // Check if it's a holiday
-  const startDateLocalForHoliday = toZonedTime(startDateUTC, clientTimeZone);
-  const month = startDateLocalForHoliday.getMonth() + 1;
-  const day = startDateLocalForHoliday.getDate();
-  const year = startDateLocalForHoliday.getFullYear();
-
-  const holidayExists = await db.holiday.findFirst({
-    where: {
-      organisationId: ctx.organisationId,
-      active: true,
-      OR: [
-        {
-          repeatYearly: true,
-          date: {
-            gte: new Date(2000, month - 1, day),
-            lt: new Date(2000, month - 1, day + 1),
-          },
-        },
-        {
-          repeatYearly: false,
-          date: {
-            gte: new Date(year, month - 1, day),
-            lt: new Date(year, month - 1, day + 1),
-          },
-        },
-      ],
-    },
-  });
-
-  const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-  const isHoliday = !!holidayExists;
-
-  // Upsert DaySchedule for start day
-  await db.daySchedule.upsert({
-    where: {
-      organisationId_employeeId_date: {
-        organisationId: ctx.organisationId,
-        employeeId,
-        date: startDateUTC,
-      },
-    },
-    create: {
-      organisationId: ctx.organisationId,
-      employeeId,
-      date: startDateUTC,
-      sickLeaveId: sickLeave.id,
-      unavailabilityReasonId,
-      status: "NOT_AVAILABLE",
-      isWeekend,
-      isHoliday,
-      dayCode: dayCode as any,
-    },
-    update: {
-      sickLeaveId: sickLeave.id,
-      unavailabilityReasonId,
-      status: "NOT_AVAILABLE",
-      isWeekend,
-      isHoliday,
-      active: true,
-    },
-  });
-
-  // 7. Apply corrections (truncate) for approved applications from startDate onwards
-  // For OPENED sick leave, correctionTo is null (ongoing)
-  await applySickLeaveCorrections(
-    ctx,
-    sickLeave,
-    startDateLocal,
-    null,
-    clientTimeZone
-  );
 }
 
 /**
@@ -499,9 +425,9 @@ export async function closeSickLeave(
   const endDateUTC = fromZonedTime(endDateLocal, clientTimeZone);
   const startDateLocal = toZonedTime(sickLeave.startDate, clientTimeZone);
 
-  if (endDateUTC <= sickLeave.startDate) {
+  if (endDateUTC < sickLeave.startDate) {
     throw new ValidationError({
-      endDateLocalISO: ["Datum završetka mora biti nakon datuma početka"],
+      endDateLocalISO: ["Datum završetka mora biti jednak ili veći od datuma početka"],
     });
   }
 
@@ -515,7 +441,23 @@ export async function closeSickLeave(
     },
   });
 
-  // 5. Upsert DaySchedule for all days in range [startDate..endDate]
+  // 5. Apply corrections BEFORE materializing DaySchedule
+  // This finds DaySchedule records with applicationId (e.g., approved GO)
+  // in the sick leave range and returns those days to the ledger
+  await applySickLeaveCorrections(
+    ctx,
+    {
+      id: sickLeave.id,
+      employeeId: sickLeave.employeeId,
+      startDate: sickLeave.startDate,
+      endDate: endDateUTC,
+    },
+    startDateLocal,
+    endDateLocal,
+    clientTimeZone
+  );
+
+  // 6. Upsert DaySchedule for all days in range [startDate..endDate]
   const daysInRange = eachDayOfInterval({
     start: sickLeave.startDate,
     end: endDateUTC,
@@ -587,20 +529,6 @@ export async function closeSickLeave(
       },
     });
   }
-
-  // 6. Apply corrections for the full range
-  await applySickLeaveCorrections(
-    ctx,
-    {
-      id: sickLeave.id,
-      employeeId: sickLeave.employeeId,
-      startDate: sickLeave.startDate,
-      endDate: endDateUTC,
-    },
-    startDateLocal,
-    endDateLocal,
-    clientTimeZone
-  );
 }
 
 /**
@@ -635,22 +563,14 @@ export async function cancelSickLeave(
   }
 
   // 3. Update SickLeave (status=CANCELLED)
+  // Note: No DaySchedule to delete because OPENED sick leaves don't create DaySchedule
+  // (DaySchedule is only created when sick leave is CLOSED)
   await db.sickLeave.update({
     where: { id: sickLeaveId },
     data: {
       status: "CANCELLED",
     },
   });
-
-  // 4. Delete DaySchedule records created by this sick leave (only start day for OPENED)
-  await db.daySchedule.deleteMany({
-    where: {
-      organisationId: ctx.organisationId,
-      sickLeaveId: sickLeave.id,
-    },
-  });
-
-  // Note: Cancel does NOT revert corrections (ledger + logs remain)
 }
 
 /**
