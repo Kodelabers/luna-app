@@ -9,7 +9,7 @@ Svi use caseovi moraju poštovati `spec.md` (SSoT Prisma schema, multitenancy, S
 - `/.cursor/docs/07_timezones_dates.md`
 - `/.cursor/docs/05_dayschedule_rules.md`
 - `/.cursor/docs/04_applications_flow.md`
-- `/.cursor/docs/OPEN_QUESTIONS.md` (OQ-004 “aktivno bolovanje”)
+- `/.cursor/docs/UC08-SickLeave.md`
 
 ## Povezani user stories
 - US-DASH-004, US-DM-002, US-GM-004
@@ -22,6 +22,7 @@ Svi use caseovi moraju poštovati `spec.md` (SSoT Prisma schema, multitenancy, S
 DM/GM vidi tablični (gantt-like) prikaz zaposlenika i dana za odabrani raspon:
 - **plan** (DaySchedule) kao pozadina
 - **zahtjevi** (Application) kao overlay (SUBMITTED / APPROVED_FIRST_LEVEL / APPROVED)
+- **bolovanja** (SickLeave) kao overlay i/ili indikator (OPENED / CLOSED)
 
 ### Akteri
 - OrganisationUser (ulogiran)
@@ -50,14 +51,19 @@ DM/GM vidi tablični (gantt-like) prikaz zaposlenika i dana za odabrani raspon:
 3) Dohvatiti zaposlenike u scope-u + njihove zapise za prikaz (tenant-scoped, `active=true`).
 4) Dohvatiti `DaySchedule` za te zaposlenike u rasponu (tenant-scoped).
 5) Dohvatiti `Application` u statusima `SUBMITTED/APPROVED_FIRST_LEVEL/APPROVED` relevantne za raspon i scope (tenant-scoped).
-6) Vratiti serializabilni model za UI tablicu (redci: zaposlenici, stupci: dani u client TZ).
+6) Dohvatiti `SickLeave` relevantne za raspon i scope (tenant-scoped):
+   - `OPENED`: prikazati “virtualni raspon” od `startDate` do “danas” (u `clientTimeZone`)
+   - `CLOSED`: prikazati raspon `startDate..endDate`
+7) Vratiti serializabilni model za UI tablicu (redci: zaposlenici, stupci: dani u client TZ).
 
 ### Pravila (iz user stories)
 - Default raspon: 1 mjesec od danas prema budućnosti; postoje preseti 1/3/6/12 mjeseci + ručni Od/Do.
 - Preseti se računaju od današnjeg dana: danas + N mjeseci (npr. danas + 1 mjesec, danas + 3 mjeseca, itd.).
 - Plan i zahtjevi moraju biti jasno razlučivi (pozadina vs overlay).
-- Klik na ćeliju/blok otvara read-only detalje (plan ili zahtjev).
-- Oznaka "na bolovanju" uz zaposlenika je **TBD** (OQ-004).
+- Klik na ćeliju/blok otvara read-only detalje (plan, zahtjev ili bolovanje).
+- Oznaka "na bolovanju" uz zaposlenika:
+  - “Trenutno na bolovanju” = postoji barem jedno `SickLeave(status=OPENED)` za zaposlenika (tenant-scoped).
+  - Boja/legendu uzima iz `UnavailabilityReason` gdje je `sickLeave=true`.
 
 ### Boje (konzistentno s "Moj kalendar" widgetom)
 - **DaySchedule (NOT_AVAILABLE)**: Koristi se `unavailabilityReason.colorCode` direktno kao background color (bez opacity), bijeli tekst. Ako nema `unavailabilityReason`, koristi se `bg-muted`.

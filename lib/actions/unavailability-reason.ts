@@ -46,6 +46,11 @@ export async function createUnavailabilityReason(
     } else {
       rawData.hasPlanning = false;
     }
+    if (rawData.sickLeave !== undefined) {
+      rawData.sickLeave = rawData.sickLeave === "true" || rawData.sickLeave === true;
+    } else {
+      rawData.sickLeave = false;
+    }
     
     const result = createUnavailabilityReasonSchema.safeParse(rawData);
 
@@ -88,6 +93,7 @@ export async function createUnavailabilityReason(
         needApproval: data.needApproval ?? false,
         needSecondApproval: data.needSecondApproval ?? false,
         hasPlanning: data.hasPlanning ?? false,
+        sickLeave: data.sickLeave ?? false,
       },
     });
 
@@ -144,6 +150,11 @@ export async function updateUnavailabilityReason(
     } else {
       rawData.hasPlanning = false;
     }
+    if (rawData.sickLeave !== undefined) {
+      rawData.sickLeave = rawData.sickLeave === "true" || rawData.sickLeave === true;
+    } else {
+      rawData.sickLeave = false;
+    }
     
     const result = createUnavailabilityReasonSchema.safeParse(rawData);
 
@@ -187,6 +198,7 @@ export async function updateUnavailabilityReason(
         needApproval: data.needApproval ?? false,
         needSecondApproval: data.needSecondApproval ?? false,
         hasPlanning: data.hasPlanning ?? false,
+        sickLeave: data.sickLeave ?? false,
       },
     });
 

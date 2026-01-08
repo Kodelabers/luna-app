@@ -2,6 +2,14 @@
 
 **Prisma schema.prisma je Single Source of Truth i NE SMIJE se mijenjati.**
 
+## Iznimka (odobreno) — SickLeave (Bolovanje)
+Za implementaciju bolovanja kao zasebnog entiteta `SickLeave` odobrena je **jednokratna** promjena Prisma sheme, isključivo za:
+- dodavanje `model SickLeave` i `enum SickLeaveStatus` (`OPENED`, `CLOSED`, `CANCELLED`)
+- dodavanje `UnavailabilityReason.sickLeave: boolean`
+- dodavanje `DaySchedule.sickLeaveId` (nullable FK)
+
+Nakon ove promjene, pravilo “schema.prisma se ne smije mijenjati” vrijedi bez dodatnih iznimki osim ako se nova iznimka eksplicitno ne dokumentira.
+
 ---
 
 ## 0) Struktura projekta (bez `src/`)

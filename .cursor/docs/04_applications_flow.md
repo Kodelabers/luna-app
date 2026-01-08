@@ -5,12 +5,15 @@ Ovaj dokument opisuje operativni flow za `Application` u skladu s:
 - `schema.prisma` (SSoT)
 - `01_domain_statuses.md` (status machine)
 
+Napomena:
+- **Bolovanje se ne implementira kroz `Application`**, nego kroz zaseban entitet `SickLeave` (vidi `UC08-SickLeave.md`).
+
 ## 1) Kreiranje zahtjeva (DRAFT)
 ### Ulaz (UI)
 - `employeeId` (implicitno iz ctx user→employee)
 - `departmentId` (iz employee profila)
 - `unavailabilityReasonId` (UI: **vrsta odsutnosti**)
-- `startDate`, `endDate` (UTC; semantika “open-ended” TBD u `OPEN_QUESTIONS.md`)
+- `startDate`, `endDate` (UTC; uvijek definirani za `Application`)
 - `description` (opc.)
 
 ### Validacije (service)

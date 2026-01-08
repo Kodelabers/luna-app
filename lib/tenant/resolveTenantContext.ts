@@ -195,3 +195,41 @@ export async function getManagerStatus(ctx: TenantContext): Promise<{
   };
 }
 
+/**
+ * Check if user has manager access (DM or GM), optionally for a specific department
+ * For sick-leave operations: requireManagerAccess(ctx, departmentId)
+ */
+export async function requireManagerAccess(
+  ctx: TenantContext,
+  departmentId?: string
+): Promise<void> {
+  // Check if user has an employee profile
+  const employee = await db.employee.findFirst({
+    where: {
+      organisationId: ctx.organisationId,
+      userId: ctx.user.id,
+      active: true,
+    },
+  });
+
+  if (!employee) {
+    throw new ForbiddenError("Nemate pristup kao manager");
+  }
+
+  // Check if user is a manager
+  const manager = await db.manager.findFirst({
+    where: {
+      employeeId: employee.id,
+      active: true,
+      OR: [
+        { departmentId: null }, // GM
+        ...(departmentId ? [{ departmentId }] : []), // DM for specific department
+      ],
+    },
+  });
+
+  if (!manager) {
+    throw new ForbiddenError("Nemate pristup kao manager");
+  }
+}
+

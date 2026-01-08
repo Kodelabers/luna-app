@@ -29,6 +29,7 @@ type UnavailabilityReason = {
   needApproval: boolean;
   needSecondApproval: boolean;
   hasPlanning: boolean;
+  sickLeave: boolean;
 };
 
 type UnavailabilityReasonActionsProps = {

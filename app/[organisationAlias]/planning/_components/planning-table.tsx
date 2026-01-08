@@ -138,6 +138,45 @@ export function PlanningTable({ data, organisationAlias }: PlanningTableProps) {
     }
   };
 
+  // Determine position of a day within SickLeave virtual range (for OPENED sick leaves)
+  const getSickLeaveDayPosition = (
+    employeeId: string,
+    dateLocalISO: string,
+    sickLeaveId: string
+  ): "start" | "middle" | "end" | "single" => {
+    // Find all days with the same sick leave for this employee
+    const sickLeaveDays: string[] = [];
+    for (const cell of cells) {
+      if (
+        cell.employeeId === employeeId &&
+        cell.sickLeave?.id === sickLeaveId
+      ) {
+        sickLeaveDays.push(cell.dateLocalISO);
+      }
+    }
+    
+    const sortedDays = [...sickLeaveDays].sort((a, b) => a.localeCompare(b));
+    const currentIndex = sortedDays.indexOf(dateLocalISO);
+    
+    if (currentIndex === -1) return "single";
+    
+    const prevDay = currentIndex > 0 ? sortedDays[currentIndex - 1] : null;
+    const nextDay = currentIndex < sortedDays.length - 1 ? sortedDays[currentIndex + 1] : null;
+    
+    const hasPrev = prevDay && isConsecutiveDay(prevDay, dateLocalISO);
+    const hasNext = nextDay && isConsecutiveDay(dateLocalISO, nextDay);
+    
+    if (hasPrev && hasNext) {
+      return "middle";
+    } else if (hasPrev && !hasNext) {
+      return "end";
+    } else if (!hasPrev && hasNext) {
+      return "start";
+    } else {
+      return "single";
+    }
+  };
+
   // Handle cell click
   const handleCellClick = (
     employee: PlanningEmployee,
@@ -241,7 +280,37 @@ export function PlanningTable({ data, organisationAlias }: PlanningTableProps) {
 
                     // DaySchedule NOT_AVAILABLE with unavailabilityReasonColor
                     let borderRadius: string | undefined = undefined;
-                    if (
+                    
+                    // Check if we should display SickLeave virtual range (OPENED status without materialized DaySchedule)
+                    // For OPENED sick leaves, only startDate is materialized in DaySchedule,
+                    // so we use cell.sickLeave for virtual display of subsequent days
+                    const shouldShowSickLeaveVirtual = 
+                      cell?.sickLeave && 
+                      cell.sickLeave.status === "OPENED" &&
+                      !cell.daySchedule?.sickLeaveId; // Not already shown via DaySchedule
+                    
+                    if (shouldShowSickLeaveVirtual && cell?.sickLeave?.unavailabilityReasonColor) {
+                      // Virtual sick leave display (OPENED, days after startDate)
+                      bgColor = ""; // Clear default bg to use custom color
+                      textColor = "text-white";
+                      customBgColor = cell.sickLeave.unavailabilityReasonColor;
+                      
+                      const position = getSickLeaveDayPosition(
+                        employee.id,
+                        day.dateLocalISO,
+                        cell.sickLeave.id
+                      );
+                      
+                      if (position === "start") {
+                        borderRadius = "0.375rem 0 0 0.375rem"; // rounded-l-md
+                      } else if (position === "middle") {
+                        borderRadius = "0";
+                      } else if (position === "end") {
+                        borderRadius = "0 0.375rem 0.375rem 0"; // rounded-r-md
+                      } else {
+                        borderRadius = "0.375rem"; // rounded-md
+                      }
+                    } else if (
                       cell?.daySchedule?.unavailabilityReasonColor &&
                       cell.daySchedule.status === "NOT_AVAILABLE"
                     ) {
@@ -285,7 +354,8 @@ export function PlanningTable({ data, organisationAlias }: PlanningTableProps) {
                         title={
                           day.isHoliday
                             ? day.holidayName
-                            : cell?.daySchedule?.unavailabilityReasonName ||
+                            : cell?.sickLeave?.unavailabilityReasonName ||
+                              cell?.daySchedule?.unavailabilityReasonName ||
                               (applications.length > 0
                                 ? applications
                                     .map((a) => a.unavailabilityReasonName)
@@ -389,6 +459,7 @@ export function PlanningTable({ data, organisationAlias }: PlanningTableProps) {
         {(() => {
           type ReasonEntry = { name: string; color: string; type: "background" | "border" };
           const reasonEntries: [string, ReasonEntry][] = [
+            // DaySchedule reasons (materialized plan)
             ...cells
               .filter(
                 (cell) =>
@@ -404,6 +475,23 @@ export function PlanningTable({ data, organisationAlias }: PlanningTableProps) {
                   type: "background",
                 },
               ]),
+            // SickLeave reasons (virtual display for OPENED)
+            ...cells
+              .filter(
+                (cell) =>
+                  cell.sickLeave?.unavailabilityReasonName &&
+                  cell.sickLeave?.unavailabilityReasonColor &&
+                  cell.sickLeave.status === "OPENED"
+              )
+              .map((cell): [string, ReasonEntry] => [
+                cell.sickLeave!.unavailabilityReasonId,
+                {
+                  name: cell.sickLeave!.unavailabilityReasonName,
+                  color: cell.sickLeave!.unavailabilityReasonColor!,
+                  type: "background",
+                },
+              ]),
+            // Application reasons (pending requests overlay)
             ...cells
               .flatMap((cell) => cell.applications)
               .filter(
