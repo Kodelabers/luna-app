@@ -2,6 +2,9 @@
 
 import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { format } from "date-fns";
+import { hr } from "date-fns/locale";
+import { CalendarIcon } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -20,9 +23,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { toast } from "sonner";
 import { openSickLeaveAction } from "@/lib/actions/sick-leave";
+import { cn } from "@/lib/utils";
 
 type Employee = {
   id: string;
@@ -70,6 +79,7 @@ export default function OpenSickLeaveDialog({
 }: Props) {
   const router = useRouter();
   const [selectedDepartment, setSelectedDepartment] = useState<string>("ALL");
+  const [startDate, setStartDate] = useState<Date | undefined>();
   const [state, formAction, isPending] = useActionState(
     openSickLeaveAction.bind(null, organisationAlias),
     initialState
@@ -172,14 +182,41 @@ export default function OpenSickLeaveDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="startDateLocalISO">Datum početka *</Label>
-            <Input
-              id="startDateLocalISO"
+            <Label>Datum početka *</Label>
+            <input
+              type="hidden"
               name="startDateLocalISO"
-              type="date"
-              required
-              max={new Date().toISOString().split("T")[0]}
+              value={startDate ? format(startDate, "yyyy-MM-dd") : ""}
             />
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !startDate && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {startDate ? (
+                    format(startDate, "dd.MM.yyyy", { locale: hr })
+                  ) : (
+                    <span>Odaberite datum</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={startDate}
+                  onSelect={setStartDate}
+                  disabled={(date) => date > new Date()}
+                  locale={hr}
+                  initialFocus
+                />
+              </PopoverContent>
+            </Popover>
             {state.fieldErrors?.startDateLocalISO && (
               <p className="text-sm text-destructive">
                 {state.fieldErrors.startDateLocalISO[0]}

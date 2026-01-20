@@ -1,7 +1,10 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { format } from "date-fns";
+import { hr } from "date-fns/locale";
+import { CalendarIcon } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -13,11 +16,15 @@ import {
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { toast } from "sonner";
 import { closeSickLeaveAction } from "@/lib/actions/sick-leave";
-import { format } from "date-fns";
-import { hr } from "date-fns/locale";
+import { cn } from "@/lib/utils";
 
 type SickLeave = {
   id: string;
@@ -49,6 +56,7 @@ export default function CloseSickLeaveDialog({
   organisationAlias,
 }: Props) {
   const router = useRouter();
+  const [endDate, setEndDate] = useState<Date | undefined>();
   const [state, formAction, isPending] = useActionState(
     closeSickLeaveAction.bind(null, organisationAlias),
     initialState
@@ -64,8 +72,8 @@ export default function CloseSickLeaveDialog({
     }
   }, [state, onOpenChange, router]);
 
+  // Minimalni datum završetka je isti dan kao datum početka
   const minEndDate = new Date(sickLeave.startDate);
-  minEndDate.setDate(minEndDate.getDate() + 1);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -99,15 +107,41 @@ export default function CloseSickLeaveDialog({
             />
 
             <div className="space-y-2">
-              <Label htmlFor="endDateLocalISO">Datum završetka *</Label>
-              <Input
-                id="endDateLocalISO"
+              <Label>Datum završetka *</Label>
+              <input
+                type="hidden"
                 name="endDateLocalISO"
-                type="date"
-                required
-                min={minEndDate.toISOString().split("T")[0]}
-                max={new Date().toISOString().split("T")[0]}
+                value={endDate ? format(endDate, "yyyy-MM-dd") : ""}
               />
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !endDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {endDate ? (
+                      format(endDate, "dd.MM.yyyy", { locale: hr })
+                    ) : (
+                      <span>Odaberite datum</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={endDate}
+                    onSelect={setEndDate}
+                    disabled={(date) => date < minEndDate}
+                    locale={hr}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
               {state.fieldErrors?.endDateLocalISO && (
                 <p className="text-sm text-destructive">
                   {state.fieldErrors.endDateLocalISO[0]}
