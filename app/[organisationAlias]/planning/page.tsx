@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
-import { resolveTenantContext, getManagerStatus } from "@/lib/tenant/resolveTenantContext";
+import { resolveTenantContext, getManagerStatus, isAdmin } from "@/lib/tenant/resolveTenantContext";
 import { getManagedDepartments } from "@/lib/services/sidebar";
 import { getPlanningDataAction } from "@/lib/actions/planning";
 import { PlanningFilters as PlanningFiltersClient } from "./_components/planning-filters";
@@ -25,9 +25,11 @@ export default async function PlanningPage({ params, searchParams }: Props) {
   // 1. Resolve tenant context
   const ctx = await resolveTenantContext(organisationAlias);
 
+  const userIsAdmin = isAdmin(ctx);
+
   // 2. Check manager access
   const managerStatus = await getManagerStatus(ctx);
-  if (!managerStatus.isGeneralManager && !managerStatus.isDepartmentManager) {
+  if (!userIsAdmin) {
     redirect(`/${organisationAlias}`);
   }
 

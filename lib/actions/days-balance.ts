@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { resolveTenantContext, getManagerStatus, getEmployeeForUser } from "@/lib/tenant/resolveTenantContext";
+import { resolveTenantContext, getManagerStatus, getEmployeeForUser, isAdmin } from "@/lib/tenant/resolveTenantContext";
 import { ForbiddenError, FormState, mapErrorToFormState, successState } from "@/lib/errors";
 import { toZonedTime } from "date-fns-tz";
 import {
@@ -133,9 +133,10 @@ export async function getEmployeeDaysBalanceAction(
   const ctx = await resolveTenantContext(organisationAlias);
 
   // Check manager status
-  const managerStatus = await getManagerStatus(ctx);
+  //const managerStatus = await getManagerStatus(ctx);
+  const userIsAdmin = isAdmin(ctx);
 
-  if (!managerStatus.isGeneralManager && !managerStatus.isDepartmentManager) {
+  if (!userIsAdmin) {
     throw new ForbiddenError("Nemate pristup ovoj funkcionalnosti");
   }
 
@@ -147,7 +148,7 @@ export async function getEmployeeDaysBalanceAction(
   // Get employees in manager scope
   let employeeIds: string[];
 
-  if (managerStatus.isGeneralManager) {
+  if (userIsAdmin) {
     // GM: all employees in organisation
     const allEmployees = await db.employee.findMany({
       where: {
@@ -163,27 +164,28 @@ export async function getEmployeeDaysBalanceAction(
     });
     employeeIds = allEmployees.map((e) => e.id);
   } else {
-    // DM: only employees in managed departments
-    // Apply department filter if provided
-    let deptFilter = managerStatus.managedDepartmentIds;
-    if (departmentIds && departmentIds.length > 0) {
-      // Filter to only include departments that DM manages
-      deptFilter = departmentIds.filter((id) =>
-        managerStatus.managedDepartmentIds.includes(id)
-      );
-    }
+    // // DM: only employees in managed departments
+    // // Apply department filter if provided
+    // let deptFilter = managerStatus.managedDepartmentIds;
+    // if (departmentIds && departmentIds.length > 0) {
+    //   // Filter to only include departments that DM manages
+    //   deptFilter = departmentIds.filter((id) =>
+    //     managerStatus.managedDepartmentIds.includes(id)
+    //   );
+    // }
     
-    const employees = await db.employee.findMany({
-      where: {
-        organisationId: ctx.organisationId,
-        departmentId: { in: deptFilter },
-        active: true,
-      },
-      select: {
-        id: true,
-      },
-    });
-    employeeIds = employees.map((e) => e.id);
+    // const employees = await db.employee.findMany({
+    //   where: {
+    //     organisationId: ctx.organisationId,
+    //     departmentId: { in: deptFilter },
+    //     active: true,
+    //   },
+    //   select: {
+    //     id: true,
+    //   },
+    // });
+    // employeeIds = employees.map((e) => e.id);
+    throw new ForbiddenError("Nemate pristup ovoj funkcionalnosti");
   }
 
   if (employeeIds.length === 0) {
@@ -207,9 +209,10 @@ export async function allocateDaysAction(
     const ctx = await resolveTenantContext(organisationAlias);
 
     // Check manager status
-    const managerStatus = await getManagerStatus(ctx);
+    //const managerStatus = await getManagerStatus(ctx);
+    const userIsAdmin = isAdmin(ctx);
 
-    if (!managerStatus.isGeneralManager && !managerStatus.isDepartmentManager) {
+    if (!userIsAdmin) {
       throw new ForbiddenError("Nemate pristup ovoj funkcionalnosti");
     }
 
@@ -247,14 +250,14 @@ export async function allocateDaysAction(
       throw new ForbiddenError("Zaposlenik nije pronađen");
     }
 
-    if (managerStatus.isGeneralManager) {
-      // GM can access all employees
-    } else {
-      // DM can only access employees in managed departments
-      if (!managerStatus.managedDepartmentIds.includes(employee.departmentId)) {
-        throw new ForbiddenError("Nemate pristup ovom zaposleniku");
-      }
-    }
+    // if (managerStatus.isGeneralManager) {
+    //   // GM can access all employees
+    // } else {
+    //   // DM can only access employees in managed departments
+    //   if (!managerStatus.managedDepartmentIds.includes(employee.departmentId)) {
+    //     throw new ForbiddenError("Nemate pristup ovom zaposleniku");
+    //   }
+    // }
 
     // Get client timezone (default to Europe/Zagreb if not provided)
     const clientTimeZone = data.clientTimeZone || "Europe/Zagreb";
@@ -379,8 +382,9 @@ export async function getLedgerHistoryAction(
 
   // Check manager status
   const managerStatus = await getManagerStatus(ctx);
+  const userIsAdmin = isAdmin(ctx);
 
-  if (!managerStatus.isGeneralManager && !managerStatus.isDepartmentManager) {
+  if (!userIsAdmin) {
     throw new ForbiddenError("Nemate pristup ovoj funkcionalnosti");
   }
 
@@ -397,14 +401,14 @@ export async function getLedgerHistoryAction(
     throw new ForbiddenError("Zaposlenik nije pronađen");
   }
 
-  if (managerStatus.isGeneralManager) {
-    // GM can access all employees
-  } else {
-    // DM can only access employees in managed departments
-    if (!managerStatus.managedDepartmentIds.includes(employee.departmentId)) {
-      throw new ForbiddenError("Nemate pristup ovom zaposleniku");
-    }
-  }
+  // if (managerStatus.isGeneralManager) {
+  //   // GM can access all employees
+  // } else {
+  //   // DM can only access employees in managed departments
+  //   if (!managerStatus.managedDepartmentIds.includes(employee.departmentId)) {
+  //     throw new ForbiddenError("Nemate pristup ovom zaposleniku");
+  //   }
+  // }
 
   const entries = await getLedgerHistory(ctx, employeeId, unavailabilityReasonId, year);
 
