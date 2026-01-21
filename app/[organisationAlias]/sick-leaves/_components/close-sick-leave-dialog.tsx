@@ -22,8 +22,10 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
-import { closeSickLeaveAction } from "@/lib/actions/sick-leave";
+import { closeSickLeaveAction, checkRemainingDaysAction } from "@/lib/actions/sick-leave";
 import { cn } from "@/lib/utils";
 
 type SickLeave = {
@@ -57,6 +59,9 @@ export default function CloseSickLeaveDialog({
 }: Props) {
   const router = useRouter();
   const [endDate, setEndDate] = useState<Date | undefined>();
+  const [cancelRemainingDays, setCancelRemainingDays] = useState<"none" | "cancel">("none");
+  const [hasRemainingDays, setHasRemainingDays] = useState(false);
+  const [checkingRemainingDays, setCheckingRemainingDays] = useState(false);
   const [state, formAction, isPending] = useActionState(
     closeSickLeaveAction.bind(null, organisationAlias),
     initialState
@@ -71,6 +76,47 @@ export default function CloseSickLeaveDialog({
       toast.error(state.formError);
     }
   }, [state, onOpenChange, router]);
+
+  // Check for remaining days when endDate changes
+  useEffect(() => {
+    if (!endDate) {
+      setHasRemainingDays(false);
+      return;
+    }
+
+    const checkRemainingDays = async () => {
+      setCheckingRemainingDays(true);
+      try {
+        const clientTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+        const endDateISO = format(endDate, "yyyy-MM-dd");
+        const result = await checkRemainingDaysAction(
+          organisationAlias,
+          sickLeave.id,
+          endDateISO,
+          clientTimeZone
+        );
+        setHasRemainingDays(result.hasRemainingDays);
+        if (!result.hasRemainingDays) {
+          setCancelRemainingDays("none");
+        }
+      } catch (error) {
+        setHasRemainingDays(false);
+      } finally {
+        setCheckingRemainingDays(false);
+      }
+    };
+
+    checkRemainingDays();
+  }, [endDate, organisationAlias, sickLeave.id]);
+
+  // Reset state when dialog closes
+  useEffect(() => {
+    if (!open) {
+      setEndDate(undefined);
+      setCancelRemainingDays("none");
+      setHasRemainingDays(false);
+    }
+  }, [open]);
 
   // Minimalni datum završetka je isti dan kao datum početka
   const minEndDate = new Date(sickLeave.startDate);
@@ -104,6 +150,11 @@ export default function CloseSickLeaveDialog({
               type="hidden"
               name="clientTimeZone"
               value={Intl.DateTimeFormat().resolvedOptions().timeZone}
+            />
+            <input
+              type="hidden"
+              name="cancelRemainingDays"
+              value={cancelRemainingDays === "cancel" ? "true" : "false"}
             />
 
             <div className="space-y-2">
@@ -148,6 +199,51 @@ export default function CloseSickLeaveDialog({
                 </p>
               )}
             </div>
+
+            {hasRemainingDays && (
+              <div className="space-y-4">
+                <Alert>
+                  <AlertDescription>
+                    Na dan zatvaranja bolovanja postoji odobreno odsustvo. Odaberite kako želite postupiti s preostalim danima tog odsustva.
+                  </AlertDescription>
+                </Alert>
+
+                <div className="space-y-3">
+                  <Label>Opcija za preostale dane</Label>
+                  <RadioGroup
+                    value={cancelRemainingDays}
+                    onValueChange={(value) => setCancelRemainingDays(value as "none" | "cancel")}
+                  >
+                    <div className="flex items-start space-x-3 space-y-0">
+                      <RadioGroupItem value="none" id="none" />
+                      <div className="space-y-1 leading-none">
+                        <Label htmlFor="none" className="font-normal cursor-pointer">
+                          Ostavi preostale dane netaknute
+                        </Label>
+                        <p className="text-sm text-muted-foreground">
+                          Vraćaju se samo dani koji su se preklopili s bolovanjem. Preostali dani odsustva nakon datuma zatvaranja ostaju u rasporedu.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-start space-x-3 space-y-0">
+                      <RadioGroupItem value="cancel" id="cancel" />
+                      <div className="space-y-1 leading-none">
+                        <Label htmlFor="cancel" className="font-normal cursor-pointer">
+                          Poništi sve preostale dane
+                        </Label>
+                        <p className="text-sm text-muted-foreground">
+                          Svi preostali dani odsustva nakon datuma zatvaranja bolovanja bit će poništeni i vraćeni u stanje dana.
+                        </p>
+                      </div>
+                    </div>
+                  </RadioGroup>
+                </div>
+              </div>
+            )}
+
+            {checkingRemainingDays && (
+              <p className="text-sm text-muted-foreground">Provjeravam preostale dane...</p>
+            )}
 
             <div className="space-y-2">
               <Label htmlFor="note">Napomena</Label>
