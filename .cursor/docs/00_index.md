@@ -29,5 +29,6 @@ Ovaj folder (`.cursor/docs/`) je **operativna dokumentacija** za razvoj u Cursor
 - Zahtjevi: `/.cursor/docs/UC02-Applications.md`
 - Planiranje odsutnosti: `/.cursor/docs/UC03-PlaniranjeOdsutnosti.md`
 - Stanje dana i dodjele: `/.cursor/docs/UC04-StanjeDanaDodjele.md`
+- Bolovanja: `/.cursor/docs/UC08-SickLeave.md`
 
 

@@ -41,7 +41,8 @@
     "overview": "Pregled",
     "applications": "Zahtjevi",
     "planning": "Planiranje",
-    "profile": "Moj profil"
+    "profile": "Moj profil",
+    "sickLeaves": "Bolovanja"
   },
   "roles": {
     "administrator": "Administrator",
@@ -242,6 +243,8 @@
     "needApprovalDescription": "Ovaj razlog zahtijeva odobrenje managera prve razine",
     "needSecondApprovalDescription": "Ovaj razlog zahtijeva odobrenje managera druge razine",
     "hasPlanningDescription": "Ovaj razlog je uključen u planiranje i knjiženje",
+    "sickLeave": "Bolovanje",
+    "sickLeaveDescription": "Ovaj razlog se odnosi na bolovanje",
     "createDescription": "Unesite podatke za novu vrstu odsutnosti.",
     "editDescription": "Izmijenite podatke o vrsti odsutnosti.",
     "deleteConfirm": "Jeste li sigurni da želite obrisati razlog {name}? Ova akcija se ne može poništiti.",
@@ -544,6 +547,81 @@
     "changeDays": "Promjena dana",
     "note": "Napomena",
     "createdBy": "Kreirao"
+  },
+  "sickLeave": {
+    "title": "Bolovanja",
+    "description": "Upravljanje bolovanje zaposlenika",
+    "active": "Aktivna bolovanja",
+    "activeDescription": "Bolovanja trenutno u tijeku (status OPENED)",
+    "opened": "Otvoreno",
+    "closed": "Zatvoreno",
+    "cancelled": "Poništeno",
+    "openNew": "Otvori bolovanje",
+    "close": "Zatvori bolovanje",
+    "cancel": "Poništi bolovanje",
+    "startDate": "Datum početka",
+    "endDate": "Datum završetka",
+    "employee": "Zaposlenik",
+    "department": "Odjel",
+    "reason": "Vrsta",
+    "status": "Status",
+    "note": "Napomena",
+    "actions": "Akcije",
+    "virtualRange": "Od {start} do danas",
+    "period": "Period",
+    "from": "Od",
+    "to": "Do",
+    "ongoing": "U tijeku",
+    "statusOPENED": "Otvoreno",
+    "statusCLOSED": "Zatvoreno",
+    "statusCANCELLED": "Poništeno",
+    "noSickLeaves": "Nema bolovanja",
+    "noSearchResults": "Nema bolovanja koji odgovaraju pretrazi.",
+    "searchPlaceholder": "Pretraži bolovanja...",
+    "selectEmployee": "Odaberite zaposlenika",
+    "selectReason": "Odaberite vrstu bolovanja",
+    "notePlaceholder": "Dodatne napomene (opcionalno)",
+    "confirmCancel": "Jeste li sigurni da želite poništiti bolovanje?",
+    "cancelDescription": "Poništavanje će obrisati sve DaySchedule zapise, ali neće revertirati korekcije ledgera.",
+    "allStatuses": "Svi statusi",
+    "allDepartments": "Svi odjeli",
+    "filterByStatus": "Filtriraj po statusu",
+    "filterByDepartment": "Filtriraj po odjelu",
+    "errors": {
+      "overlapExists": "Postoji preklapanje s drugim bolovanjem za ovog zaposlenika",
+      "futureStartDate": "Datum početka ne može biti u budućnosti",
+      "invalidStatus": "Neispravno stanje bolovanja",
+      "notOpened": "Bolovanje mora biti u statusu OPENED",
+      "endBeforeStart": "Datum završetka mora biti nakon datuma početka",
+      "notFound": "Bolovanje nije pronađeno",
+      "notSickLeaveReason": "Odabrana vrsta odsutnosti nije označena kao bolovanje"
+    },
+    "messages": {
+      "opened": "Bolovanje je uspješno otvoreno",
+      "closed": "Bolovanje je uspješno zatvoreno",
+      "cancelled": "Bolovanje je uspješno poništeno"
+    },
+    "openDialog": {
+      "title": "Otvori bolovanje",
+      "description": "Evidentiranje bolovanja bez datuma završetka"
+    },
+    "closeDialog": {
+      "title": "Zatvori bolovanje",
+      "description": "Definirajte datum završetka bolovanja"
+    },
+    "cancelDialog": {
+      "title": "Poništi bolovanje",
+      "description": "Poništavanje otvorenog bolovanja"
+    },
+    "dashboardWidget": {
+      "title": "Aktivna bolovanja",
+      "count": "{count} aktivnih bolovanja",
+      "viewAll": "Vidi sve",
+      "noActive": "Nema aktivnih bolovanja",
+      "employee": "Zaposlenik",
+      "since": "Od",
+      "days": "{count} dana"
+    }
   }
 }
 

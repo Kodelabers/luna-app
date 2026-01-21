@@ -41,7 +41,8 @@
     "overview": "Overview",
     "applications": "Applications",
     "planning": "Planning",
-    "profile": "My Profile"
+    "profile": "My Profile",
+    "sickLeaves": "Sick Leaves"
   },
   "roles": {
     "administrator": "Administrator",
@@ -242,6 +243,8 @@
     "needApprovalDescription": "This reason requires first level manager approval",
     "needSecondApprovalDescription": "This reason requires second level manager approval",
     "hasPlanningDescription": "This reason is included in planning and ledger tracking",
+    "sickLeave": "Sick Leave",
+    "sickLeaveDescription": "This reason relates to sick leave",
     "createDescription": "Enter details for the new absence type.",
     "editDescription": "Modify absence type details.",
     "deleteConfirm": "Are you sure you want to delete the reason {name}? This action cannot be undone.",
@@ -544,6 +547,81 @@
     "changeDays": "Change Days",
     "note": "Note",
     "createdBy": "Created By"
+  },
+  "sickLeave": {
+    "title": "Sick Leaves",
+    "description": "Manage employee sick leaves",
+    "active": "Active Sick Leaves",
+    "activeDescription": "Sick leaves currently in progress (OPENED status)",
+    "opened": "Opened",
+    "closed": "Closed",
+    "cancelled": "Cancelled",
+    "openNew": "Open Sick Leave",
+    "close": "Close Sick Leave",
+    "cancel": "Cancel Sick Leave",
+    "startDate": "Start Date",
+    "endDate": "End Date",
+    "employee": "Employee",
+    "department": "Department",
+    "reason": "Type",
+    "status": "Status",
+    "note": "Note",
+    "actions": "Actions",
+    "virtualRange": "From {start} to today",
+    "period": "Period",
+    "from": "From",
+    "to": "To",
+    "ongoing": "Ongoing",
+    "statusOPENED": "Opened",
+    "statusCLOSED": "Closed",
+    "statusCANCELLED": "Cancelled",
+    "noSickLeaves": "No sick leaves",
+    "noSearchResults": "No sick leaves matching the search.",
+    "searchPlaceholder": "Search sick leaves...",
+    "selectEmployee": "Select employee",
+    "selectReason": "Select sick leave type",
+    "notePlaceholder": "Additional notes (optional)",
+    "confirmCancel": "Are you sure you want to cancel this sick leave?",
+    "cancelDescription": "Cancelling will delete all DaySchedule records, but will not revert ledger corrections.",
+    "allStatuses": "All statuses",
+    "allDepartments": "All departments",
+    "filterByStatus": "Filter by status",
+    "filterByDepartment": "Filter by department",
+    "errors": {
+      "overlapExists": "Overlap exists with another sick leave for this employee",
+      "futureStartDate": "Start date cannot be in the future",
+      "invalidStatus": "Invalid sick leave status",
+      "notOpened": "Sick leave must be in OPENED status",
+      "endBeforeStart": "End date must be after start date",
+      "notFound": "Sick leave not found",
+      "notSickLeaveReason": "Selected absence type is not marked as sick leave"
+    },
+    "messages": {
+      "opened": "Sick leave successfully opened",
+      "closed": "Sick leave successfully closed",
+      "cancelled": "Sick leave successfully cancelled"
+    },
+    "openDialog": {
+      "title": "Open Sick Leave",
+      "description": "Record sick leave without end date"
+    },
+    "closeDialog": {
+      "title": "Close Sick Leave",
+      "description": "Define sick leave end date"
+    },
+    "cancelDialog": {
+      "title": "Cancel Sick Leave",
+      "description": "Cancel open sick leave"
+    },
+    "dashboardWidget": {
+      "title": "Active Sick Leaves",
+      "count": "{count} active sick leaves",
+      "viewAll": "View all",
+      "noActive": "No active sick leaves",
+      "employee": "Employee",
+      "since": "Since",
+      "days": "{count} days"
+    }
   }
 }
 

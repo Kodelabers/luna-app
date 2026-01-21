@@ -1,6 +1,6 @@
 "use client";
 
-import { LayoutDashboard, Settings, FileText, CalendarDays, User, Calendar } from "lucide-react";
+import { LayoutDashboard, Settings, FileText, CalendarDays, User, Activity } from "lucide-react";
 import { useTranslations } from "next-intl";
 
 import { NavMain, type NavItem } from "@/components/sidebar/nav-main";
@@ -75,6 +75,11 @@ export function AppSidebar({
       title: t("planning"),
       url: `/${organisationAlias}/planning`,
       icon: CalendarDays,
+    },
+    {
+      title: t("sickLeaves"),
+      url: `/${organisationAlias}/sick-leaves`,
+      icon: Activity,
     },
   ];
 

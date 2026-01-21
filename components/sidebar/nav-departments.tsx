@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Building, FileText, Users } from "lucide-react";
+import { Building, FileText, Users, Activity } from "lucide-react";
 import { ChevronRight } from "lucide-react";
 import { useTranslations } from "next-intl";
 
@@ -55,6 +55,7 @@ export function NavDepartments({
             { title: t("overview"), url: deptBasePath, icon: Building },
             { title: t("employees"), url: `${deptBasePath}/employees`, icon: Users },
             { title: t("applications"), url: `${deptBasePath}/applications`, icon: FileText },
+            { title: t("sickLeaves"), url: `${deptBasePath}/sick-leaves`, icon: Activity },
           ];
 
           return (

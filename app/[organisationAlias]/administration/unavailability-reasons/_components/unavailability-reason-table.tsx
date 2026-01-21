@@ -19,6 +19,7 @@ type UnavailabilityReason = {
   needApproval: boolean;
   needSecondApproval: boolean;
   hasPlanning: boolean;
+  sickLeave: boolean;
 };
 
 type UnavailabilityReasonTableProps = {
@@ -50,6 +51,7 @@ export function UnavailabilityReasonTable({
           <TableHead className="text-center w-32">{t("departmentManagerApproval")}</TableHead>
           <TableHead className="text-center w-32">{t("generalManagerApproval")}</TableHead>
           <TableHead className="text-center w-32">{t("planning")}</TableHead>
+          <TableHead className="text-center w-32">{t("sickLeave")}</TableHead>
           <TableHead className="text-right">{tCommon("actions")}</TableHead>
         </TableRow>
       </TableHeader>
@@ -86,6 +88,13 @@ export function UnavailabilityReasonTable({
             </TableCell>
             <TableCell className="text-center">
               {reason.hasPlanning ? (
+                <Check className="h-4 w-4 text-green-600 mx-auto" />
+              ) : (
+                <span className="text-muted-foreground">-</span>
+              )}
+            </TableCell>
+            <TableCell className="text-center">
+              {reason.sickLeave ? (
                 <Check className="h-4 w-4 text-green-600 mx-auto" />
               ) : (
                 <span className="text-muted-foreground">-</span>

@@ -58,6 +58,12 @@ enum LedgerEntryType {
   CORRECTION // ručna korekcija (+/-)
 }
 
+enum SickLeaveStatus {
+  OPENED
+  CLOSED
+  CANCELLED
+}
+
 model Organisation {
   id         String   @id @default(cuid())
   name       String
@@ -77,6 +83,7 @@ model Organisation {
   daySchedules          DaySchedule[]
   holidays              Holiday[]
   ledgerEntries         UnavailabilityLedgerEntry[]
+  sickLeaves            SickLeave[]
 
   @@index([alias])
   @@index([active])
@@ -137,6 +144,7 @@ model Department {
   employees    Employee[]
   applications Application[]
   managers     Manager[]
+  sickLeaves   SickLeave[]
 
   @@unique([organisationId, alias])
   @@index([organisationId])
@@ -165,6 +173,7 @@ model Employee {
   daySchedules  DaySchedule[]
   managers      Manager[]
   ledgerEntries UnavailabilityLedgerEntry[]
+  sickLeaves    SickLeave[]
 
   @@unique([organisationId, email])
   @@index([organisationId])
@@ -199,10 +208,12 @@ model UnavailabilityReason {
   createdAt                   DateTime                    @default(now())
   updatedAt                   DateTime                    @updatedAt
   hasPlanning                 Boolean                     @default(false)
+  sickLeave                   Boolean                     @default(false)
   active                      Boolean                     @default(true)
   applications                Application[]
   daySchedules                DaySchedule[]
   unavailabilityLedgerEntries UnavailabilityLedgerEntry[]
+  sickLeaves                  SickLeave[]
 
   @@index([organisationId])
   @@index([active])
@@ -331,6 +342,8 @@ model DaySchedule {
   organisation           Organisation          @relation(fields: [organisationId], references: [id])
   applicationId          String?
   application            Application?          @relation(fields: [applicationId], references: [id])
+  sickLeaveId            String?
+  sickLeave              SickLeave?            @relation(fields: [sickLeaveId], references: [id])
   date                   DateTime
   employeeId             String
   employee               Employee              @relation(fields: [employeeId], references: [id])
@@ -347,8 +360,36 @@ model DaySchedule {
   @@unique([organisationId, employeeId, date])
   @@index([organisationId])
   @@index([applicationId])
+  @@index([sickLeaveId])
   @@index([employeeId])
   @@index([unavailabilityReasonId])
+  @@index([status])
+  @@index([active])
+}
+
+model SickLeave {
+  id                     String               @id @default(cuid())
+  organisationId         String
+  organisation           Organisation         @relation(fields: [organisationId], references: [id])
+  employeeId             String
+  employee               Employee             @relation(fields: [employeeId], references: [id])
+  departmentId           String
+  department             Department           @relation(fields: [departmentId], references: [id])
+  unavailabilityReasonId String
+  unavailabilityReason   UnavailabilityReason @relation(fields: [unavailabilityReasonId], references: [id])
+  startDate              DateTime
+  endDate                DateTime?
+  status                 SickLeaveStatus      @default(OPENED)
+  note                   String?
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
+  active                 Boolean              @default(true)
+
+  daySchedules DaySchedule[]
+
+  @@index([organisationId])
+  @@index([employeeId])
+  @@index([departmentId])
   @@index([status])
   @@index([active])
 }

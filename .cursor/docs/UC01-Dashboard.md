@@ -45,6 +45,9 @@ Za rutu `/:organisationAlias` odrediti što korisnik smije vidjeti:
 Obični korisnik (i manager/GM za sebe) vidi kalendar s popunjenim `DaySchedule` zapisima za odabrani mjesec.
 Napomena: vikendi i praznici se prikazuju, ali **ne ulaze u izračune potrošnje** (workdays/ledger use-caseovi).
 
+Napomena (bolovanje):
+- Za `SickLeave.status=OPENED` kalendar mora prikazati “virtualni raspon” od `startDate` do “danas” u `clientTimeZone`, iako je u `DaySchedule` materializiran samo start dan (vidi `UC08-SickLeave.md`).
+
 ### Akteri
 - OrganisationUser vezan na Employee
 
@@ -282,7 +285,7 @@ General Manager može iz dashboarda procesirati zahtjeve koji čekaju **2. razin
 ## UC-DASH-06 — Planning (gantt) widget po odjelu (DM/GM)
 
 ### Cilj
-Na dashboardu prikazati gantt-like pregled planiranja po odjelima: zaposlenici u retcima i dani u stupcima (od danas u budućnost), s **cjelovitim prikazom plana (DaySchedule) i zahtjeva (Applications)**.
+Na dashboardu prikazati gantt-like pregled planiranja po odjelima: zaposlenici u retcima i dani u stupcima (od danas u budućnost), s **cjelovitim prikazom plana (DaySchedule), zahtjeva (Applications) i bolovanja (SickLeave)**.
 
 Napomena:
 - Ovaj widget mora biti **funkcionalno identičan** prikazu iz `/.cursor/docs/UC03-PlaniranjeOdsutnosti.md` (UC-PLAN-01). Razlika je samo u tome što je prikazan kao widget na dashboardu umjesto (ili uz) zasebnu stranicu.
@@ -331,7 +334,9 @@ Napomena:
 ### Pravila
 - DRAFT se ne prikazuje managerima.
 - Raspon stupaca je “od danas u budućnost” po defaultu; korisnik ga može promijeniti (preset ili Od/Do).
-- Oznaka “na bolovanju” uz zaposlenika (npr. crveni križ) prikazuje se kad je zaposlenik “trenutno na bolovanju” — definicija je TBD u `OPEN_QUESTIONS.md`.
+- Oznaka “na bolovanju” uz zaposlenika (npr. crveni križ) prikazuje se kad je zaposlenik “trenutno na bolovanju”:
+  - “Trenutno na bolovanju” = postoji barem jedno `SickLeave(status=OPENED)` za zaposlenika (tenant-scoped).
+  - Boja/legendu uzima iz `UnavailabilityReason` gdje je `sickLeave=true` (vidi `UC08-SickLeave.md`).
 
 ### Greške
 - 403 ako user nema pravo na odabrani odjel (kada je `departmentId` postavljen)

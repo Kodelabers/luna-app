@@ -29,7 +29,7 @@ export default async function TenantLayout({ children, params }: Props) {
     
     // Get planning absence reasons for managers
     const planningAbsenceReasons = 
-      (managerStatus.isGeneralManager || managerStatus.isDepartmentManager)
+      (userIsAdmin)
         ? await getPlanningAbsenceReasons(ctx)
         : [];
 

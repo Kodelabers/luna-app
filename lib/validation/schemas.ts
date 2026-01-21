@@ -86,6 +86,7 @@ export const createUnavailabilityReasonSchema = z.object({
   needApproval: z.coerce.boolean().default(false),
   needSecondApproval: z.coerce.boolean().default(false),
   hasPlanning: z.coerce.boolean().default(false),
+  sickLeave: z.coerce.boolean().default(false),
 });
 
 export const updateUnavailabilityReasonSchema = createUnavailabilityReasonSchema.partial();
@@ -195,6 +196,26 @@ export const getPlanningDataSchema = z
       path: ["toLocalISO"],
     }
   );
+
+// SickLeave schemas
+export const openSickLeaveSchema = z.object({
+  employeeId: z.string().min(1, "Zaposlenik je obavezan"),
+  unavailabilityReasonId: z.string().min(1, "Razlog je obavezan"),
+  startDateLocalISO: z.string().min(1, "Datum početka je obavezan"),
+  clientTimeZone: ianaTimezoneSchema,
+  note: z.string().max(1000).optional(),
+});
+
+export const closeSickLeaveSchema = z.object({
+  sickLeaveId: z.string().min(1, "ID bolovanja je obavezno"),
+  endDateLocalISO: z.string().min(1, "Datum završetka je obavezan"),
+  clientTimeZone: ianaTimezoneSchema,
+  note: z.string().max(1000).optional(),
+});
+
+export const cancelSickLeaveSchema = z.object({
+  sickLeaveId: z.string().min(1, "ID bolovanja je obavezno"),
+});
 
 // Helper to parse FormData with Zod schema
 export function parseFormData<T extends z.ZodType>(

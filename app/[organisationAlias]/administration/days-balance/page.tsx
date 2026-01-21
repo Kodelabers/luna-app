@@ -19,7 +19,7 @@ export default async function DaysBalancePage(props: PageProps) {
   const managerStatus = await getManagerStatus(ctx);
 
   // Allow access if user is ADMIN, GM, or DM
-  if (!isAdminUser && !managerStatus.isGeneralManager && !managerStatus.isDepartmentManager) {
+  if (!isAdminUser) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <p className="text-muted-foreground">

@@ -17,22 +17,20 @@ Cursor AI ga koristi kao “guardrail”: ako je nešto TBD, implementacija mora
 ## OQ-001: Bolovanje bez datuma završetka (“open-ended”)
 **Kontekst**
 - U user stories postoji scenarij “aktivno bolovanje bez endDate”.
-- Prisma model za `Application` uključuje polja `startDate` i `endDate`, ali pravilo i UX za open-ended je TBD.
+- Open-ended bolovanje se implementira kao zaseban entitet `SickLeave` (nije `Application`) sa statusom `OPENED` i `endDate = null`.
 
 **Opcije**
-- A) UI dopušta “bez kraja”, a backend radi “privremeni” endDate (npr. startDate) i kasnije update-a na zatvaranju.
-- B) UI NE dopušta “bez kraja” (manager mora unijeti endDate).
-- C) Poseban flow (npr. zasebna entitet/logika) — samo ako je kompatibilno sa SSoT pravilom (bez promjene Prisma sheme, ili uz kasniju migraciju).
+- A) Open-ended kao `SickLeave(OPENED,endDate=null)` + materializacija samo start dana u `DaySchedule`.
+- B) Open-ended se ne dopušta (endDate obavezan).
 
 **Preporuka**
-- A) daje najbolji UX i može se izvesti bez promjene scheme, ali zahtijeva jasno pravilo kako DaySchedule izgleda dok je bolovanje otvoreno.
+- A) daje najbolji UX uz jasna pravila prikaza i minimalne DB efekte.
 
 **Odluka**
-- TBD
+- **DECIDED: A)**\n+  - `SickLeave.status = OPENED`, `SickLeave.endDate = null`\n+  - `DaySchedule` se kreira/upserta **samo za `startDate`** (1 dan)\n+  - UI (planning + moj kalendar) prikazuje “virtualni raspon” **od `startDate` do današnjeg dana** u `clientTimeZone`.\n+  - Korekcije (ledger + brisanje `DaySchedule` originalnog GO) rade se po pravilu iz `06_ledger_rules.md`.\n+  - `CANCELLED` je moguć samo iz `OPENED` dok je `endDate=null`; cancel **briše** `DaySchedule` zapise koje je bolovanje kreiralo i **ne revert-a** korekcije.
 
 **Impact**
-- Kako se kreira/azurira `DaySchedule` za open-ended bolovanje (1 dan vs “do danas” prikaz).
-- Kako se radi validacija preklapanja i korekcija kod open-ended.
+- `DaySchedule` za OPENED bolovanje je minimalan (1 dan), ali UI mora raditi virtualni prikaz do danas.\n+- Validacije preklapanja i korekcije koriste `SickLeave` interval i/ili virtualni interval (za prikaz), ali DB korekcije su deterministične (start dan na OPEN, cijeli interval na CLOSE).
 
 ---
 
@@ -80,10 +78,10 @@ Cursor AI ga koristi kao “guardrail”: ako je nešto TBD, implementacija mora
 **Opcije**
 - A) Preko konfiguracije u adminu: odabrani `UnavailabilityReason` (ili više njih) predstavlja “bolovanje”.
 - B) Preko naziva reason-a: `UnavailabilityReason.name == "Bolovanje"` (ili mapiranje po locale).
-- C) Preko flagova: kombinacija `needApproval` / `hasPlanning` (npr. `needApproval=false` i `hasPlanning=false`) i/ili dodatno pravilo.
+- C) Preko flagova/relacija: `UnavailabilityReason.sickLeave=true` + postoji `SickLeave.status=OPENED` za zaposlenika.
 
 **Odluka**
-- TBD
+- **DECIDED: C)**\n+  - `UnavailabilityReason.sickLeave = true` je kanonski marker za “bolovanje”.\n+  - “Trenutno na bolovanju” = postoji barem jedno `SickLeave(status=OPENED)` za zaposlenika (tenant-scoped).
 
 **Impact**
 - Kako service određuje “na bolovanju” u danom rasponu (npr. danas ili unutar prikazanog intervala).

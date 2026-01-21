@@ -47,6 +47,7 @@ type UnavailabilityReason = {
   needApproval: boolean;
   needSecondApproval: boolean;
   hasPlanning: boolean;
+  sickLeave: boolean;
 };
 
 type UnavailabilityReasonDialogProps = {
@@ -78,6 +79,7 @@ export function UnavailabilityReasonDialog({
   const needApprovalRef = useRef<HTMLInputElement>(null);
   const needSecondApprovalRef = useRef<HTMLInputElement>(null);
   const hasPlanningRef = useRef<HTMLInputElement>(null);
+  const sickLeaveRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<UnavailabilityReasonFormValues>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -88,8 +90,12 @@ export function UnavailabilityReasonDialog({
       needApproval: reason?.needApproval ?? false,
       needSecondApproval: reason?.needSecondApproval ?? false,
       hasPlanning: reason?.hasPlanning ?? false,
+      sickLeave: reason?.sickLeave ?? false,
     },
   });
+
+  // Watch sickLeave value to control other checkboxes
+  const sickLeaveValue = form.watch("sickLeave");
 
   // Create bound action with organisationAlias
   const boundCreateAction = createUnavailabilityReason.bind(
@@ -116,6 +122,7 @@ export function UnavailabilityReasonDialog({
         needApproval: false,
         needSecondApproval: false,
         hasPlanning: false,
+        sickLeave: false,
       };
       form.reset(resetValues);
       
@@ -128,6 +135,9 @@ export function UnavailabilityReasonDialog({
       }
       if (hasPlanningRef.current) {
         hasPlanningRef.current.value = "false";
+      }
+      if (sickLeaveRef.current) {
+        sickLeaveRef.current.value = "false";
       }
     } else if (state.formError) {
       toast.error(state.formError);
@@ -155,6 +165,7 @@ export function UnavailabilityReasonDialog({
         needApproval: reason?.needApproval ?? false,
         needSecondApproval: reason?.needSecondApproval ?? false,
         hasPlanning: reason?.hasPlanning ?? false,
+        sickLeave: reason?.sickLeave ?? false,
       };
       form.reset(resetValues);
       
@@ -167,6 +178,9 @@ export function UnavailabilityReasonDialog({
       }
       if (hasPlanningRef.current) {
         hasPlanningRef.current.value = resetValues.hasPlanning ? "true" : "false";
+      }
+      if (sickLeaveRef.current) {
+        sickLeaveRef.current.value = resetValues.sickLeave ? "true" : "false";
       }
     }
   }, [open, reason, form]);
@@ -203,6 +217,7 @@ export function UnavailabilityReasonDialog({
               const needApproval = form.getValues("needApproval");
               const needSecondApproval = form.getValues("needSecondApproval");
               const hasPlanning = form.getValues("hasPlanning");
+              const sickLeave = form.getValues("sickLeave");
               
               if (needApprovalRef.current) {
                 needApprovalRef.current.value = needApproval ? "true" : "false";
@@ -212,6 +227,9 @@ export function UnavailabilityReasonDialog({
               }
               if (hasPlanningRef.current) {
                 hasPlanningRef.current.value = hasPlanning ? "true" : "false";
+              }
+              if (sickLeaveRef.current) {
+                sickLeaveRef.current.value = sickLeave ? "true" : "false";
               }
             }}
           >
@@ -267,17 +285,22 @@ export function UnavailabilityReasonDialog({
                   <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                     <FormControl>
                       <Checkbox
-                        checked={field.value}
+                        checked={sickLeaveValue ? false : field.value}
+                        disabled={sickLeaveValue}
                         onCheckedChange={(checked) => {
-                          field.onChange(checked);
-                          if (needApprovalRef.current) {
-                            needApprovalRef.current.value = checked ? "true" : "false";
+                          if (!sickLeaveValue) {
+                            field.onChange(checked);
+                            if (needApprovalRef.current) {
+                              needApprovalRef.current.value = checked ? "true" : "false";
+                            }
                           }
                         }}
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
-                      <FormLabel>{t("needApproval")}</FormLabel>
+                      <FormLabel className={sickLeaveValue ? "text-muted-foreground" : ""}>
+                        {t("needApproval")}
+                      </FormLabel>
                       <FormDescription>
                         {t("needApprovalDescription")}
                       </FormDescription>
@@ -286,8 +309,8 @@ export function UnavailabilityReasonDialog({
                       ref={needApprovalRef}
                       type="hidden"
                       name="needApproval"
-                      value={field.value ? "true" : "false"}
-                      key={`needApproval-${field.value}`}
+                      value={sickLeaveValue ? "false" : (field.value ? "true" : "false")}
+                      key={`needApproval-${field.value}-${sickLeaveValue}`}
                     />
                   </FormItem>
                 )}
@@ -300,17 +323,22 @@ export function UnavailabilityReasonDialog({
                   <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                     <FormControl>
                       <Checkbox
-                        checked={field.value}
+                        checked={sickLeaveValue ? false : field.value}
+                        disabled={sickLeaveValue}
                         onCheckedChange={(checked) => {
-                          field.onChange(checked);
-                          if (needSecondApprovalRef.current) {
-                            needSecondApprovalRef.current.value = checked ? "true" : "false";
+                          if (!sickLeaveValue) {
+                            field.onChange(checked);
+                            if (needSecondApprovalRef.current) {
+                              needSecondApprovalRef.current.value = checked ? "true" : "false";
+                            }
                           }
                         }}
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
-                      <FormLabel>{t("needSecondApproval")}</FormLabel>
+                      <FormLabel className={sickLeaveValue ? "text-muted-foreground" : ""}>
+                        {t("needSecondApproval")}
+                      </FormLabel>
                       <FormDescription>
                         {t("needSecondApprovalDescription")}
                       </FormDescription>
@@ -319,8 +347,8 @@ export function UnavailabilityReasonDialog({
                       ref={needSecondApprovalRef}
                       type="hidden"
                       name="needSecondApproval"
-                      value={field.value ? "true" : "false"}
-                      key={`needSecondApproval-${field.value}`}
+                      value={sickLeaveValue ? "false" : (field.value ? "true" : "false")}
+                      key={`needSecondApproval-${field.value}-${sickLeaveValue}`}
                     />
                   </FormItem>
                 )}
@@ -333,17 +361,22 @@ export function UnavailabilityReasonDialog({
                   <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                     <FormControl>
                       <Checkbox
-                        checked={field.value}
+                        checked={sickLeaveValue ? false : field.value}
+                        disabled={sickLeaveValue}
                         onCheckedChange={(checked) => {
-                          field.onChange(checked);
-                          if (hasPlanningRef.current) {
-                            hasPlanningRef.current.value = checked ? "true" : "false";
+                          if (!sickLeaveValue) {
+                            field.onChange(checked);
+                            if (hasPlanningRef.current) {
+                              hasPlanningRef.current.value = checked ? "true" : "false";
+                            }
                           }
                         }}
                       />
                     </FormControl>
                     <div className="space-y-1 leading-none">
-                      <FormLabel>{t("hasPlanning")}</FormLabel>
+                      <FormLabel className={sickLeaveValue ? "text-muted-foreground" : ""}>
+                        {t("hasPlanning")}
+                      </FormLabel>
                       <FormDescription>
                         {t("hasPlanningDescription")}
                       </FormDescription>
@@ -352,8 +385,56 @@ export function UnavailabilityReasonDialog({
                       ref={hasPlanningRef}
                       type="hidden"
                       name="hasPlanning"
+                      value={sickLeaveValue ? "false" : (field.value ? "true" : "false")}
+                      key={`hasPlanning-${field.value}-${sickLeaveValue}`}
+                    />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="sickLeave"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 bg-muted/50">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={(checked) => {
+                          field.onChange(checked);
+                          if (sickLeaveRef.current) {
+                            sickLeaveRef.current.value = checked ? "true" : "false";
+                          }
+                          // When sickLeave is checked, reset other fields to false
+                          if (checked) {
+                            form.setValue("needApproval", false);
+                            form.setValue("needSecondApproval", false);
+                            form.setValue("hasPlanning", false);
+                            if (needApprovalRef.current) {
+                              needApprovalRef.current.value = "false";
+                            }
+                            if (needSecondApprovalRef.current) {
+                              needSecondApprovalRef.current.value = "false";
+                            }
+                            if (hasPlanningRef.current) {
+                              hasPlanningRef.current.value = "false";
+                            }
+                          }
+                        }}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel className="font-semibold">{t("sickLeave")}</FormLabel>
+                      <FormDescription>
+                        {t("sickLeaveDescription")}
+                      </FormDescription>
+                    </div>
+                    <input
+                      ref={sickLeaveRef}
+                      type="hidden"
+                      name="sickLeave"
                       value={field.value ? "true" : "false"}
-                      key={`hasPlanning-${field.value}`}
+                      key={`sickLeave-${field.value}`}
                     />
                   </FormItem>
                 )}

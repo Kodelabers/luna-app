@@ -10,7 +10,8 @@ Svi use caseovi moraju poštovati `spec.md` (SSoT Prisma schema, multitenancy, S
 - `/.cursor/docs/05_dayschedule_rules.md`
 - `/.cursor/docs/06_ledger_rules.md`
 - `/.cursor/docs/07_timezones_dates.md`
-- `/.cursor/docs/OPEN_QUESTIONS.md` (TBD: OQ-001, OQ-002, OQ-003)
+- `/.cursor/docs/OPEN_QUESTIONS.md` (TBD: OQ-002, OQ-003)
+- `/.cursor/docs/UC08-SickLeave.md` (bolovanje nije `Application`)
 
 ## Povezani user stories (iz `/.cursor/docs/user_stories.md`)
 - Employee: US-EMP-005..012B, US-VAL-000..007
@@ -157,7 +158,7 @@ Poslati zahtjev u proces odobravanja ili ga automatski finalizirati ako `needApp
    - odmah izvršiti post-approval efekte:
      - DaySchedule upsert (vidi `05_dayschedule_rules.md`)
      - ledger samo ako `hasPlanning=true` (vidi `06_ledger_rules.md`)
-   - Napomena: open-ended bolovanje je TBD (OQ-001)
+   - Napomena: bolovanje (SickLeave) nije dio ovog flowa; vidi `UC08-SickLeave.md`.
 
 ### Output
 - `status: ApplicationStatus`
@@ -255,9 +256,12 @@ Prikazati detalje zahtjeva, audit trail (`ApplicationLog`) i komentare (`Applica
 ## UC-APP-07 — Korekcija “vraćanje dana” kroz novi zahtjev (US-EMP-012B / US-VAL-007)
 
 ### Cilj
-Kad novi zahtjev (npr. bolovanje) prepisuje postojeći plan nastao iz `hasPlanning=true` reason-a, sustav:
+Kad novi zahtjev (npr. drugi event) prepisuje postojeći plan nastao iz `hasPlanning=true` reason-a, sustav:
 - unaprijed upozori (na create/validate),
 - na finalnom `APPROVED` izvrši korekciju u ledger-u i korigira plan (DaySchedule).
+
+Napomena:
+- Isto “truncate” pravilo korekcije koristi i `SickLeave` (bolovanje), ali bolovanje se ne vodi kroz `Application` (vidi `UC08-SickLeave.md`).
 
 ### Preduvjeti
 - Kreiranje/validacija radi detekciju `DaySchedule` overlap-a (UC-APP-01).

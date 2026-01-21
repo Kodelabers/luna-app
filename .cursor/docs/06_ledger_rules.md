@@ -114,11 +114,54 @@ Zato u prikazima "Stanje dana" za otvorenu godinu preporučujemo:
 ## 6) Korekcija kod preklapanja s DaySchedule
 Kad novi zahtjev dođe u `APPROVED` i prepisuje `DaySchedule`:
 - ako je prebrisani plan bio iz reason-a s `hasPlanning=true`:
-  - upisati `CORRECTION` entry koji vraća dane prema dogovorenom pravilu (npr. “vrati sve preostale dane od početka novog eventa do kraja originalnog perioda”)
+  - upisati `CORRECTION` entry koji vraća dane prema dogovorenom pravilu (kanonsko pravilo ispod)
 
-Detaljna semantika “vrati sve preostale dane” mora biti konzistentna s user stories i po mogućnosti eksplicitno opisana za slučajeve:
-- preklapanje s `applicationId` u DaySchedule
-- preklapanje bez `applicationId`
+### 6.1 Kanonsko pravilo: "vrati sve preostale dane" (truncate)
+Ovo pravilo se koristi kad event (npr. `SickLeave` ili drugi finalizirani događaj) prepisuje plan nastao iz `Application` koji ima `hasPlanning=true` i `applicationId` postoji u `DaySchedule`.
+
+**Definicija intervala korekcije** (za jedan originalni `Application`):
+- `correctionFrom = eventStartLocal` (početak eventa, npr. bolovanja)
+- `correctionTo = eventEndLocal` (kraj eventa)
+
+**VAŽNO:** Korekcija se radi **samo za DaySchedule zapise unutar intervala eventa**, ne za cijeli raspon originalnog zahtjeva.
+
+Primjer:
+- GO zahtjev: 8.1. - 15.1. (ima DaySchedule za sve dane)
+- Bolovanje: 10.1. - 12.1.
+- Korekcija: samo za 10., 11., 12. siječnja (3 radna dana)
+
+**Efekti korekcije**:
+- pronađi `DaySchedule` zapise s `applicationId` i `hasPlanning=true` u intervalu `[correctionFrom..correctionTo]`
+- izbroji radne dane (bez vikenda/praznika) iz tih zapisa
+- kreirati `UnavailabilityLedgerEntry`:
+  - `type = CORRECTION`
+  - `changeDays = +workdays`
+  - `unavailabilityReasonId = originalApplication.unavailabilityReasonId`
+- obrisati te `DaySchedule` zapise
+- upisati `ApplicationLog(POST_APPROVAL_IMPACT_CHANGED)` na originalni `Application`
+
+Time se originalni zahtjev (npr. GO) smatra "djelomično prekinut" za dane koji su se preklopili s bolovanjem.
+
+### 6.2 SickLeave i korekcije (specifično)
+
+**SickLeave ne troši dane** (nema `USAGE`). Ledger se dira samo kroz `CORRECTION` nad `hasPlanning=true` razlozima.
+
+**OPENED (endDate=null)**:
+- pri otvaranju bolovanja (`OPENED`) sustav **NE radi korekcije**
+- **NE materijalizira DaySchedule** (ni za start dan)
+- UI prikazuje "virtualni raspon" od start → danas koristeći `cell.sickLeave` podatke
+- budući planirani dani (GO itd.) ostaju vidljivi i netaknuti
+
+**CLOSED (endDate!=null)**:
+- tek kod zatvaranja bolovanja sustav radi korekcije
+- pronađi `DaySchedule` zapise s `applicationId` i `hasPlanning=true` **samo u rasponu bolovanja** `[startDate..endDate]`
+- primijeni korekciju po pravilu 6.1 za te dane
+- zatim materijaliziraj `DaySchedule` za bolovanje (svi dani u rasponu)
+
+**CANCELLED**:
+- `CANCELLED` je dozvoljen samo iz `OPENED` dok je `endDate=null`
+- cancel **ne revert-a** korekcije (jer ih nema - korekcije se rade tek kod CLOSED)
+- nema `DaySchedule` za brisati (jer OPENED ne kreira DaySchedule)
 
 ## 7) Korištenje preostalih dana iz prethodne godine
 

@@ -40,6 +40,7 @@ export type PlanningCell = {
     unavailabilityReasonName: string | null;
     unavailabilityReasonColor: string | null;
     applicationId: string | null;
+    sickLeaveId: string | null;
   } | null;
   // Overlay (Application) - zahtjevi
   applications: Array<{
@@ -51,6 +52,16 @@ export type PlanningCell = {
     startDateLocalISO: string;
     endDateLocalISO: string;
   }>;
+  // SickLeave - virtualni prikaz za OPENED status
+  sickLeave: {
+    id: string;
+    status: "OPENED" | "CLOSED";
+    unavailabilityReasonId: string;
+    unavailabilityReasonName: string;
+    unavailabilityReasonColor: string | null;
+    startDateLocalISO: string;
+    endDateLocalISO: string | null; // null for OPENED
+  } | null;
 };
 
 /**
@@ -230,6 +241,38 @@ export async function getPlanningData(
     },
   });
 
+  // 6B. Fetch SickLeaves for employees (OPENED and CLOSED)
+  // For OPENED: display virtual range from start to today
+  // For CLOSED: already in DaySchedule, but include for metadata
+  const sickLeaves = await db.sickLeave.findMany({
+    where: {
+      organisationId: ctx.organisationId,
+      employeeId: { in: employeeIds },
+      status: {
+        in: ["OPENED", "CLOSED"],
+      },
+      active: true,
+      // Overlap check
+      AND: [
+        { startDate: { lte: utcEnd } },
+        {
+          OR: [
+            { endDate: { gte: utcStart } },
+            { endDate: null }, // OPENED
+          ],
+        },
+      ],
+    },
+    include: {
+      unavailabilityReason: {
+        select: {
+          name: true,
+          colorCode: true,
+        },
+      },
+    },
+  });
+
   // 7. Fetch holidays for the organisation
   const holidays = await db.holiday.findMany({
     where: {
@@ -336,6 +379,28 @@ export async function getPlanningData(
     }
   }
 
+  // 12B. Build SickLeave map by employeeId and dateLocalISO
+  const sickLeaveMap = new Map<string, typeof sickLeaves[0]>();
+  for (const sickLeave of sickLeaves) {
+    const slStartLocal = toZonedTime(sickLeave.startDate, clientTimeZone);
+    // For OPENED: endDate is null, so use "today" as virtual end
+    const slEndLocal = sickLeave.endDate
+      ? toZonedTime(sickLeave.endDate, clientTimeZone)
+      : toZonedTime(new Date(), clientTimeZone);
+
+    // Generate all days this sick leave covers
+    const slDays = eachDayOfInterval({
+      start: slStartLocal,
+      end: slEndLocal,
+    });
+
+    for (const slDay of slDays) {
+      const dateKey = format(slDay, "yyyy-MM-dd");
+      const mapKey = `${sickLeave.employeeId}:${dateKey}`;
+      sickLeaveMap.set(mapKey, sickLeave);
+    }
+  }
+
   // 13. Build PlanningEmployee array
   const planningEmployees: PlanningEmployee[] = employees.map((emp) => ({
     id: emp.id,
@@ -361,31 +426,52 @@ export async function getPlanningData(
             unavailabilityReasonName: schedule.unavailabilityReason?.name ?? null,
             unavailabilityReasonColor: schedule.unavailabilityReason?.colorCode ?? null,
             applicationId: schedule.applicationId,
+            sickLeaveId: schedule.sickLeaveId,
           }
         : null;
 
       // Get Applications for this cell
+      // Filter out APPROVED applications as they are already materialized in DaySchedule
       const cellApplications = applicationMap.get(mapKey) ?? [];
-      const applicationsForCell = cellApplications.map((app) => {
-        const appStartLocal = toZonedTime(app.startDate, clientTimeZone);
-        const appEndLocal = toZonedTime(app.endDate, clientTimeZone);
-        
-        return {
-          id: app.id,
-          status: app.status,
-          unavailabilityReasonId: app.unavailabilityReasonId,
-          unavailabilityReasonName: app.unavailabilityReason.name,
-          unavailabilityReasonColor: app.unavailabilityReason.colorCode,
-          startDateLocalISO: format(appStartLocal, "yyyy-MM-dd"),
-          endDateLocalISO: format(appEndLocal, "yyyy-MM-dd"),
-        };
-      });
+      const applicationsForCell = cellApplications
+        .filter((app) => app.status !== "APPROVED")
+        .map((app) => {
+          const appStartLocal = toZonedTime(app.startDate, clientTimeZone);
+          const appEndLocal = toZonedTime(app.endDate, clientTimeZone);
+          
+          return {
+            id: app.id,
+            status: app.status,
+            unavailabilityReasonId: app.unavailabilityReasonId,
+            unavailabilityReasonName: app.unavailabilityReason.name,
+            unavailabilityReasonColor: app.unavailabilityReason.colorCode,
+            startDateLocalISO: format(appStartLocal, "yyyy-MM-dd"),
+            endDateLocalISO: format(appEndLocal, "yyyy-MM-dd"),
+          };
+        });
+
+      // Get SickLeave for this cell (virtual display for OPENED)
+      const cellSickLeave = sickLeaveMap.get(mapKey);
+      const sickLeaveForCell = cellSickLeave
+        ? {
+            id: cellSickLeave.id,
+            status: cellSickLeave.status as "OPENED" | "CLOSED",
+            unavailabilityReasonId: cellSickLeave.unavailabilityReasonId,
+            unavailabilityReasonName: cellSickLeave.unavailabilityReason.name,
+            unavailabilityReasonColor: cellSickLeave.unavailabilityReason.colorCode,
+            startDateLocalISO: format(toZonedTime(cellSickLeave.startDate, clientTimeZone), "yyyy-MM-dd"),
+            endDateLocalISO: cellSickLeave.endDate
+              ? format(toZonedTime(cellSickLeave.endDate, clientTimeZone), "yyyy-MM-dd")
+              : null,
+          }
+        : null;
 
       planningCells.push({
         employeeId: employee.id,
         dateLocalISO: day.dateLocalISO,
         daySchedule,
         applications: applicationsForCell,
+        sickLeave: sickLeaveForCell,
       });
     }
   }
