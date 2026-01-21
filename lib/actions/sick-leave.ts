@@ -16,8 +16,11 @@ import {
   openSickLeave,
   closeSickLeave,
   cancelSickLeave,
+  hasRemainingDaysAfterEndDate,
 } from "@/lib/services/sick-leave";
 import { db } from "@/lib/db";
+import { parseISO } from "date-fns";
+import { fromZonedTime } from "date-fns-tz";
 
 /**
  * Open sick leave action (UC-SL-01)
@@ -214,6 +217,54 @@ export async function cancelSickLeaveAction(
     return successState("Bolovanje je uspješno poništeno");
   } catch (error) {
     return mapErrorToFormState(error);
+  }
+}
+
+/**
+ * Check if there are remaining days after end date for a sick leave
+ * Used by UI to determine if option to cancel remaining days should be shown
+ */
+export async function checkRemainingDaysAction(
+  organisationAlias: string,
+  sickLeaveId: string,
+  endDateLocalISO: string,
+  clientTimeZone: string
+): Promise<{ hasRemainingDays: boolean }> {
+  try {
+    const ctx = await resolveTenantContext(organisationAlias);
+
+    // Get sick leave
+    const sickLeave = await db.sickLeave.findFirst({
+      where: {
+        id: sickLeaveId,
+        organisationId: ctx.organisationId,
+        active: true,
+      },
+    });
+
+    if (!sickLeave) {
+      return { hasRemainingDays: false };
+    }
+
+    // Check manager access
+    await requireManagerAccess(ctx, sickLeave.departmentId);
+
+    // Parse end date and convert to UTC
+    const endDateLocal = parseISO(endDateLocalISO);
+    const endDateUTC = fromZonedTime(endDateLocal, clientTimeZone);
+
+    // Check for remaining days
+    const hasRemainingDays = await hasRemainingDaysAfterEndDate(
+      ctx,
+      sickLeave.employeeId,
+      endDateUTC,
+      clientTimeZone
+    );
+
+    return { hasRemainingDays };
+  } catch (error) {
+    // On error, return false to not show the option
+    return { hasRemainingDays: false };
   }
 }
 

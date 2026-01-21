@@ -29,6 +29,7 @@ export type CloseSickLeaveInput = {
   endDateLocalISO: string;
   clientTimeZone: string;
   note?: string;
+  cancelRemainingDays?: boolean;
 };
 
 /**
@@ -180,6 +181,10 @@ async function checkSickLeaveOverlap(
  * not Application records. This prevents duplicate corrections when sick leave
  * is cancelled and reopened - if DaySchedule records were already deleted,
  * there's nothing left to correct.
+ * 
+ * Process order:
+ * 1. First, correct overlapping days in the sick leave range [startDate..endDate]
+ * 2. Then, if cancelRemainingDays is true, cancel remaining days after endDate
  */
 async function applySickLeaveCorrections(
   ctx: TenantContext,
@@ -191,13 +196,58 @@ async function applySickLeaveCorrections(
   },
   correctionFromLocal: Date,
   correctionToLocal: Date | null,
-  clientTimeZone: string
+  clientTimeZone: string,
+  cancelRemainingDays?: boolean
 ): Promise<void> {
   const correctionFromUTC = fromZonedTime(correctionFromLocal, clientTimeZone);
   const correctionToUTC = correctionToLocal
     ? fromZonedTime(correctionToLocal, clientTimeZone)
     : null;
 
+  // Step 0: If cancelRemainingDays is true, identify applicationId on endDate BEFORE processing overlapping days
+  // This is needed because step 1 will delete DaySchedule records including the one on endDate
+  let applicationIdForRemainingDays: string | null = null;
+  let applicationForRemainingDays: any = null;
+  let endDateEndUTC: Date | null = null;
+
+  if (cancelRemainingDays === true && correctionToUTC) {
+    const endDateLocal = toZonedTime(correctionToUTC, clientTimeZone);
+    const endDateStartUTC = fromZonedTime(
+      new Date(endDateLocal.getFullYear(), endDateLocal.getMonth(), endDateLocal.getDate()),
+      clientTimeZone
+    );
+    endDateEndUTC = new Date(endDateStartUTC.getTime() + 24 * 60 * 60 * 1000 - 1);
+
+    const dayScheduleOnEndDate = await db.daySchedule.findFirst({
+      where: {
+        organisationId: ctx.organisationId,
+        employeeId: sickLeave.employeeId,
+        applicationId: { not: null },
+        active: true,
+        date: {
+          gte: endDateStartUTC,
+          lt: endDateEndUTC,
+        },
+        unavailabilityReason: {
+          hasPlanning: true,
+        },
+      },
+      include: {
+        application: {
+          include: {
+            unavailabilityReason: true,
+          },
+        },
+      },
+    });
+
+    if (dayScheduleOnEndDate && dayScheduleOnEndDate.applicationId && dayScheduleOnEndDate.application) {
+      applicationIdForRemainingDays = dayScheduleOnEndDate.applicationId;
+      applicationForRemainingDays = dayScheduleOnEndDate.application;
+    }
+  }
+
+  // Step 1: Process overlapping days in the sick leave range [startDate..endDate]
   // Find DaySchedule records that:
   // - belong to this employee
   // - have applicationId set (materialized from an approved application)
@@ -226,89 +276,232 @@ async function applySickLeaveCorrections(
     },
   });
 
-  // If no DaySchedule records to correct, exit early
-  if (daySchedulesToCorrect.length === 0) {
-    return;
-  }
+  // Step 1: Process overlapping days in the sick leave range [startDate..endDate]
+  // If there are overlapping days, process them first
+  if (daySchedulesToCorrect.length > 0) {
+    // Group DaySchedule records by applicationId
+    const schedulesByApplication = new Map<string, typeof daySchedulesToCorrect>();
+    for (const schedule of daySchedulesToCorrect) {
+      if (!schedule.applicationId || !schedule.application) continue;
+      
+      const existing = schedulesByApplication.get(schedule.applicationId) ?? [];
+      existing.push(schedule);
+      schedulesByApplication.set(schedule.applicationId, existing);
+    }
 
-  // Group DaySchedule records by applicationId
-  const schedulesByApplication = new Map<string, typeof daySchedulesToCorrect>();
-  for (const schedule of daySchedulesToCorrect) {
-    if (!schedule.applicationId || !schedule.application) continue;
-    
-    const existing = schedulesByApplication.get(schedule.applicationId) ?? [];
-    existing.push(schedule);
-    schedulesByApplication.set(schedule.applicationId, existing);
-  }
+    // Process each application group
+    for (const [applicationId, schedules] of schedulesByApplication) {
+      const application = schedules[0].application!;
+      
+      // Count workdays (exclude weekends and holidays from the DaySchedule records)
+      const workdays = schedules.filter(s => !s.isWeekend && !s.isHoliday).length;
 
-  // Process each application group
-  for (const [applicationId, schedules] of schedulesByApplication) {
-    const application = schedules[0].application!;
-    
-    // Count workdays (exclude weekends and holidays from the DaySchedule records)
-    const workdays = schedules.filter(s => !s.isWeekend && !s.isHoliday).length;
+      if (workdays === 0) {
+        // Still delete the DaySchedule records even if no workdays
+        await db.daySchedule.deleteMany({
+          where: {
+            id: { in: schedules.map(s => s.id) },
+          },
+        });
+        continue;
+      }
 
-    if (workdays === 0) {
-      // Still delete the DaySchedule records even if no workdays
+      // Get the year for ledger entry (based on application start date)
+      const appStartLocal = toZonedTime(application.startDate, clientTimeZone);
+      const year = appStartLocal.getFullYear();
+
+      // Create CORRECTION ledger entry (returning days)
+      // Note: No applicationId reference - this is a standalone materialized correction
+      await db.unavailabilityLedgerEntry.create({
+        data: {
+          organisationId: ctx.organisationId,
+          employeeId: sickLeave.employeeId,
+          unavailabilityReasonId: application.unavailabilityReasonId,
+          year,
+          changeDays: workdays, // Positive = returning days
+          type: "CORRECTION",
+          note: `Korekcija zbog bolovanja (ID: ${sickLeave.id})`,
+          createdById: ctx.organisationUser.id,
+        },
+      });
+
+      // Delete DaySchedule records
       await db.daySchedule.deleteMany({
         where: {
           id: { in: schedules.map(s => s.id) },
         },
       });
-      continue;
+
+      // Get date range for the comment
+      const sortedDates = schedules.map(s => s.date).sort((a, b) => a.getTime() - b.getTime());
+      const intervalStart = toZonedTime(sortedDates[0], clientTimeZone);
+      const intervalEnd = toZonedTime(sortedDates[sortedDates.length - 1], clientTimeZone);
+
+      // Create ApplicationLog for POST_APPROVAL_IMPACT_CHANGED
+      await db.applicationLog.create({
+        data: {
+          organisationId: ctx.organisationId,
+          applicationId: applicationId,
+          type: "POST_APPROVAL_IMPACT_CHANGED",
+          createdById: ctx.organisationUser.id,
+        },
+      });
+
+      // Add a comment to the application
+      await db.applicationComment.create({
+        data: {
+          applicationId: applicationId,
+          comment: `Zahtjev je djelomično prekinut zbog bolovanja od ${intervalStart.toLocaleDateString("hr-HR")} do ${intervalEnd.toLocaleDateString("hr-HR")}. Vraćeno ${workdays} radnih dana.`,
+          createdById: ctx.organisationUser.id,
+        },
+      });
     }
+  }
 
-    // Get the year for ledger entry (based on application start date)
-    const appStartLocal = toZonedTime(application.startDate, clientTimeZone);
-    const year = appStartLocal.getFullYear();
-
-    // Create CORRECTION ledger entry (returning days)
-    // Note: No applicationId reference - this is a standalone materialized correction
-    await db.unavailabilityLedgerEntry.create({
-      data: {
+  // Step 2: Cancel remaining days after endDate if requested
+  // We identified applicationId in step 0, now process remaining days after step 1 is complete
+  if (cancelRemainingDays === true && applicationIdForRemainingDays && applicationForRemainingDays && endDateEndUTC) {
+    // Find all DaySchedule records with the same applicationId AFTER endDate
+    // Note: These are still in DB because we only deleted overlapping days in step 1
+    const remainingSchedules = await db.daySchedule.findMany({
+      where: {
         organisationId: ctx.organisationId,
         employeeId: sickLeave.employeeId,
-        unavailabilityReasonId: application.unavailabilityReasonId,
-        year,
-        changeDays: workdays, // Positive = returning days
-        type: "CORRECTION",
-        note: `Korekcija zbog bolovanja (ID: ${sickLeave.id})`,
-        createdById: ctx.organisationUser.id,
+        applicationId: applicationIdForRemainingDays,
+        active: true,
+        date: {
+          gt: endDateEndUTC,
+        },
+        unavailabilityReason: {
+          hasPlanning: true,
+        },
+      },
+      include: {
+        application: {
+          include: {
+            unavailabilityReason: true,
+          },
+        },
       },
     });
 
-    // Delete DaySchedule records
-    await db.daySchedule.deleteMany({
-      where: {
-        id: { in: schedules.map(s => s.id) },
-      },
-    });
+    // Process remaining days if any found
+    if (remainingSchedules.length > 0) {
+      // Count workdays (exclude weekends and holidays)
+      const workdays = remainingSchedules.filter(s => !s.isWeekend && !s.isHoliday).length;
 
-    // Get date range for the comment
-    const sortedDates = schedules.map(s => s.date).sort((a, b) => a.getTime() - b.getTime());
-    const intervalStart = toZonedTime(sortedDates[0], clientTimeZone);
-    const intervalEnd = toZonedTime(sortedDates[sortedDates.length - 1], clientTimeZone);
+      if (workdays > 0) {
+        // Get the year for ledger entry (based on application start date)
+        const appStartLocal = toZonedTime(applicationForRemainingDays.startDate, clientTimeZone);
+        const year = appStartLocal.getFullYear();
 
-    // Create ApplicationLog for POST_APPROVAL_IMPACT_CHANGED
-    await db.applicationLog.create({
-      data: {
-        organisationId: ctx.organisationId,
-        applicationId: applicationId,
-        type: "POST_APPROVAL_IMPACT_CHANGED",
-        createdById: ctx.organisationUser.id,
-      },
-    });
+        // Create CORRECTION ledger entry (returning days)
+        await db.unavailabilityLedgerEntry.create({
+          data: {
+            organisationId: ctx.organisationId,
+            employeeId: sickLeave.employeeId,
+            unavailabilityReasonId: applicationForRemainingDays.unavailabilityReasonId,
+            year,
+            changeDays: workdays, // Positive = returning days
+            type: "CORRECTION",
+            note: `Korekcija zbog bolovanja - poništeni preostali dani (ID: ${sickLeave.id})`,
+            createdById: ctx.organisationUser.id,
+          },
+        });
+      }
 
-    // Add a comment to the application
-    await db.applicationComment.create({
-      data: {
-        applicationId: applicationId,
-        comment: `Zahtjev je djelomično prekinut zbog bolovanja od ${intervalStart.toLocaleDateString("hr-HR")} do ${intervalEnd.toLocaleDateString("hr-HR")}. Vraćeno ${workdays} radnih dana.`,
-        createdById: ctx.organisationUser.id,
-      },
-    });
+      // Delete DaySchedule records
+      await db.daySchedule.deleteMany({
+        where: {
+          id: { in: remainingSchedules.map(s => s.id) },
+        },
+      });
+
+      // Get date range for the comment
+      const sortedDates = remainingSchedules.map(s => s.date).sort((a, b) => a.getTime() - b.getTime());
+      const intervalStart = toZonedTime(sortedDates[0], clientTimeZone);
+      const intervalEnd = toZonedTime(sortedDates[sortedDates.length - 1], clientTimeZone);
+
+      // Create ApplicationLog for POST_APPROVAL_IMPACT_CHANGED
+      await db.applicationLog.create({
+        data: {
+          organisationId: ctx.organisationId,
+          applicationId: applicationIdForRemainingDays,
+          type: "POST_APPROVAL_IMPACT_CHANGED",
+          createdById: ctx.organisationUser.id,
+        },
+      });
+
+      // Add a comment to the application
+      await db.applicationComment.create({
+        data: {
+          applicationId: applicationIdForRemainingDays,
+          comment: `Preostali dani zahtjeva su poništeni zbog bolovanja od ${intervalStart.toLocaleDateString("hr-HR")} do ${intervalEnd.toLocaleDateString("hr-HR")}. Vraćeno ${workdays} radnih dana.`,
+          createdById: ctx.organisationUser.id,
+        },
+      });
+    }
   }
 }
+
+/**
+ * Check if there are remaining days from an approved application after the end date
+ * Used to determine if user should be shown the option to cancel remaining days
+ */
+export async function hasRemainingDaysAfterEndDate(
+  ctx: TenantContext,
+  employeeId: string,
+  endDateUTC: Date,
+  clientTimeZone: string
+): Promise<boolean> {
+  // Find DaySchedule record on endDate with applicationId and hasPlanning=true
+  const endDateLocal = toZonedTime(endDateUTC, clientTimeZone);
+  const endDateStartUTC = fromZonedTime(
+    new Date(endDateLocal.getFullYear(), endDateLocal.getMonth(), endDateLocal.getDate()),
+    clientTimeZone
+  );
+  const endDateEndUTC = new Date(endDateStartUTC.getTime() + 24 * 60 * 60 * 1000 - 1);
+
+  const dayScheduleOnEndDate = await db.daySchedule.findFirst({
+    where: {
+      organisationId: ctx.organisationId,
+      employeeId,
+      applicationId: { not: null },
+      active: true,
+      date: {
+        gte: endDateStartUTC,
+        lt: endDateEndUTC,
+      },
+      unavailabilityReason: {
+        hasPlanning: true,
+      },
+    },
+  });
+
+  // If no DaySchedule on endDate with applicationId, no remaining days to check
+  if (!dayScheduleOnEndDate || !dayScheduleOnEndDate.applicationId) {
+    return false;
+  }
+
+  // Find DaySchedule records with the same applicationId AFTER endDate
+  const remainingDays = await db.daySchedule.findFirst({
+    where: {
+      organisationId: ctx.organisationId,
+      employeeId,
+      applicationId: dayScheduleOnEndDate.applicationId,
+      active: true,
+      date: {
+        gt: endDateEndUTC,
+      },
+      unavailabilityReason: {
+        hasPlanning: true,
+      },
+    },
+  });
+
+  return !!remainingDays;
+}
+
 
 /**
  * Open sick leave (UC-SL-01)
@@ -444,6 +637,7 @@ export async function closeSickLeave(
   // 5. Apply corrections BEFORE materializing DaySchedule
   // This finds DaySchedule records with applicationId (e.g., approved GO)
   // in the sick leave range and returns those days to the ledger
+  // If cancelRemainingDays is true, also cancels remaining days after endDate
   await applySickLeaveCorrections(
     ctx,
     {
@@ -454,10 +648,11 @@ export async function closeSickLeave(
     },
     startDateLocal,
     endDateLocal,
-    clientTimeZone
+    clientTimeZone,
+    input.cancelRemainingDays
   );
 
-  // 6. Upsert DaySchedule for all days in range [startDate..endDate]
+  // 7. Upsert DaySchedule for all days in range [startDate..endDate]
   const daysInRange = eachDayOfInterval({
     start: sickLeave.startDate,
     end: endDateUTC,

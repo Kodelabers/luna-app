@@ -211,6 +211,7 @@ export const closeSickLeaveSchema = z.object({
   endDateLocalISO: z.string().min(1, "Datum završetka je obavezan"),
   clientTimeZone: ianaTimezoneSchema,
   note: z.string().max(1000).optional(),
+  cancelRemainingDays: z.coerce.boolean().optional(),
 });
 
 export const cancelSickLeaveSchema = z.object({
