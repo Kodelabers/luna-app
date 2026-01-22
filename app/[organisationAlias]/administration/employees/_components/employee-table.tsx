@@ -62,7 +62,6 @@ export function EmployeeTable({
           <TableHead className="w-10">#</TableHead>
           <TableHead>{t("fullName")}</TableHead>
           <TableHead>{t("email")}</TableHead>
-          <TableHead>{t("titleLabel")}</TableHead>
           <TableHead>{t("department")}</TableHead>
           <TableHead className="text-right">{tCommon("actions")}</TableHead>
         </TableRow>
@@ -75,15 +74,11 @@ export function EmployeeTable({
             </TableCell>
             <TableCell className="font-medium">
               {emp.firstName} {emp.lastName}
-            </TableCell>
-            <TableCell className="text-muted-foreground">{emp.email}</TableCell>
-            <TableCell>
-              {emp.title ? (
-                <span className="text-sm">{emp.title}</span>
-              ) : (
-                <span className="text-muted-foreground text-sm">-</span>
+              {emp.title && (
+                <span className="text-xs text-muted-foreground ml-1">({emp.title})</span>
               )}
             </TableCell>
+            <TableCell className="text-muted-foreground">{emp.email}</TableCell>
             <TableCell>
               <div className="flex items-center gap-2">
                 {emp.department.colorCode && (

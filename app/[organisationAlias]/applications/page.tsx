@@ -7,6 +7,7 @@ import { ApplicationsListClient } from "./_components/applications-list-client";
 import { resolveTenantContext } from "@/lib/tenant/resolveTenantContext";
 import { db } from "@/lib/db";
 import { PageHeader } from "@/components/page-header";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 type PageProps = {
   params: Promise<{ organisationAlias: string }>;
@@ -59,26 +60,32 @@ export default async function ApplicationsPage(props: PageProps) {
   });
 
   return (
-    <div className="flex flex-col gap-6">
-      <PageHeader
-        title={t("myApplications")}
-        description={t("description")}
-        action={
-          <Link href={`/${params.organisationAlias}/applications/new`}>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              {t("newApplication")}
-            </Button>
-          </Link>
-        }
-      />
+    <div className="container mx-auto py-6 space-y-6">
+      <Card>
+        <CardHeader>
+          <PageHeader
+            title={t("myApplications")}
+            description={t("description")}
+            action={
+              <Link href={`/${params.organisationAlias}/applications/new`}>
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" />
+                  {t("newApplication")}
+                </Button>
+              </Link>
+            }
+          />
+        </CardHeader>
+        <CardContent>
 
-      <Suspense fallback={<div>Loading...</div>}>
-        <ApplicationsListClient
-          organisationAlias={params.organisationAlias}
-          reasons={reasons}
-        />
-      </Suspense>
+          <Suspense fallback={<div>Loading...</div>}>
+            <ApplicationsListClient
+              organisationAlias={params.organisationAlias}
+              reasons={reasons}
+            />
+          </Suspense>
+        </CardContent>
+      </Card>
     </div>
   );
 }

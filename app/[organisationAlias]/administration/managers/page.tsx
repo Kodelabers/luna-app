@@ -100,22 +100,24 @@ export default async function ManagersPage({ params, searchParams }: Props) {
   }));
 
   return (
-    <Card>
-      <CardHeader>
-        <PageHeader title={t("title")} description={t("description")} />
-        <Suspense fallback={<Skeleton className="h-10 w-[220px]" />}>
-          <ManagerFilter departments={departmentsForFilter} />
-        </Suspense>
-      </CardHeader>
+    <div className="container mx-auto py-6 space-y-6">
+      <Card>
+        <CardHeader>
+          <PageHeader title={t("title")} description={t("description")} />
+          <Suspense fallback={<Skeleton className="h-10 w-[220px]" />}>
+            <ManagerFilter departments={departmentsForFilter} />
+          </Suspense>
+        </CardHeader>
 
-      <CardContent className="p-4">
-        <ManagerTable
-          generalManagers={generalManagers}
-          departments={departments}
-          organisationAlias={organisationAlias}
-          filteredDepartmentId={filteredDepartmentId}
-        />
-      </CardContent>
-    </Card>
+        <CardContent className="p-4">
+          <ManagerTable
+            generalManagers={generalManagers}
+            departments={departments}
+            organisationAlias={organisationAlias}
+            filteredDepartmentId={filteredDepartmentId}
+          />
+        </CardContent>
+      </Card>
+    </div>
   );
 }

@@ -93,38 +93,40 @@ export default async function DepartmentEmployeesPage({ params, searchParams }: 
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   return (
-    <Card>
-      <CardHeader>
-        <PageHeader
-          title={`${t("title")} - ${department.name}`}
-          description={t("description")}
-        />
+    <div className="container mx-auto py-6 space-y-6">
+      <Card>
+        <CardHeader>
+          <PageHeader
+            title={`${t("title")} - ${department.name}`}
+            description={t("description")}
+          />
 
-        <Suspense fallback={<Skeleton className="h-10 w-full" />}>
-          <DepartmentEmployeeSearchBar />
-        </Suspense>
-      </CardHeader>
+          <Suspense fallback={<Skeleton className="h-10 w-full" />}>
+            <DepartmentEmployeeSearchBar />
+          </Suspense>
+        </CardHeader>
 
-      <CardContent className="p-0">
-        {employees.length === 0 && !search ? (
-          <div className="p-6 text-center">
-            <p className="text-muted-foreground">{t("noEmployees")}</p>
-          </div>
-        ) : (
-          <div className="p-4">
-            <DepartmentEmployeeTable
-              employees={employees}
-              organisationAlias={organisationAlias}
-            />
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              totalItems={totalCount}
-              pageSize={PAGE_SIZE}
-            />
-          </div>
-        )}
-      </CardContent>
-    </Card>
+        <CardContent className="p-0">
+          {employees.length === 0 && !search ? (
+            <div className="p-6 text-center">
+              <p className="text-muted-foreground">{t("noEmployees")}</p>
+            </div>
+          ) : (
+            <div className="p-4">
+              <DepartmentEmployeeTable
+                employees={employees}
+                organisationAlias={organisationAlias}
+              />
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={totalCount}
+                pageSize={PAGE_SIZE}
+              />
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }

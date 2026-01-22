@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { resolveTenantContext, requireManagerAccess } from "@/lib/tenant/resolveTenantContext";
 import { db } from "@/lib/db";
 import { PageHeader } from "@/components/page-header";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import SickLeavesTableClient from "./_components/sick-leaves-table-client";
@@ -192,17 +192,18 @@ export default async function SickLeavesPage({ params, searchParams }: PageProps
 
   return (
     <div className="container mx-auto py-6 space-y-6">
-      <PageHeader
-        title="Bolovanja"
-        description="Upravljanje bolovanja u organizaciji"
-        action={
-          <Suspense fallback={<Button disabled>Otvori bolovanje</Button>}>
-            <OpenSickLeaveDialogWrapper organisationAlias={organisationAlias} />
-          </Suspense>
-        }
-      />
-
       <Card>
+        <CardHeader>
+          <PageHeader
+            title="Bolovanja"
+            description="Upravljanje bolovanja u organizaciji"
+            action={
+              <Suspense fallback={<Button disabled>Otvori bolovanje</Button>}>
+                <OpenSickLeaveDialogWrapper organisationAlias={organisationAlias} />
+              </Suspense>
+            }
+          />
+        </CardHeader>
         <CardContent>
           <Suspense
             fallback={

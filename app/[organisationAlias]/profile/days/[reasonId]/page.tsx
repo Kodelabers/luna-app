@@ -8,6 +8,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { DaysBalanceByYearClient } from "./_components/days-balance-by-year-client";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 
 type PageProps = {
   params: Promise<{ organisationAlias: string; reasonId: string }>;
@@ -49,25 +50,32 @@ export default async function DaysBalanceByYearPage(props: PageProps) {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center gap-4">
-        <Link href={`/${params.organisationAlias}/profile`}>
-          <Button variant="ghost" size="icon">
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-        </Link>
-        <PageHeader
-          title={`${t("title")} - ${reason.name}`}
-          description={t("byYearDescription")}
-        />
-      </div>
+    <div className="container mx-auto py-6 space-y-6">
+      <Card>
+        <CardHeader className="flex items-center  gap-4">
 
-      <Suspense fallback={<div>Učitavanje...</div>}>
-        <DaysBalanceByYearClient
-          organisationAlias={params.organisationAlias}
-          unavailabilityReasonId={reasonId}
-        />
-      </Suspense>
+          <Link href={`/${params.organisationAlias}/profile`}>
+            <Button variant="ghost" size="icon">
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+          </Link>
+          <PageHeader
+            title={`${t("title")} - ${reason.name}`}
+            description={t("byYearDescription")}
+          />
+          <div className="flex flex-1 justify-end items-center gap-2">
+          <div style={{ backgroundColor: reason.colorCode ?? undefined }} className="h-4 w-4 rounded-sm" />
+          </div>
+        </CardHeader>
+        <CardContent>
+          <Suspense fallback={<div>Učitavanje...</div>}>
+            <DaysBalanceByYearClient
+              organisationAlias={params.organisationAlias}
+              unavailabilityReasonId={reasonId}
+            />
+          </Suspense>
+        </CardContent>
+      </Card>
     </div>
   );
 }

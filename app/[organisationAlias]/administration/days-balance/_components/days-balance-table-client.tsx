@@ -105,104 +105,124 @@ export function DaysBalanceTableClient({
 
   if (loading) {
     return (
-      <Card>
-        <CardHeader>
-          <Skeleton className="h-6 w-48" />
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-          </div>
-        </CardContent>
-      </Card>
+
+      <div className="space-y-2">
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full" />
+      </div>
+
     );
   }
 
   return (
     <>
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("employeesBalance")}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t("employee")}</TableHead>
-                <TableHead>{t("department")}</TableHead>
-                <TableHead className="text-right">{t("totalAvailable")}</TableHead>
-                <TableHead className="text-right">{t("used")}</TableHead>
-                <TableHead className="text-right">{t("pending")}</TableHead>
-                <TableHead className="text-right">{t("remaining")}</TableHead>
-                <TableHead className="text-right">{t("actions")}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filteredEmployees.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={7} className="text-center text-muted-foreground">
-                    {t("noEmployees")}
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>{t("employee")}</TableHead>
+            <TableHead>{t("department")}</TableHead>
+            <TableHead className="text-right">{t("totalAvailable")}</TableHead>
+            <TableHead className="text-right">{t("used")}</TableHead>
+            <TableHead className="text-right">{t("pending")}</TableHead>
+            <TableHead className="text-right">{t("remaining")}</TableHead>
+            <TableHead className="text-right">{t("actions")}</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {filteredEmployees.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={7} className="text-center text-muted-foreground">
+                {t("noEmployees")}
+              </TableCell>
+            </TableRow>
+          ) : (
+            filteredEmployees.map((emp) => {
+              const hasAllocation = emp.balance.breakdown.allocated > 0;
+              const openYear = emp.balance.openYear;
+
+              // Calculate nextYear and check if it can be opened
+              const nextYear = openYear !== null ? openYear + 1 : null;
+              const canOpenNextYear = nextYear !== null && nextYear <= currentYear + 1;
+
+              // Check if allocation exists for nextYear (should not happen, but safety check)
+              const hasNextYearAllocation = false; // This would require a server check, but we rely on backend validation
+
+              // Calculate total available (entitlementTotal = balance + used)
+              const totalAvailable = emp.balance.breakdown.balance + emp.balance.breakdown.used;
+
+              // Check if openYear is stale (older than currentYear - 1)
+              const isStaleOpenYear = openYear !== null && openYear < currentYear - 1;
+
+              return (
+                <TableRow key={emp.employeeId}>
+                  <TableCell className="font-medium">
+                    <div className="flex flex-col gap-1">
+                      <span>
+                        {emp.employeeFirstName} {emp.employeeLastName}
+                      </span>
+                      {openYear !== null ? (
+                        <span className="text-xs text-muted-foreground">
+                          {isStaleOpenYear
+                            ? t("lastPlanned", { year: openYear })
+                            : t("plannedThrough", { year: openYear })}
+                        </span>
+                      ) : (
+                        <span className="text-xs text-muted-foreground">
+                          {t("notPlanned")}
+                        </span>
+                      )}
+                    </div>
                   </TableCell>
-                </TableRow>
-              ) : (
-                filteredEmployees.map((emp) => {
-                  const hasAllocation = emp.balance.breakdown.allocated > 0;
-                  const openYear = emp.balance.openYear;
-                  
-                  // Calculate nextYear and check if it can be opened
-                  const nextYear = openYear !== null ? openYear + 1 : null;
-                  const canOpenNextYear = nextYear !== null && nextYear <= currentYear + 1;
-                  
-                  // Check if allocation exists for nextYear (should not happen, but safety check)
-                  const hasNextYearAllocation = false; // This would require a server check, but we rely on backend validation
-                  
-                  // Calculate total available (entitlementTotal = balance + used)
-                  const totalAvailable = emp.balance.breakdown.balance + emp.balance.breakdown.used;
-                  
-                  // Check if openYear is stale (older than currentYear - 1)
-                  const isStaleOpenYear = openYear !== null && openYear < currentYear - 1;
-                  
-                  return (
-                    <TableRow key={emp.employeeId}>
-                      <TableCell className="font-medium">
-                        <div className="flex flex-col gap-1">
-                          <span>
-                            {emp.employeeFirstName} {emp.employeeLastName}
-                          </span>
-                          {openYear !== null ? (
-                            <span className="text-xs text-muted-foreground">
-                              {isStaleOpenYear 
-                                ? t("lastPlanned", { year: openYear })
-                                : t("plannedThrough", { year: openYear })}
-                            </span>
-                          ) : (
-                            <span className="text-xs text-muted-foreground">
-                              {t("notPlanned")}
-                            </span>
+                  <TableCell>
+                    <Badge variant="outline">{emp.departmentName}</Badge>
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {totalAvailable}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {emp.balance.breakdown.used}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <Badge variant="outline">{emp.balance.breakdown.pending}</Badge>
+                  </TableCell>
+                  <TableCell className="text-right font-bold">
+                    {emp.balance.breakdown.remaining}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      {!hasAllocation ? (
+                        // Show "Allocate" button if no allocation exists
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={() => {
+                            setSelectedEmployee(emp.employeeId);
+                            setSelectedReason(unavailabilityReasonId);
+                            setAllocateDialogOpen(true);
+                          }}
+                        >
+                          <Plus className="mr-2 h-4 w-4" />
+                          {t("allocate")}
+                        </Button>
+                      ) : (
+                        // Show "Update", "Add New Year", and "History" buttons if allocation exists
+                        <>
+                          {openYear !== null && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => {
+                                setSelectedEmployee(emp.employeeId);
+                                setSelectedReason(unavailabilityReasonId);
+                                setUpdateDialogOpen(true);
+                              }}
+                              title={t("update")}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
                           )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{emp.departmentName}</Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {totalAvailable}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        {emp.balance.breakdown.used}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Badge variant="outline">{emp.balance.breakdown.pending}</Badge>
-                      </TableCell>
-                      <TableCell className="text-right font-bold">
-                        {emp.balance.breakdown.remaining}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          {!hasAllocation ? (
-                            // Show "Allocate" button if no allocation exists
+                          {openYear !== null && canOpenNextYear && !hasNextYearAllocation && (
                             <Button
                               variant="default"
                               size="sm"
@@ -211,77 +231,46 @@ export function DaysBalanceTableClient({
                                 setSelectedReason(unavailabilityReasonId);
                                 setAllocateDialogOpen(true);
                               }}
+                              title={t("addNewYear")}
                             >
                               <Plus className="mr-2 h-4 w-4" />
-                              {t("allocate")}
+                              {t("addNewYear")}
                             </Button>
-                          ) : (
-                            // Show "Update", "Add New Year", and "History" buttons if allocation exists
-                            <>
-                              {openYear !== null && (
-                                <Button
-                                  variant="ghost"
-                                  size="icon"
-                                  onClick={() => {
-                                    setSelectedEmployee(emp.employeeId);
-                                    setSelectedReason(unavailabilityReasonId);
-                                    setUpdateDialogOpen(true);
-                                  }}
-                                  title={t("update")}
-                                >
-                                  <Edit className="h-4 w-4" />
-                                </Button>
-                              )}
-                              {openYear !== null && canOpenNextYear && !hasNextYearAllocation && (
-                                <Button
-                                  variant="default"
-                                  size="sm"
-                                  onClick={() => {
-                                    setSelectedEmployee(emp.employeeId);
-                                    setSelectedReason(unavailabilityReasonId);
-                                    setAllocateDialogOpen(true);
-                                  }}
-                                  title={t("addNewYear")}
-                                >
-                                  <Plus className="mr-2 h-4 w-4" />
-                                  {t("addNewYear")}
-                                </Button>
-                              )}
-                              {openYear !== null && !canOpenNextYear && (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  disabled
-                                  title={t("cannotOpenFutureYear", { maxYear: currentYear + 1 })}
-                                >
-                                  <Plus className="mr-2 h-4 w-4" />
-                                  {t("addNewYear")}
-                                </Button>
-                              )}
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => {
-                                  setSelectedEmployee(emp.employeeId);
-                                  setSelectedReason(unavailabilityReasonId);
-                                  setHistoryDialogOpen(true);
-                                }}
-                                title={t("history")}
-                              >
-                                <History className="h-4 w-4" />
-                              </Button>
-                            </>
                           )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+                          {openYear !== null && !canOpenNextYear && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              disabled
+                              title={t("cannotOpenFutureYear", { maxYear: currentYear + 1 })}
+                            >
+                              <Plus className="mr-2 h-4 w-4" />
+                              {t("addNewYear")}
+                            </Button>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => {
+                              setSelectedEmployee(emp.employeeId);
+                              setSelectedReason(unavailabilityReasonId);
+                              setHistoryDialogOpen(true);
+                            }}
+                            title={t("history")}
+                          >
+                            <History className="h-4 w-4" />
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              );
+            })
+          )}
+        </TableBody>
+      </Table>
+
 
       {selectedEmployee && selectedReason && (() => {
         const emp = filteredEmployees.find((e) => e.employeeId === selectedEmployee);
@@ -290,7 +279,7 @@ export function DaysBalanceTableClient({
         const openYearBalance = balance?.openYearBalance ?? null;
         const currentAllocated = balance?.breakdown.allocated ?? 0;
         const currentUsed = balance?.breakdown.used ?? 0;
-        
+
         const handleDialogClose = () => {
           setSelectedEmployee(null);
           setSelectedReason(null);
@@ -299,7 +288,7 @@ export function DaysBalanceTableClient({
             setEmployees(result.employees);
           });
         };
-        
+
         return (
           <>
             <AllocateDaysDialog

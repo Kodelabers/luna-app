@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -23,8 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { SearchIcon } from "lucide-react";
 import { format } from "date-fns";
 import { hr } from "date-fns/locale";
-import CloseSickLeaveDialog from "./close-sick-leave-dialog";
-import CancelSickLeaveDialog from "./cancel-sick-leave-dialog";
+import { SickLeaveActions } from "./sick-leave-actions";
 
 type SickLeave = {
   id: string;
@@ -68,8 +66,6 @@ export default function SickLeavesTableClient({
   const router = useRouter();
   const searchParams = useSearchParams();
   const [searchInput, setSearchInput] = useState(searchParams.get("search") || "");
-  const [closeDialog, setCloseDialog] = useState<SickLeave | null>(null);
-  const [cancelDialog, setCancelDialog] = useState<SickLeave | null>(null);
 
   const handleStatusChange = (value: string) => {
     const params = new URLSearchParams(searchParams);
@@ -171,95 +167,58 @@ export default function SickLeavesTableClient({
           Nema bolovanja za prikaz
         </div>
       ) : (
-        <div className="border rounded-lg">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Zaposlenik</TableHead>
-                <TableHead>Odjel</TableHead>
-                <TableHead>Vrsta</TableHead>
-                <TableHead>Period</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Akcije</TableHead>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Zaposlenik</TableHead>
+              <TableHead>Odjel</TableHead>
+              <TableHead>Vrsta</TableHead>
+              <TableHead>Period</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead className="text-right">Akcije</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {sickLeaves.map((sickLeave) => (
+              <TableRow key={sickLeave.id}>
+                <TableCell>
+                  <div>
+                    <div className="font-medium">
+                      {sickLeave.employee.firstName} {sickLeave.employee.lastName}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {sickLeave.employee.email}
+                    </div>
+                  </div>
+                </TableCell>
+                <TableCell>{sickLeave.department.name}</TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    {sickLeave.unavailabilityReason.colorCode && (
+                      <div
+                        className="w-3 h-3 rounded-full"
+                        style={{
+                          backgroundColor: sickLeave.unavailabilityReason.colorCode,
+                        }}
+                      />
+                    )}
+                    {sickLeave.unavailabilityReason.name}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  {formatPeriod(sickLeave.startDate, sickLeave.endDate)}
+                </TableCell>
+                <TableCell>{getStatusBadge(sickLeave.status)}</TableCell>
+                <TableCell className="text-right">
+                  <SickLeaveActions
+                    sickLeave={sickLeave}
+                    organisationAlias={organisationAlias}
+                  />
+                </TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sickLeaves.map((sickLeave) => (
-                <TableRow key={sickLeave.id}>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium">
-                        {sickLeave.employee.firstName} {sickLeave.employee.lastName}
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        {sickLeave.employee.email}
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>{sickLeave.department.name}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      {sickLeave.unavailabilityReason.colorCode && (
-                        <div
-                          className="w-3 h-3 rounded-full"
-                          style={{
-                            backgroundColor: sickLeave.unavailabilityReason.colorCode,
-                          }}
-                        />
-                      )}
-                      {sickLeave.unavailabilityReason.name}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {formatPeriod(sickLeave.startDate, sickLeave.endDate)}
-                  </TableCell>
-                  <TableCell>{getStatusBadge(sickLeave.status)}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex gap-2 justify-end">
-                      {sickLeave.status === "OPENED" && (
-                        <>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setCloseDialog(sickLeave)}
-                          >
-                            Zatvori
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => setCancelDialog(sickLeave)}
-                          >
-                            Poništi
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      )}
-
-      {/* Dialogs */}
-      {closeDialog && (
-        <CloseSickLeaveDialog
-          open={!!closeDialog}
-          onOpenChange={(open) => !open && setCloseDialog(null)}
-          sickLeave={closeDialog}
-          organisationAlias={organisationAlias}
-        />
-      )}
-
-      {cancelDialog && (
-        <CancelSickLeaveDialog
-          open={!!cancelDialog}
-          onOpenChange={(open) => !open && setCancelDialog(null)}
-          sickLeave={cancelDialog}
-          organisationAlias={organisationAlias}
-        />
+            ))}
+          </TableBody>
+        </Table>
       )}
     </div>
   );

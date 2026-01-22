@@ -91,51 +91,53 @@ export default async function EmployeesPage({ params, searchParams }: Props) {
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   return (
-    <Card>
-      <CardHeader>
-        <PageHeader
-          title={t("title")}
-          description={t("description")}
-          action={
-            <EmployeeDialog
-              organisationAlias={organisationAlias}
-              departments={departments}
-            />
-          }
-        />
-
-        <Suspense fallback={<Skeleton className="h-10 w-full" />}>
-          <EmployeeSearchBar departments={departments} />
-        </Suspense>
-      </CardHeader>
-
-      <CardContent className="p-0">
-        {employees.length === 0 && !search && !department ? (
-          <div className="p-6 text-center">
-            <p className="text-muted-foreground">{t("noEmployees")}</p>
-            <div className="mt-4">
+    <div className="container mx-auto py-6 space-y-6">
+      <Card>
+        <CardHeader>
+          <PageHeader
+            title={t("title")}
+            description={t("description")}
+            action={
               <EmployeeDialog
                 organisationAlias={organisationAlias}
                 departments={departments}
               />
+            }
+          />
+
+          <Suspense fallback={<Skeleton className="h-10 w-full" />}>
+            <EmployeeSearchBar departments={departments} />
+          </Suspense>
+        </CardHeader>
+
+        <CardContent className="p-0">
+          {employees.length === 0 && !search && !department ? (
+            <div className="p-6 text-center">
+              <p className="text-muted-foreground">{t("noEmployees")}</p>
+              <div className="mt-4">
+                <EmployeeDialog
+                  organisationAlias={organisationAlias}
+                  departments={departments}
+                />
+              </div>
             </div>
-          </div>
-        ) : (
-          <div className="p-4">
-            <EmployeeTable
-              employees={employees}
-              organisationAlias={organisationAlias}
-              departments={departments}
-            />
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              totalItems={totalCount}
-              pageSize={PAGE_SIZE}
-            />
-          </div>
-        )}
-      </CardContent>
-    </Card>
+          ) : (
+            <div className="p-4">
+              <EmployeeTable
+                employees={employees}
+                organisationAlias={organisationAlias}
+                departments={departments}
+              />
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={totalCount}
+                pageSize={PAGE_SIZE}
+              />
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }
