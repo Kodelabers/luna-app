@@ -2,9 +2,11 @@ import { Suspense } from "react";
 import { resolveTenantContext, requireManagerAccess } from "@/lib/tenant/resolveTenantContext";
 import { db } from "@/lib/db";
 import { PageHeader } from "@/components/page-header";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import SickLeavesTableClient from "./_components/sick-leaves-table-client";
+import OpenSickLeaveDialog from "./_components/open-sick-leave-dialog";
 
 type PageProps = {
   params: Promise<{
@@ -17,16 +19,11 @@ type PageProps = {
   }>;
 };
 
-async function SickLeavesData({
+// Async component for the dialog (needs employees, departments, and sick leave reasons)
+async function OpenSickLeaveDialogWrapper({
   organisationAlias,
-  status,
-  departmentId,
-  search,
 }: {
   organisationAlias: string;
-  status?: string;
-  departmentId?: string;
-  search?: string;
 }) {
   const ctx = await resolveTenantContext(organisationAlias);
   await requireManagerAccess(ctx);
@@ -44,17 +41,12 @@ async function SickLeavesData({
     orderBy: { name: "asc" },
   });
 
-  // Fetch employees for all departments or specific department
-  const employeesWhere: any = {
-    organisationId: ctx.organisationId,
-    active: true,
-  };
-  if (departmentId) {
-    employeesWhere.departmentId = departmentId;
-  }
-
+  // Fetch all employees
   const employees = await db.employee.findMany({
-    where: employeesWhere,
+    where: {
+      organisationId: ctx.organisationId,
+      active: true,
+    },
     select: {
       id: true,
       firstName: true,
@@ -86,18 +78,57 @@ async function SickLeavesData({
     orderBy: { name: "asc" },
   });
 
+  return (
+    <OpenSickLeaveDialog
+      employees={employees}
+      departments={departments}
+      sickLeaveReasons={sickLeaveReasons}
+      organisationAlias={organisationAlias}
+    />
+  );
+}
+
+// Async component for table data
+async function SickLeavesData({
+  organisationAlias,
+  status,
+  departmentId,
+  search,
+}: {
+  organisationAlias: string;
+  status?: string;
+  departmentId?: string;
+  search?: string;
+}) {
+  const ctx = await resolveTenantContext(organisationAlias);
+  await requireManagerAccess(ctx);
+
+  // Fetch all departments for filter
+  const departments = await db.department.findMany({
+    where: {
+      organisationId: ctx.organisationId,
+      active: true,
+    },
+    select: {
+      id: true,
+      name: true,
+    },
+    orderBy: { name: "asc" },
+  });
+
   // Build filters for sick leaves
   const where: any = {
     organisationId: ctx.organisationId,
     active: true,
   };
 
-  // Default to OPENED if no status filter
-  if (status) {
+  // Filter by status (default to OPENED, "all" shows everything)
+  if (status && status !== "all") {
     where.status = status;
-  } else {
+  } else if (!status) {
     where.status = "OPENED";
   }
+  // If status === "all", don't add status filter (show all)
 
   if (departmentId) {
     where.departmentId = departmentId;
@@ -149,9 +180,7 @@ async function SickLeavesData({
   return (
     <SickLeavesTableClient
       sickLeaves={filteredSickLeaves}
-      employees={employees}
       departments={departments}
-      sickLeaveReasons={sickLeaveReasons}
       organisationAlias={organisationAlias}
     />
   );
@@ -163,15 +192,17 @@ export default async function SickLeavesPage({ params, searchParams }: PageProps
 
   return (
     <div className="container mx-auto py-6 space-y-6">
-      <PageHeader title="Bolovanja" description="Upravljanje bolovanja u organizaciji" />
+      <PageHeader
+        title="Bolovanja"
+        description="Upravljanje bolovanja u organizaciji"
+        action={
+          <Suspense fallback={<Button disabled>Otvori bolovanje</Button>}>
+            <OpenSickLeaveDialogWrapper organisationAlias={organisationAlias} />
+          </Suspense>
+        }
+      />
 
       <Card>
-        <CardHeader>
-          <CardTitle>Bolovanja</CardTitle>
-          <CardDescription>
-            Pregled i upravljanje bolovanja zaposlenika (default: aktivna bolovanja)
-          </CardDescription>
-        </CardHeader>
         <CardContent>
           <Suspense
             fallback={
