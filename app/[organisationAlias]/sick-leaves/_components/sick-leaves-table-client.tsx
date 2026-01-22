@@ -20,10 +20,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { PlusIcon, SearchIcon } from "lucide-react";
+import { SearchIcon } from "lucide-react";
 import { format } from "date-fns";
 import { hr } from "date-fns/locale";
-import OpenSickLeaveDialog from "./open-sick-leave-dialog";
 import CloseSickLeaveDialog from "./close-sick-leave-dialog";
 import CancelSickLeaveDialog from "./cancel-sick-leave-dialog";
 
@@ -50,58 +49,31 @@ type SickLeave = {
   };
 };
 
-type Employee = {
-  id: string;
-  firstName: string;
-  lastName: string;
-  email: string;
-  departmentId: string;
-  department: {
-    id: string;
-    name: string;
-  };
-};
-
 type Department = {
   id: string;
   name: string;
 };
 
-type SickLeaveReason = {
-  id: string;
-  name: string;
-  colorCode: string | null;
-};
-
 type Props = {
   sickLeaves: SickLeave[];
-  employees: Employee[];
   departments: Department[];
-  sickLeaveReasons: SickLeaveReason[];
   organisationAlias: string;
 };
 
 export default function SickLeavesTableClient({
   sickLeaves,
-  employees,
   departments,
-  sickLeaveReasons,
   organisationAlias,
 }: Props) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [searchInput, setSearchInput] = useState(searchParams.get("search") || "");
-  const [openDialog, setOpenDialog] = useState(false);
   const [closeDialog, setCloseDialog] = useState<SickLeave | null>(null);
   const [cancelDialog, setCancelDialog] = useState<SickLeave | null>(null);
 
   const handleStatusChange = (value: string) => {
     const params = new URLSearchParams(searchParams);
-    if (value === "all") {
-      params.delete("status");
-    } else {
-      params.set("status", value);
-    }
+    params.set("status", value);
     router.push(`?${params.toString()}`);
   };
 
@@ -150,53 +122,47 @@ export default function SickLeavesTableClient({
 
   return (
     <div className="space-y-4">
-      {/* Filters and Actions */}
-      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-        <div className="flex flex-col sm:flex-row gap-2 flex-1 w-full sm:w-auto">
-          <div className="relative flex-1 min-w-[200px]">
-            <SearchIcon className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Pretraži zaposlenike..."
-              value={searchInput}
-              onChange={(e) => handleSearchChange(e.target.value)}
-              className="pl-8"
-            />
-          </div>
-          <Select
-            defaultValue={searchParams.get("departmentId") || "all"}
-            onValueChange={handleDepartmentChange}
-          >
-            <SelectTrigger className="w-full sm:w-[200px]">
-              <SelectValue placeholder="Odjel" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Svi odjeli</SelectItem>
-              {departments.map((dept) => (
-                <SelectItem key={dept.id} value={dept.id}>
-                  {dept.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select
-            defaultValue={searchParams.get("status") || "OPENED"}
-            onValueChange={handleStatusChange}
-          >
-            <SelectTrigger className="w-full sm:w-[180px]">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Svi statusi</SelectItem>
-              <SelectItem value="OPENED">Otvoreno</SelectItem>
-              <SelectItem value="CLOSED">Zatvoreno</SelectItem>
-              <SelectItem value="CANCELLED">Poništeno</SelectItem>
-            </SelectContent>
-          </Select>
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-2 w-full">
+        <div className="relative flex-1 min-w-[200px]">
+          <SearchIcon className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Pretraži zaposlenike..."
+            value={searchInput}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            className="pl-8"
+          />
         </div>
-        <Button onClick={() => setOpenDialog(true)}>
-          <PlusIcon className="h-4 w-4 mr-2" />
-          Otvori bolovanje
-        </Button>
+        <Select
+          value={searchParams.get("departmentId") || "all"}
+          onValueChange={handleDepartmentChange}
+        >
+          <SelectTrigger className="w-full sm:w-[200px]">
+            <SelectValue placeholder="Odjel" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Svi odjeli</SelectItem>
+            {departments.map((dept) => (
+              <SelectItem key={dept.id} value={dept.id}>
+                {dept.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select
+          value={searchParams.get("status") || "OPENED"}
+          onValueChange={handleStatusChange}
+        >
+          <SelectTrigger className="w-full sm:w-[180px]">
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Svi statusi</SelectItem>
+            <SelectItem value="OPENED">Otvoreno</SelectItem>
+            <SelectItem value="CLOSED">Zatvoreno</SelectItem>
+            <SelectItem value="CANCELLED">Poništeno</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {/* Table */}
@@ -278,15 +244,6 @@ export default function SickLeavesTableClient({
       )}
 
       {/* Dialogs */}
-      <OpenSickLeaveDialog
-        open={openDialog}
-        onOpenChange={setOpenDialog}
-        employees={employees}
-        departments={departments}
-        sickLeaveReasons={sickLeaveReasons}
-        organisationAlias={organisationAlias}
-      />
-
       {closeDialog && (
         <CloseSickLeaveDialog
           open={!!closeDialog}

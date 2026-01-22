@@ -5,7 +5,9 @@ import { db } from "@/lib/db";
 import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 import SickLeavesTableClient from "./_components/sick-leaves-table-client";
+import OpenSickLeaveDialog from "./_components/open-sick-leave-dialog";
 
 type PageProps = {
   params: Promise<{
@@ -18,32 +20,16 @@ type PageProps = {
   }>;
 };
 
-async function SickLeavesData({
+// Async component for the dialog (needs employees and sick leave reasons)
+async function OpenSickLeaveDialogWrapper({
   organisationAlias,
   departmentId,
-  status,
-  search,
 }: {
   organisationAlias: string;
   departmentId: string;
-  status?: string;
-  search?: string;
 }) {
   const ctx = await resolveTenantContext(organisationAlias);
   await requireDepartmentAccess(ctx, departmentId);
-
-  // Fetch department
-  const department = await db.department.findFirst({
-    where: {
-      id: departmentId,
-      organisationId: ctx.organisationId,
-      active: true,
-    },
-  });
-
-  if (!department) {
-    notFound();
-  }
 
   // Fetch employees for this department
   const employees = await db.employee.findMany({
@@ -76,6 +62,44 @@ async function SickLeavesData({
     orderBy: { name: "asc" },
   });
 
+  return (
+    <OpenSickLeaveDialog
+      employees={employees}
+      sickLeaveReasons={sickLeaveReasons}
+      organisationAlias={organisationAlias}
+      departmentId={departmentId}
+    />
+  );
+}
+
+// Async component for table data
+async function SickLeavesData({
+  organisationAlias,
+  departmentId,
+  status,
+  search,
+}: {
+  organisationAlias: string;
+  departmentId: string;
+  status?: string;
+  search?: string;
+}) {
+  const ctx = await resolveTenantContext(organisationAlias);
+  await requireDepartmentAccess(ctx, departmentId);
+
+  // Fetch department
+  const department = await db.department.findFirst({
+    where: {
+      id: departmentId,
+      organisationId: ctx.organisationId,
+      active: true,
+    },
+  });
+
+  if (!department) {
+    notFound();
+  }
+
   // Build filters for sick leaves
   const where: any = {
     organisationId: ctx.organisationId,
@@ -83,9 +107,13 @@ async function SickLeavesData({
     active: true,
   };
 
-  if (status) {
+  // Filter by status (default to OPENED, "all" shows everything)
+  if (status && status !== "all") {
     where.status = status;
+  } else if (!status) {
+    where.status = "OPENED";
   }
+  // If status === "all", don't add status filter (show all)
 
   // Fetch sick leaves
   const sickLeaves = await db.sickLeave.findMany({
@@ -127,11 +155,7 @@ async function SickLeavesData({
   return (
     <SickLeavesTableClient
       sickLeaves={filteredSickLeaves}
-      employees={employees}
-      sickLeaveReasons={sickLeaveReasons}
       organisationAlias={organisationAlias}
-      departmentId={departmentId}
-      department={department}
     />
   );
 }
@@ -145,15 +169,18 @@ export default async function DepartmentSickLeavesPage({ params, searchParams }:
       <PageHeader
         title="Bolovanja"
         description="Upravljanje bolovanja zaposlenika odjela"
+        action={
+          <Suspense fallback={<Button disabled>Otvori bolovanje</Button>}>
+            <OpenSickLeaveDialogWrapper
+              organisationAlias={organisationAlias}
+              departmentId={departmentId}
+            />
+          </Suspense>
+        }
       />
 
       <Card>
-        <CardHeader>
-          <CardTitle>Bolovanja</CardTitle>
-          <CardDescription>
-            Pregled i upravljanje bolovanja zaposlenika
-          </CardDescription>
-        </CardHeader>
+        
         <CardContent>
           <Suspense
             fallback={

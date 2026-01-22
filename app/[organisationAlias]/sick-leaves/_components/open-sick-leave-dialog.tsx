@@ -4,7 +4,7 @@ import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
 import { hr } from "date-fns/locale";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, PlusIcon } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -12,6 +12,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -57,12 +58,13 @@ type SickLeaveReason = {
 };
 
 type Props = {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
   employees: Employee[];
   departments: Department[];
   sickLeaveReasons: SickLeaveReason[];
   organisationAlias: string;
+  trigger?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 };
 
 const initialState = {
@@ -70,16 +72,24 @@ const initialState = {
 };
 
 export default function OpenSickLeaveDialog({
-  open,
-  onOpenChange,
   employees,
   departments,
   sickLeaveReasons,
   organisationAlias,
+  trigger,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
 }: Props) {
   const router = useRouter();
+  const [internalOpen, setInternalOpen] = useState(false);
   const [selectedDepartment, setSelectedDepartment] = useState<string>("ALL");
   const [startDate, setStartDate] = useState<Date | undefined>();
+
+  // Support both controlled and uncontrolled modes
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
+  const setOpen = isControlled ? controlledOnOpenChange! : setInternalOpen;
+
   const [state, formAction, isPending] = useActionState(
     openSickLeaveAction.bind(null, organisationAlias),
     initialState
@@ -88,19 +98,39 @@ export default function OpenSickLeaveDialog({
   useEffect(() => {
     if (state.success) {
       toast.success(state.message || "Bolovanje je uspješno otvoreno");
-      onOpenChange(false);
+      setOpen(false);
+      setStartDate(undefined);
+      setSelectedDepartment("ALL");
       router.refresh();
     } else if (state.formError) {
       toast.error(state.formError);
     }
-  }, [state, onOpenChange, router]);
+  }, [state, setOpen, router]);
+
+  // Reset form when dialog closes
+  useEffect(() => {
+    if (!open) {
+      setStartDate(undefined);
+      setSelectedDepartment("ALL");
+    }
+  }, [open]);
 
   const filteredEmployees = selectedDepartment && selectedDepartment !== "ALL"
     ? employees.filter((emp) => emp.departmentId === selectedDepartment)
     : employees;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={setOpen}>
+      {!isControlled && (
+        <DialogTrigger asChild>
+          {trigger || (
+            <Button>
+              <PlusIcon className="h-4 w-4 mr-2" />
+              Otvori bolovanje
+            </Button>
+          )}
+        </DialogTrigger>
+      )}
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>Otvori bolovanje</DialogTitle>
@@ -238,7 +268,7 @@ export default function OpenSickLeaveDialog({
           </div>
 
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
               Odustani
             </Button>
             <Button type="submit" disabled={isPending}>
