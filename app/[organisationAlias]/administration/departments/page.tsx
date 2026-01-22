@@ -72,42 +72,44 @@ export default async function DepartmentsPage({ params, searchParams }: Props) {
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   return (
-    <Card className="space-y-4---">
-      <CardHeader>
-        <PageHeader
-          title={t("title")}
-          description={t("description")}
-          action={<DepartmentDialog organisationAlias={organisationAlias} />}
-        />
+    <div className="container mx-auto py-6 space-y-6">
+      <Card className="space-y-4---">
+        <CardHeader>
+          <PageHeader
+            title={t("title")}
+            description={t("description")}
+            action={<DepartmentDialog organisationAlias={organisationAlias} />}
+          />
 
-        <Suspense fallback={<Skeleton className="h-10 w-full" />}>
-          <DepartmentSearchBar />
-        </Suspense>
-      </CardHeader>
+          <Suspense fallback={<Skeleton className="h-10 w-full" />}>
+            <DepartmentSearchBar />
+          </Suspense>
+        </CardHeader>
 
-      <CardContent className="p-0">
-        {departments.length === 0 && !search ? (
-          <div className="p-6 text-center">
-            <p className="text-muted-foreground">{t("noDepartments")}</p>
-            <div className="mt-4">
-              <DepartmentDialog organisationAlias={organisationAlias} />
+        <CardContent className="p-0">
+          {departments.length === 0 && !search ? (
+            <div className="p-6 text-center">
+              <p className="text-muted-foreground">{t("noDepartments")}</p>
+              <div className="mt-4">
+                <DepartmentDialog organisationAlias={organisationAlias} />
+              </div>
             </div>
-          </div>
-        ) : (
-          <div className="p-4">
-            <DepartmentTable
-              departments={departments}
-              organisationAlias={organisationAlias}
-            />
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              totalItems={totalCount}
-              pageSize={PAGE_SIZE}
-            />
-          </div>
-        )}
-      </CardContent>
-    </Card>
+          ) : (
+            <div className="p-4">
+              <DepartmentTable
+                departments={departments}
+                organisationAlias={organisationAlias}
+              />
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={totalCount}
+                pageSize={PAGE_SIZE}
+              />
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }

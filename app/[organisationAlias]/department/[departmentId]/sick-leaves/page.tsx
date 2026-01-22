@@ -166,21 +166,22 @@ export default async function DepartmentSickLeavesPage({ params, searchParams }:
 
   return (
     <div className="container mx-auto py-6 space-y-6">
-      <PageHeader
-        title="Bolovanja"
-        description="Upravljanje bolovanja zaposlenika odjela"
-        action={
-          <Suspense fallback={<Button disabled>Otvori bolovanje</Button>}>
-            <OpenSickLeaveDialogWrapper
-              organisationAlias={organisationAlias}
-              departmentId={departmentId}
-            />
-          </Suspense>
-        }
-      />
-
       <Card>
-        
+        <CardHeader>
+          <PageHeader
+            title="Bolovanja"
+            description="Upravljanje bolovanja zaposlenika odjela"
+            action={
+              <Suspense fallback={<Button disabled>Otvori bolovanje</Button>}>
+                <OpenSickLeaveDialogWrapper
+                  organisationAlias={organisationAlias}
+                  departmentId={departmentId}
+                />
+              </Suspense>
+            }
+          />
+        </CardHeader>
+
         <CardContent>
           <Suspense
             fallback={

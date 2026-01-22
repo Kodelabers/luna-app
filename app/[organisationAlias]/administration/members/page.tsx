@@ -1,6 +1,6 @@
 import { resolveTenantContext } from "@/lib/tenant/resolveTenantContext";
 import { db } from "@/lib/db";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -33,15 +33,18 @@ export default async function MembersPage({ params }: Props) {
   });
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title={tNav("members")}
-        description={tAdmin("membersDescription")}
-        action={<Button>Pozovi korisnika</Button>}
-      />
-
+    <div className="container mx-auto py-6 space-y-6">
       <Card>
-        <CardContent className="p-0">
+        <CardHeader>
+          <PageHeader
+            title={tNav("members")}
+            description={tAdmin("membersDescription")}
+            action={<Button>Pozovi korisnika</Button>}
+          />
+        </CardHeader>
+
+
+        <CardContent className="p-">
           {members.length === 0 ? (
             <div className="p-6 text-center">
               <p className="text-muted-foreground">Nema korisnika u organizaciji.</p>

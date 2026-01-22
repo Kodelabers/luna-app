@@ -61,16 +61,16 @@ export default async function DaysBalanceByReasonPage(props: PageProps) {
 
   // Get managed departments for filter
   // ADMIN and GM have access to all departments
-  const managedDepartments = await getManagedDepartments(ctx, { 
-    includeForAdmin: isAdminUser 
+  const managedDepartments = await getManagedDepartments(ctx, {
+    includeForAdmin: isAdminUser
   });
 
   // Parse comma-separated department IDs
   const departmentIds: string[] = searchParams.department
     ? searchParams.department
-        .split(",")
-        .map((id) => id.trim())
-        .filter((id) => id.length > 0)
+      .split(",")
+      .map((id) => id.trim())
+      .filter((id) => id.length > 0)
     : [];
 
   // Validate departmentIds if provided
@@ -93,18 +93,19 @@ export default async function DaysBalanceByReasonPage(props: PageProps) {
   }
 
   return (
-    <div className="flex flex-col gap-6">
-      <PageHeader
-        title={`${t("managerTitle")} - ${reason.name}`}
-        description={t("managerDescription")}
-      />
+    <div className="container mx-auto py-6 space-y-6">
+      <Card>
+        <CardHeader>
+          <PageHeader
+            title={`${t("managerTitle")} - ${reason.name}`}
+            description={t("managerDescription")}
+          />
+        </CardHeader>
 
-      {/* Department Filter */}
-      {managedDepartments.length > 1 && (
-        <Card>
-          <CardHeader>
-            <CardTitle>{t("filters")}</CardTitle>
-          </CardHeader>
+        {/* Department Filter */}
+        {managedDepartments.length > 1 && (
+
+
           <CardContent>
             <DepartmentFilter
               departmentIds={validDepartmentIds}
@@ -117,16 +118,18 @@ export default async function DaysBalanceByReasonPage(props: PageProps) {
               reasonId={reasonId}
             />
           </CardContent>
-        </Card>
-      )}
 
-      <Suspense fallback={<div>Učitavanje...</div>}>
-        <DaysBalanceTableClient
-          organisationAlias={params.organisationAlias}
-          unavailabilityReasonId={reasonId}
-          departmentIds={validDepartmentIds.length > 0 ? validDepartmentIds : undefined}
-        />
-      </Suspense>
+        )}
+        <CardContent>
+          <Suspense fallback={<div>Učitavanje...</div>}>
+            <DaysBalanceTableClient
+              organisationAlias={params.organisationAlias}
+              unavailabilityReasonId={reasonId}
+              departmentIds={validDepartmentIds.length > 0 ? validDepartmentIds : undefined}
+            />
+          </Suspense>
+        </CardContent>
+      </Card>
     </div>
   );
 }

@@ -50,7 +50,7 @@ export default async function HolidaysPage({ params, searchParams }: Props) {
     organisationId: ctx.organisationId,
     active: true,
     ...(type === "yearly" && { repeatYearly: true }),
-    ...(type === "oneTime" && { 
+    ...(type === "oneTime" && {
       repeatYearly: false,
       date: { gte: yearStart, lte: yearEnd },
     }),
@@ -83,42 +83,44 @@ export default async function HolidaysPage({ params, searchParams }: Props) {
   const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   return (
-    <Card>
-      <CardHeader>
-        <PageHeader
-          title={t("title")}
-          description={t("description")}
-          action={<HolidayDialog organisationAlias={organisationAlias} />}
-        />
+    <div className="container mx-auto py-6 space-y-6">
+      <Card>
+        <CardHeader>
+          <PageHeader
+            title={t("title")}
+            description={t("description")}
+            action={<HolidayDialog organisationAlias={organisationAlias} />}
+          />
 
-        <Suspense fallback={<Skeleton className="h-10 w-full" />}>
-          <HolidaySearchBar />
-        </Suspense>
-      </CardHeader>
+          <Suspense fallback={<Skeleton className="h-10 w-full" />}>
+            <HolidaySearchBar />
+          </Suspense>
+        </CardHeader>
 
-      <CardContent className="p-0">
-        {holidays.length === 0 && !search && !type && !yearParam ? (
-          <div className="p-6 text-center">
-            <p className="text-muted-foreground">{t("noHolidays")}</p>
-            <div className="mt-4">
-              <HolidayDialog organisationAlias={organisationAlias} />
+        <CardContent className="p-0">
+          {holidays.length === 0 && !search && !type && !yearParam ? (
+            <div className="p-6 text-center">
+              <p className="text-muted-foreground">{t("noHolidays")}</p>
+              <div className="mt-4">
+                <HolidayDialog organisationAlias={organisationAlias} />
+              </div>
             </div>
-          </div>
-        ) : (
-          <div className="p-4">
-            <HolidayTable
-              holidays={holidays}
-              organisationAlias={organisationAlias}
-            />
-            <Pagination
-              currentPage={currentPage}
-              totalPages={totalPages}
-              totalItems={totalCount}
-              pageSize={PAGE_SIZE}
-            />
-          </div>
-        )}
-      </CardContent>
-    </Card>
+          ) : (
+            <div className="p-4">
+              <HolidayTable
+                holidays={holidays}
+                organisationAlias={organisationAlias}
+              />
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                totalItems={totalCount}
+                pageSize={PAGE_SIZE}
+              />
+            </div>
+          )}
+        </CardContent>
+      </Card>
+    </div>
   );
 }

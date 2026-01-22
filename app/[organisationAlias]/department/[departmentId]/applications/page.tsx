@@ -20,7 +20,7 @@ export default async function DepartmentApplicationsPage({ params }: Props) {
   const t = await getTranslations("applications");
   const ctx = await resolveTenantContext(organisationAlias);
 
-  
+
   if (!departmentId) {
     notFound();
   }
@@ -61,31 +61,33 @@ export default async function DepartmentApplicationsPage({ params }: Props) {
   });
 
   return (
-    <Card>
-      <CardHeader>
-        <PageHeader
-          title={`${t("title")} - ${department.name}`}
-          description={t("description")}
-          action={
-            <Link href={`/${organisationAlias}/applications/new`}>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" />
-                {t("newApplication")}
-              </Button>
-            </Link>
-          }
-        />
-      </CardHeader>
-
-      <CardContent>
-        <Suspense fallback={<Skeleton className="h-64 w-full" />}>
-          <DepartmentApplicationsClient
-            organisationAlias={organisationAlias}
-            departmentId={departmentId}
-            reasons={reasons}
+    <div className="container mx-auto py-6 space-y-6">
+      <Card>
+        <CardHeader>
+          <PageHeader
+            title={`${t("title")} - ${department.name}`}
+            description={t("description")}
+            action={
+              <Link href={`/${organisationAlias}/applications/new`}>
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" />
+                  {t("newApplication")}
+                </Button>
+              </Link>
+            }
           />
-        </Suspense>
-      </CardContent>
-    </Card>
+        </CardHeader>
+
+        <CardContent>
+          <Suspense fallback={<Skeleton className="h-64 w-full" />}>
+            <DepartmentApplicationsClient
+              organisationAlias={organisationAlias}
+              departmentId={departmentId}
+              reasons={reasons}
+            />
+          </Suspense>
+        </CardContent>
+      </Card>
+    </div>
   );
 }

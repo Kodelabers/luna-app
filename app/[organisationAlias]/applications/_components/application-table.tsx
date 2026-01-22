@@ -73,8 +73,7 @@ export function ApplicationTable({
         <TableHeader>
           <TableRow>
             {showEmployee && <TableHead>{t("employee")}</TableHead>}
-            <TableHead>{t("startDate")}</TableHead>
-            <TableHead>{t("endDate")}</TableHead>
+            <TableHead>{t("period")}</TableHead>
             <TableHead>{t("reason")}</TableHead>
             <TableHead>{t("workdays")}</TableHead>
             <TableHead>{t("status")}</TableHead>
@@ -85,7 +84,7 @@ export function ApplicationTable({
         </TableHeader>
         <TableBody>
           {applications.map((app) => (
-            <TableRow 
+            <TableRow
               key={app.applicationId}
               className={onRowClick ? "cursor-pointer hover:bg-muted/50" : ""}
               onClick={() => onRowClick?.(app.applicationId)}
@@ -94,15 +93,15 @@ export function ApplicationTable({
                 <TableCell className="font-medium">{app.employeeName}</TableCell>
               )}
               <TableCell>
-                {format(parseISO(app.startLocalISO), "dd.MM.yyyy", {
-                  locale: hr,
-                })}
+                <Badge variant="outline">
+                  {format(parseISO(app.startLocalISO), "dd.MM.yyyy", {
+                    locale: hr,
+                  })} - {format(parseISO(app.endLocalISO), "dd.MM.yyyy", {
+                    locale: hr,
+                  })}
+                </Badge>
               </TableCell>
-              <TableCell>
-                {format(parseISO(app.endLocalISO), "dd.MM.yyyy", {
-                  locale: hr,
-                })}
-              </TableCell>
+
               <TableCell>{app.reasonName}</TableCell>
               <TableCell>{app.workdays ?? "-"}</TableCell>
               <TableCell>

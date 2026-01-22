@@ -47,65 +47,50 @@ export function DaysBalanceByYearClient({
 
   if (loading) {
     return (
-      <Card>
-        <CardHeader>
-          <Skeleton className="h-6 w-32" />
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-          </div>
-        </CardContent>
-      </Card>
+
+      <div className="space-y-2">
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full" />
+      </div>
     );
   }
 
   if (balances.length === 0) {
     return (
-      <Card>
-        <CardContent className="py-6 text-center text-muted-foreground">
-          {t("noData")}
-        </CardContent>
-      </Card>
+      <div>
+        {t("noData")}
+      </div>
     );
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t("byYearTitle")}</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t("year")}</TableHead>
-              <TableHead className="text-right">{t("allocated")}</TableHead>
-              <TableHead className="text-right">{t("used")}</TableHead>
-              <TableHead className="text-right">{t("pending")}</TableHead>
-              <TableHead className="text-right">{t("remaining")}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {balances.map((balance) => (
-              <TableRow key={balance.year}>
-                <TableCell className="font-medium">{balance.year}</TableCell>
-                <TableCell className="text-right">{balance.breakdown.allocated}</TableCell>
-                <TableCell className="text-right">{balance.breakdown.used}</TableCell>
-                <TableCell className="text-right">
-                  <Badge variant="outline">{balance.breakdown.pending}</Badge>
-                </TableCell>
-                <TableCell className="text-right font-bold">
-                  {balance.breakdown.remaining}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </CardContent>
-    </Card>
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead>{t("year")}</TableHead>
+          <TableHead className="text-right">{t("allocated")}</TableHead>
+          <TableHead className="text-right">{t("used")}</TableHead>
+          <TableHead className="text-right">{t("pending")}</TableHead>
+          <TableHead className="text-right">{t("remaining")}</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {balances.map((balance) => (
+          <TableRow key={balance.year}>
+            <TableCell className="font-medium">{balance.year}</TableCell>
+            <TableCell className="text-right">{balance.breakdown.allocated}</TableCell>
+            <TableCell className="text-right">{balance.breakdown.used}</TableCell>
+            <TableCell className="text-right">
+              <Badge variant="outline">{balance.breakdown.pending}</Badge>
+            </TableCell>
+            <TableCell className="text-right font-bold">
+              {balance.breakdown.remaining}
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
   );
 }
 
