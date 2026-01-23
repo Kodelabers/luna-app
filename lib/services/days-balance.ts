@@ -189,6 +189,7 @@ export type DaysBalanceBreakdown = {
   pending: number;
   remaining: number;
   balance: number;
+  totalAvailable: number;
 };
 
 /**
@@ -215,10 +216,10 @@ export async function getDaysBalanceBreakdown(
     .filter((entry) => entry.type === "ALLOCATION")
     .reduce((sum, entry) => sum + entry.changeDays, 0);
 
-  // Calculate used (USAGE entries - they are negative)
+  // Calculate used (USAGE + CORRECTION entries - sum then absolute value)
   const used = Math.abs(
     ledgerEntries
-      .filter((entry) => entry.type === "USAGE")
+      .filter((entry) => entry.type === "USAGE" || entry.type === "CORRECTION")
       .reduce((sum, entry) => sum + entry.changeDays, 0)
   );
 
@@ -231,12 +232,18 @@ export async function getDaysBalanceBreakdown(
   // Remaining = balance - pending
   const remaining = balance - pending;
 
+  // Calculate total available (ALLOCATION + TRANSFER only, no CORRECTION)
+  const totalAvailable = ledgerEntries
+    .filter((entry) => entry.type === "ALLOCATION" || entry.type === "TRANSFER")
+    .reduce((sum, entry) => sum + entry.changeDays, 0);
+
   return {
     allocated,
     used,
     pending,
     remaining,
     balance,
+    totalAvailable,
   };
 }
 
@@ -322,7 +329,7 @@ export async function getDaysBalanceForEmployee(
           openYear,
           clientTimeZone
         )
-      : { allocated: 0, used: 0, pending: 0, remaining: 0, balance: 0 };
+      : { allocated: 0, used: 0, pending: 0, remaining: 0, balance: 0, totalAvailable: 0 };
 
     // Get open year balance (if openYear exists)
     const openYearBalance = openYear !== null
@@ -621,10 +628,10 @@ export async function getDaysBalanceForManager(
           .filter((entry) => entry.type === "ALLOCATION")
           .reduce((sum, entry) => sum + entry.changeDays, 0);
 
-        // Calculate used (USAGE entries - they are negative)
+        // Calculate used (USAGE + CORRECTION entries - sum then absolute value)
         const used = Math.abs(
           ledgerEntries
-            .filter((entry) => entry.type === "USAGE")
+            .filter((entry) => entry.type === "USAGE" || entry.type === "CORRECTION")
             .reduce((sum, entry) => sum + entry.changeDays, 0)
         );
 
@@ -638,18 +645,24 @@ export async function getDaysBalanceForManager(
         // Remaining = balance - pending
         const remaining = balance - pending;
 
+        // Calculate total available (ALLOCATION + TRANSFER only, no CORRECTION)
+        const totalAvailable = ledgerEntries
+          .filter((entry) => entry.type === "ALLOCATION" || entry.type === "TRANSFER")
+          .reduce((sum, entry) => sum + entry.changeDays, 0);
+
         breakdown = {
           allocated,
           used,
           pending,
           remaining,
           balance,
+          totalAvailable,
         };
 
         // Calculate open year balance
         openYearBalance = balance;
       } else {
-        breakdown = { allocated: 0, used: 0, pending: 0, remaining: 0, balance: 0 };
+        breakdown = { allocated: 0, used: 0, pending: 0, remaining: 0, balance: 0, totalAvailable: 0 };
       }
 
       balances.push({
@@ -1024,16 +1037,16 @@ export async function updateAllocation(
     },
   });
 
-  // Calculate current allocated (sum of ALLOCATION + all CORRECTION entries)
+  // Calculate current allocated (sum of ALLOCATION entries only)
   // This gives us the current total allocation including all previous corrections
   const currentAllocated = ledgerEntries
-    .filter((entry) => entry.type === "ALLOCATION" || entry.type === "CORRECTION")
+    .filter((entry) => entry.type === "ALLOCATION")
     .reduce((sum, entry) => sum + entry.changeDays, 0);
 
-  // Calculate used (absolute sum of USAGE entries)
+  // Calculate used (absolute sum of USAGE + CORRECTION entries)
   const used = Math.abs(
     ledgerEntries
-      .filter((entry) => entry.type === "USAGE")
+      .filter((entry) => entry.type === "USAGE" || entry.type === "CORRECTION")
       .reduce((sum, entry) => sum + entry.changeDays, 0)
   );
 
@@ -1041,10 +1054,28 @@ export async function updateAllocation(
   const adjustment = adjustmentType === "INCREASE" ? adjustmentDays : -adjustmentDays;
   const newAllocated = currentAllocated + adjustment;
 
-  // Validate: new allocated must be >= used
-  if (newAllocated < used) {
+  // Calculate transfer and correction sums
+  const transfer = ledgerEntries
+    .filter((entry) => entry.type === "TRANSFER")
+    .reduce((sum, entry) => sum + entry.changeDays, 0);
+  const correction = ledgerEntries
+    .filter((entry) => entry.type === "CORRECTION")
+    .reduce((sum, entry) => sum + entry.changeDays, 0);
+
+  // Calculate new balance after allocation change
+  const newBalance = newAllocated + transfer + correction - used;
+
+  // Get pending days
+  const pending = await getPendingDays(ctx, employeeId, unavailabilityReasonId, year, clientTimeZone);
+
+  // Calculate remaining = balance - pending
+  const newRemaining = newBalance - pending;
+
+  // Validate: remaining must be >= 0
+  if (newRemaining < 0) {
+    const minAllocated = used + pending - transfer - correction;
     throw new ValidationError(
-      { adjustmentDays: [`Nova dodjela (${newAllocated} dana) ne može biti manja od već iskorištenih dana (${used})`] },
+      { adjustmentDays: [`Nova dodjela bi rezultirala negativnim preostalim danima (${newRemaining}). Minimalna dodjela: ${minAllocated} dana`] },
       "Neispravan broj dana"
     );
   }
@@ -1062,7 +1093,7 @@ export async function updateAllocation(
     return { success: true };
   }
 
-  // Create CORRECTION entry with simple note format
+  // Create ALLOCATION entry with simple note format
   const adjustmentSign = adjustment > 0 ? "+" : "";
   await db.unavailabilityLedgerEntry.create({
     data: {
@@ -1071,7 +1102,7 @@ export async function updateAllocation(
       unavailabilityReasonId,
       year,
       changeDays: adjustment,
-      type: "CORRECTION",
+      type: "ALLOCATION",
       createdById: ctx.organisationUser.id,
       note: `Ispravak dodjele ${adjustmentSign}${adjustmentDays} dana`,
     },

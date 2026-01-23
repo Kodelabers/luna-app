@@ -148,8 +148,8 @@ export function DaysBalanceTableClient({
               // Check if allocation exists for nextYear (should not happen, but safety check)
               const hasNextYearAllocation = false; // This would require a server check, but we rely on backend validation
 
-              // Calculate total available (entitlementTotal = balance + used)
-              const totalAvailable = emp.balance.breakdown.balance + emp.balance.breakdown.used;
+              // Calculate total available (ALLOCATION + TRANSFER only, no CORRECTION)
+              const totalAvailable = emp.balance.breakdown.totalAvailable;
 
               // Check if openYear is stale (older than currentYear - 1)
               const isStaleOpenYear = openYear !== null && openYear < currentYear - 1;
