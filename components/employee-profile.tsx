@@ -190,7 +190,7 @@ export function EmployeeProfile({
                         <span className="text-lg font-semibold tabular-nums">
                           {balance.breakdown.remaining}
                           <span className="text-xs font-normal text-muted-foreground ml-1">
-                            / {balance.breakdown.allocated}
+                            / {balance.breakdown.totalAvailable}
                           </span>
                         </span>
                       </div>
@@ -309,7 +309,7 @@ export function EmployeeProfile({
                       <TableHeader>
                         <TableRow>
                           <TableHead>Razlog</TableHead>
-                          <TableHead className="text-right w-20">Dod.</TableHead>
+                          <TableHead className="text-right w-20">Ukupno</TableHead>
                           <TableHead className="text-right w-20">Isk.</TableHead>
                           <TableHead className="text-right w-20">Čeka</TableHead>
                           <TableHead className="text-right w-20">Prest.</TableHead>
@@ -339,7 +339,7 @@ export function EmployeeProfile({
                               </div>
                             </TableCell>
                             <TableCell className="text-right tabular-nums">
-                              {balance.breakdown.allocated}
+                              {balance.breakdown.totalAvailable}
                             </TableCell>
                             <TableCell className="text-right tabular-nums">
                               {balance.breakdown.used}

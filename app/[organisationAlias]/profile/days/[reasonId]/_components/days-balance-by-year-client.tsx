@@ -26,6 +26,7 @@ export function DaysBalanceByYearClient({
       pending: number;
       remaining: number;
       balance: number;
+      totalAvailable: number;
     };
   }>>([]);
   const [loading, setLoading] = useState(true);
@@ -69,7 +70,7 @@ export function DaysBalanceByYearClient({
       <TableHeader>
         <TableRow>
           <TableHead>{t("year")}</TableHead>
-          <TableHead className="text-right">{t("allocated")}</TableHead>
+          <TableHead className="text-right">{t("totalAvailable")}</TableHead>
           <TableHead className="text-right">{t("used")}</TableHead>
           <TableHead className="text-right">{t("pending")}</TableHead>
           <TableHead className="text-right">{t("remaining")}</TableHead>
@@ -79,7 +80,7 @@ export function DaysBalanceByYearClient({
         {balances.map((balance) => (
           <TableRow key={balance.year}>
             <TableCell className="font-medium">{balance.year}</TableCell>
-            <TableCell className="text-right">{balance.breakdown.allocated}</TableCell>
+            <TableCell className="text-right">{balance.breakdown.totalAvailable}</TableCell>
             <TableCell className="text-right">{balance.breakdown.used}</TableCell>
             <TableCell className="text-right">
               <Badge variant="outline">{balance.breakdown.pending}</Badge>

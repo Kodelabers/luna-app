@@ -27,6 +27,7 @@ export function DaysBalanceClient({ organisationAlias }: DaysBalanceClientProps)
       pending: number;
       remaining: number;
       balance: number;
+      totalAvailable: number;
     };
   }>>([]);
   const [loading, setLoading] = useState(true);
@@ -108,8 +109,8 @@ export function DaysBalanceClient({ organisationAlias }: DaysBalanceClientProps)
                 <span className="font-medium">{balance.openYear ?? t("notPlanned")}</span>
               </div>
               <div className="flex justify-between items-center">
-                <span className="text-sm text-muted-foreground">{t("allocated")}</span>
-                <span className="font-medium">{balance.breakdown.allocated}</span>
+                <span className="text-sm text-muted-foreground">{t("totalAvailable")}</span>
+                <span className="font-medium">{balance.breakdown.totalAvailable}</span>
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-sm text-muted-foreground">{t("used")}</span>
