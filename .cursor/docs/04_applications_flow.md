@@ -59,6 +59,9 @@ Inače:
 ### Komentar
 - opcionalan; ako postoji, spremiti u `ApplicationComment`
 
+### Korekcija perioda
+- Na ekranu "Detalji zahtjeva" manager može kliknuti **Korigiraj**, otključati kalendar i (opcionalno) izmijeniti period, zatim **Odobri** ili **Odustani**. Odobri s promijenjenim periodom = odobrenje uz korekciju (`APPROVED_WITH_DATE_MODIFICATION` + komentar s originalnim i novim datumima; approval efekti s novim datumima). Period jednak originalu = klasično odobrenje.
+
 ### Efekt kod finalnog APPROVED
 Kad zahtjev dođe u `APPROVED`:
 - generirati/upsertati `DaySchedule` za dane u razdoblju (prema `05_dayschedule_rules.md`)
@@ -75,6 +78,9 @@ Kad zahtjev dođe u `APPROVED`:
 - `APPROVED_FIRST_LEVEL → APPROVED`
 - log: `APPROVED`
 - izvršiti DaySchedule + ledger efekte kao gore
+
+### Korekcija perioda
+- Na ekranu "Detalji zahtjeva" manager može kliknuti **Korigiraj**, otključati kalendar i (opcionalno) izmijeniti period, zatim **Odobri** ili **Odustani**. Odobri s promijenjenim periodom = odobrenje uz korekciju (`APPROVED_WITH_DATE_MODIFICATION` + komentar s originalnim i novim datumima; approval efekti s novim datumima). Period jednak originalu = klasično odobrenje.
 
 ## 7) Odbijanje (DM ili GM)
 - DM odbija `SUBMITTED` (u scope-u departmenta)

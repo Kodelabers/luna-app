@@ -384,7 +384,9 @@
       "submit": "Pošalji",
       "approve": "Odobri",
       "reject": "Odbij",
-      "cancel": "Otkaži"
+      "cancel": "Otkaži",
+      "correct": "Korigiraj",
+      "cancelCorrection": "Odustani"
     },
     "details": {
       "title": "Detalji zahtjeva",
@@ -409,6 +411,7 @@
       "allReasons": "Svi razlozi",
       "allYears": "Sve godine"
     },
+    "approvedWithDateCorrection": "Zahtjev odobren uz korekciju datuma",
     "logType": {
       "CREATED": "Zahtjev kreiran",
       "DELETED": "Zahtjev obrisan",
@@ -416,7 +419,8 @@
       "REJECTED": "Zahtjev odbijen",
       "REJECTED_ON_FIRST_APPROVAL": "Zahtjev odbijen na prvoj razini",
       "APPROVED": "Zahtjev odobren",
-      "POST_APPROVAL_IMPACT_CHANGED": "Promjena nakon odobrenja"
+      "POST_APPROVAL_IMPACT_CHANGED": "Promjena nakon odobrenja",
+      "APPROVED_WITH_DATE_MODIFICATION": "Odobreno uz korekciju datuma"
     },
     "dangerZone": "Opasna zona",
     "deleteWarning": "Brisanje zahtjeva je trajna akcija i ne može se poništiti."

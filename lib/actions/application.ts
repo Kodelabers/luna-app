@@ -58,8 +58,15 @@ export async function dmDecideApplicationAction(
 
     const data = result.data;
 
-    // Call service
-    await decideAsDepartmentManager(ctx, data);
+    // Call service (include requestedStartDate/requestedEndDate for date correction on approve)
+    await decideAsDepartmentManager(ctx, {
+      applicationId: data.applicationId,
+      decision: data.decision,
+      comment: data.comment,
+      clientTimeZone: data.clientTimeZone,
+      requestedStartDate: data.requestedStartDate,
+      requestedEndDate: data.requestedEndDate,
+    });
 
     revalidatePath(`/${organisationAlias}`);
     
@@ -105,8 +112,15 @@ export async function gmDecideApplicationAction(
 
     const data = result.data;
 
-    // Call service
-    await decideAsGeneralManager(ctx, data);
+    // Call service (include requestedStartDate/requestedEndDate for date correction on approve)
+    await decideAsGeneralManager(ctx, {
+      applicationId: data.applicationId,
+      decision: data.decision,
+      comment: data.comment,
+      clientTimeZone: data.clientTimeZone,
+      requestedStartDate: data.requestedStartDate,
+      requestedEndDate: data.requestedEndDate,
+    });
 
     revalidatePath(`/${organisationAlias}`);
     

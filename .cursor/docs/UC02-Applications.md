@@ -307,6 +307,8 @@ Department Manager procesira zahtjeve `SUBMITTED` u svojim odjelima.
 - `decision: "APPROVE" | "REJECT"`
 - `comment?: string` (obavezno za REJECT)
 - `clientTimeZone: string`
+- (opc.) `requestedStartDate?: string` (ISO YYYY-MM-DD u client timezone)
+- (opc.) `requestedEndDate?: string` (ISO YYYY-MM-DD u client timezone)
 
 ### Preduvjeti
 - Tenant ctx
@@ -320,8 +322,9 @@ Department Manager procesira zahtjeve `SUBMITTED` u svojim odjelima.
    - `SUBMITTED → REJECTED`
    - `ApplicationComment` + `ApplicationLog(REJECTED_ON_FIRST_APPROVAL)` (ili konzistentan tip iz `01_domain_statuses.md`)
 3) Ako `decision=APPROVE`:
-   - ako `UnavailabilityReason.needSecondApproval=true`: `SUBMITTED → APPROVED_FIRST_LEVEL`
-   - inače: `SUBMITTED → APPROVED` (final) i izvrši DaySchedule + ledger efekte (`05`/`06`)
+   - Na ekranu "Detalji zahtjeva" manager vidi **Korigiraj**, **Odobri**, **Odbij**. Klik na **Korigiraj** otključava kalendar; ostaju **Odustani** i **Odobri**. **Odustani** vraća na početno stanje.
+   - **Odobri** šalje `requestedStartDate`/`requestedEndDate` iz kalendara (ili originalne ako nije mijenjao). Ako se period razlikuje od originalnog, backend tretira kao odobrenje uz korekciju (log `APPROVED_WITH_DATE_MODIFICATION`, komentar s originalnim i novim datumima, approval efekti s novim datumima); inače klasično odobrenje.
+   - Ako klasično odobrenje: ako `UnavailabilityReason.needSecondApproval=true`: `SUBMITTED → APPROVED_FIRST_LEVEL`; inače: `SUBMITTED → APPROVED` (final) i izvrši DaySchedule + ledger efekte (`05`/`06`).
 4) Refresh/revalidate liste.
 
 ### Greške
@@ -349,6 +352,8 @@ General Manager procesira zahtjeve `APPROVED_FIRST_LEVEL` u cijeloj organizaciji
 - `decision: "APPROVE" | "REJECT"`
 - `comment?: string` (obavezno za REJECT)
 - `clientTimeZone: string`
+- (opc.) `requestedStartDate?: string` (ISO YYYY-MM-DD u client timezone)
+- (opc.) `requestedEndDate?: string` (ISO YYYY-MM-DD u client timezone)
 
 ### Preduvjeti
 - Tenant ctx
@@ -361,8 +366,9 @@ General Manager procesira zahtjeve `APPROVED_FIRST_LEVEL` u cijeloj organizaciji
    - `APPROVED_FIRST_LEVEL → REJECTED`
    - obavezni comment + log
 3) APPROVE:
-   - `APPROVED_FIRST_LEVEL → APPROVED`
-   - DaySchedule + ledger efekti (uključujući moguće korekcije) (vidi UC-APP-07)
+   - Na ekranu "Detalji zahtjeva" manager vidi **Korigiraj**, **Odobri**, **Odbij**. Klik na **Korigiraj** otključava kalendar; ostaju **Odustani** i **Odobri**. **Odustani** vraća na početno stanje.
+   - **Odobri** šalje `requestedStartDate`/`requestedEndDate` iz kalendara (ili originalne ako nije mijenjao). Ako se period razlikuje od originalnog, backend tretira kao odobrenje uz korekciju (log `APPROVED_WITH_DATE_MODIFICATION`, komentar s originalnim i novim datumima, approval efekti s novim datumima); inače klasično odobrenje.
+   - Ako klasično odobrenje: `APPROVED_FIRST_LEVEL → APPROVED`, DaySchedule + ledger efekti (uključujući moguće korekcije) (vidi UC-APP-07).
 4) Refresh/revalidate liste.
 
 ### Greške
