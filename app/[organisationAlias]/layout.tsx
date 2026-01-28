@@ -1,4 +1,4 @@
-import { resolveTenantContext, isAdmin, getManagerStatus } from "@/lib/tenant/resolveTenantContext";
+import { resolveTenantContext, isAdmin, getManagerStatus, getEmployeeForUser } from "@/lib/tenant/resolveTenantContext";
 import { notFound } from "next/navigation";
 import { NotFoundError, ForbiddenError } from "@/lib/errors";
 import Link from "next/link";
@@ -26,6 +26,8 @@ export default async function TenantLayout({ children, params }: Props) {
     const userIsAdmin = isAdmin(ctx);
     const managedDepartments = await getManagedDepartments(ctx);
     const managerStatus = await getManagerStatus(ctx);
+    const employee = await getEmployeeForUser(ctx);
+    const hasEmployee = !!employee;
     
     // Get planning absence reasons for managers
     const planningAbsenceReasons = 
@@ -48,6 +50,7 @@ export default async function TenantLayout({ children, params }: Props) {
           }}
           organisationAlias={organisationAlias}
           isAdmin={userIsAdmin}
+          hasEmployee={hasEmployee}
           managedDepartments={managedDepartments}
           planningAbsenceReasons={planningAbsenceReasons}
         />

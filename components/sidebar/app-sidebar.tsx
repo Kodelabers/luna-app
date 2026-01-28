@@ -35,6 +35,7 @@ type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
   };
   organisationAlias: string;
   isAdmin: boolean;
+  hasEmployee: boolean;
   managedDepartments: Department[];
   planningAbsenceReasons: PlanningAbsenceReason[];
 };
@@ -44,6 +45,7 @@ export function AppSidebar({
   user,
   organisationAlias,
   isAdmin,
+  hasEmployee,
   managedDepartments,
   planningAbsenceReasons,
   ...props
@@ -57,16 +59,21 @@ export function AppSidebar({
       url: `/${organisationAlias}`,
       icon: LayoutDashboard,
     },
-    {
-      title: t("applications"),
-      url: `/${organisationAlias}/applications`,
-      icon: FileText,
-    },
-    {
-      title: t("profile"),
-      url: `/${organisationAlias}/profile`,
-      icon: User,
-    },
+    // Applications and Profile only visible to users linked to an employee
+    ...(hasEmployee
+      ? [
+          {
+            title: t("applications"),
+            url: `/${organisationAlias}/applications`,
+            icon: FileText,
+          },
+          {
+            title: t("profile"),
+            url: `/${organisationAlias}/profile`,
+            icon: User,
+          },
+        ]
+      : []),
   ];
 
   // Manager navigation items (visible to DM/GM)

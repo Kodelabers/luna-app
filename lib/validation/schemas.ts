@@ -218,6 +218,33 @@ export const cancelSickLeaveSchema = z.object({
   sickLeaveId: z.string().min(1, "ID bolovanja je obavezno"),
 });
 
+// Member schemas
+export const updateMemberRolesSchema = z.object({
+  memberId: z.string().min(1, "ID člana je obavezan"),
+  isAdmin: z.coerce.boolean(),
+});
+
+export const inviteMemberSchema = z.object({
+  firstName: z.string().min(1, "Ime je obavezno").max(100),
+  lastName: z.string().min(1, "Prezime je obavezno").max(100),
+  email: z.string().email("Neispravan email format"),
+  isAdmin: z.coerce.boolean().optional().default(false),
+  createEmployee: z.coerce.boolean().optional(),
+  departmentId: z.string().optional(),
+  title: z.string().max(100).optional(),
+});
+
+export const linkEmployeeSchema = z.object({
+  memberId: z.string().min(1, "ID člana je obavezan"),
+  employeeId: z.string().min(1, "ID zaposlenika je obavezan"),
+});
+
+export const createEmployeeForMemberSchema = z.object({
+  memberId: z.string().min(1, "ID člana je obavezan"),
+  departmentId: z.string().min(1, "Odjel je obavezan"),
+  title: z.string().max(100).optional(),
+});
+
 // Helper to parse FormData with Zod schema
 export function parseFormData<T extends z.ZodType>(
   schema: T,
