@@ -35,12 +35,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { inviteMemberSchema } from "@/lib/validation/schemas";
 import { inviteMember } from "@/lib/actions/member";
 import { initialFormState } from "@/lib/errors";
 import { Loader2, Plus } from "lucide-react";
 
-type InviteMemberFormValues = z.infer<typeof inviteMemberSchema>;
+// Client-side schema without coercion for proper TypeScript inference
+const inviteMemberClientSchema = z.object({
+  firstName: z.string().min(1, "Ime je obavezno").max(100),
+  lastName: z.string().min(1, "Prezime je obavezno").max(100),
+  email: z.string().email("Neispravan email format"),
+  isAdmin: z.boolean(),
+  createEmployee: z.boolean(),
+  departmentId: z.string().optional(),
+  title: z.string().max(100).optional(),
+});
+
+type InviteMemberFormValues = z.infer<typeof inviteMemberClientSchema>;
 
 type Department = {
   id: string;
@@ -62,12 +72,15 @@ export function InviteMemberDialog({ organisationAlias, departments }: InviteMem
   const tCommon = useTranslations("common");
 
   const form = useForm<InviteMemberFormValues>({
-    resolver: zodResolver(inviteMemberSchema),
+    resolver: zodResolver(inviteMemberClientSchema),
     defaultValues: {
       firstName: "",
       lastName: "",
       email: "",
       isAdmin: false,
+      createEmployee: false,
+      departmentId: undefined,
+      title: undefined,
     },
   });
 
