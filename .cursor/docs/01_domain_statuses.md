@@ -61,6 +61,7 @@ Za svaki događaj upisati `ApplicationLog`:
 - REQUESTED (submit)
 - REJECTED / REJECTED_ON_FIRST_APPROVAL (reject)
 - APPROVED (approval)
+- APPROVED_WITH_DATE_MODIFICATION (odobrenje uz korekciju datuma: manager je na ekranu odobravanja izmijenio period — Korigiraj → novi start/end — pa odobrio; originalni i novi datumi zapisani su u komentar)
 - POST_APPROVAL_IMPACT_CHANGED (kada korekcija promijeni “impact” nakon odobrenja)
 
 Napomena:

@@ -193,13 +193,11 @@ export async function applyApprovalEffects(
     }
   }
 
-  // Update requestedWorkdays if not already set
-  if (application.requestedWorkdays === null) {
-    await db.application.update({
-      where: { id: applicationId },
-      data: { requestedWorkdays: workdays },
-    });
-  }
+  // Keep requestedWorkdays in sync with approved period (initial set or after date correction)
+  await db.application.update({
+    where: { id: applicationId },
+    data: { requestedWorkdays: workdays },
+  });
 
   // Ledger effects only if hasPlanning=true
   if (hasPlanning) {

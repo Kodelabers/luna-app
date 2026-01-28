@@ -134,12 +134,29 @@ export const createLedgerEntrySchema = z.object({
 });
 
 // Application decision schemas (DM/GM approval)
-export const applicationDecisionSchema = z.object({
-  applicationId: z.string().min(1, "ID zahtjeva je obavezan"),
-  decision: z.enum(["APPROVE", "REJECT"]),
-  comment: z.string().max(1000).optional(),
-  clientTimeZone: ianaTimezoneSchema,
-});
+export const applicationDecisionSchema = z
+  .object({
+    applicationId: z.string().min(1, "ID zahtjeva je obavezan"),
+    decision: z.enum(["APPROVE", "REJECT"]),
+    comment: z.string().max(1000).optional(),
+    clientTimeZone: ianaTimezoneSchema,
+    requestedStartDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+    requestedEndDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  })
+  .refine(
+    (data) => {
+      if (data.requestedStartDate && data.requestedEndDate) {
+        const start = new Date(data.requestedStartDate);
+        const end = new Date(data.requestedEndDate);
+        return start <= end;
+      }
+      return true;
+    },
+    {
+      message: "Datum početka mora biti prije ili jednak datumu završetka",
+      path: ["requestedEndDate"],
+    }
+  );
 
 // Days balance schemas (UC-DAYS-04, UC-DAYS-05)
 export const allocateDaysSchema = z.object({

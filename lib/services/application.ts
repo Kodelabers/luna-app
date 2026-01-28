@@ -3,9 +3,28 @@ import { TenantContext } from "@/lib/tenant/resolveTenantContext";
 import { ForbiddenError, NotFoundError, ConflictError, ValidationError } from "@/lib/errors";
 import { applyApprovalEffects } from "./approval-effects";
 import { getOpenYear, getDaysBalance } from "./days-balance";
-import { eachDayOfInterval, getDay, parseISO } from "date-fns";
+import { eachDayOfInterval, format, getDay, parseISO } from "date-fns";
 import { toZonedTime, fromZonedTime } from "date-fns-tz";
 import { ApplicationStatus } from "@prisma/client";
+
+/**
+ * Formats the correction comment for approval-with-date-modification (period_correction.md).
+ * Dates are shown in client timezone as DD.MM.yyyy.
+ */
+export function formatCorrectionComment(
+  originalStartDate: Date,
+  originalEndDate: Date,
+  newStartDate: Date,
+  newEndDate: Date,
+  clientTimeZone: string
+): string {
+  const fmt = (d: Date) => format(toZonedTime(d, clientTimeZone), "dd.MM.yyyy");
+  const origStart = fmt(originalStartDate);
+  const origEnd = fmt(originalEndDate);
+  const newStart = fmt(newStartDate);
+  const newEnd = fmt(newEndDate);
+  return `Zahtjev odobren uz korekciju datuma — ${origStart} – ${origEnd} → izmijenjeni u odobravanju u ${newStart} – ${newEnd}`;
+}
 
 /**
  * Decision input for DM/GM
@@ -15,6 +34,10 @@ export type DecisionInput = {
   decision: "APPROVE" | "REJECT";
   comment?: string;
   clientTimeZone: string;
+  /** ISO YYYY-MM-DD in client timezone (for date correction on approve) */
+  requestedStartDate?: string;
+  /** ISO YYYY-MM-DD in client timezone (for date correction on approve) */
+  requestedEndDate?: string;
 };
 
 /**
@@ -24,7 +47,7 @@ export async function decideAsDepartmentManager(
   ctx: TenantContext,
   input: DecisionInput
 ): Promise<void> {
-  const { applicationId, decision, comment, clientTimeZone } = input;
+  const { applicationId, decision, comment, clientTimeZone, requestedStartDate, requestedEndDate } = input;
 
   // 1. Fetch application with relations
   const application = await db.application.findFirst({
@@ -115,6 +138,133 @@ export async function decideAsDepartmentManager(
     // APPROVE
     const needSecondApproval = application.unavailabilityReason.needSecondApproval;
 
+    // Date correction path: both requested dates provided and period differs from original
+    const origStartStr = format(toZonedTime(application.startDate, clientTimeZone), "yyyy-MM-dd");
+    const origEndStr = format(toZonedTime(application.endDate, clientTimeZone), "yyyy-MM-dd");
+    const isCorrectionRequested =
+      requestedStartDate != null &&
+      requestedEndDate != null &&
+      (requestedStartDate !== origStartStr || requestedEndDate !== origEndStr);
+
+    if (isCorrectionRequested) {
+      const originalStartDate = application.startDate;
+      const originalEndDate = application.endDate;
+
+      const [startYear, startMonth, startDay] = requestedStartDate.split("-").map(Number);
+      const [endYear, endMonth, endDay] = requestedEndDate.split("-").map(Number);
+      const startLocal = new Date(startYear, startMonth - 1, startDay, 0, 0, 0, 0);
+      const endLocal = new Date(endYear, endMonth - 1, endDay, 23, 59, 59, 999);
+      const newStartUTC = fromZonedTime(startLocal, clientTimeZone);
+      const newEndUTC = fromZonedTime(endLocal, clientTimeZone);
+
+      const validation = await validateApplicationDraft(ctx, {
+        unavailabilityReasonId: application.unavailabilityReasonId,
+        startDateLocalISO: requestedStartDate,
+        endDateLocalISO: requestedEndDate,
+        clientTimeZone,
+        editingApplicationId: applicationId,
+        employeeId: application.employee.id,
+      });
+      if (!validation.isValid) {
+        throw new ValidationError(validation.fieldErrors ?? {}, "Validacija perioda nije prošla");
+      }
+
+      const newStatus = needSecondApproval ? "APPROVED_FIRST_LEVEL" : "APPROVED";
+      await db.application.update({
+        where: { id: applicationId },
+        data: {
+          startDate: newStartUTC,
+          endDate: newEndUTC,
+          status: newStatus,
+          lastUpdatedById: ctx.organisationUser.id,
+        },
+      });
+
+      await db.applicationLog.create({
+        data: {
+          organisationId: ctx.organisationId,
+          applicationId,
+          type: "APPROVED_WITH_DATE_MODIFICATION",
+          createdById: ctx.organisationUser.id,
+        },
+      });
+
+      const correctionText = formatCorrectionComment(
+        originalStartDate,
+        originalEndDate,
+        newStartUTC,
+        newEndUTC,
+        clientTimeZone
+      );
+      const commentBody = [correctionText, comment?.trim()].filter(Boolean).join("\n\n");
+      await db.applicationComment.create({
+        data: {
+          applicationId,
+          comment: commentBody,
+          createdById: ctx.organisationUser.id,
+        },
+      });
+
+      if (newStatus === "APPROVED") {
+        const updatedApplication = { ...application, startDate: newStartUTC, endDate: newEndUTC };
+        await applyApprovalEffects(ctx, updatedApplication, clientTimeZone);
+      } else {
+        // APPROVED_FIRST_LEVEL: Update requestedWorkdays even though approval effects will run later
+        // This ensures the workdays count reflects the corrected period immediately
+        const daysInRange = eachDayOfInterval({ start: newStartUTC, end: newEndUTC });
+        const holidays = await db.holiday.findMany({
+          where: {
+            organisationId: ctx.organisationId,
+            active: true,
+            OR: [
+              {
+                repeatYearly: false,
+                date: {
+                  gte: newStartUTC,
+                  lte: newEndUTC,
+                },
+              },
+              {
+                repeatYearly: true,
+              },
+            ],
+          },
+        });
+        const holidayDates = new Set<string>();
+        for (const holiday of holidays) {
+          const holidayLocal = toZonedTime(holiday.date, clientTimeZone);
+          const month = holidayLocal.getMonth() + 1;
+          const day = holidayLocal.getDate();
+          const year = holidayLocal.getFullYear();
+          const yearlyKey = `${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+          const fullKey = `${year}-${yearlyKey}`;
+          holidayDates.add(yearlyKey);
+          holidayDates.add(fullKey);
+        }
+        let workdays = 0;
+        for (const utcDay of daysInRange) {
+          const dayLocal = toZonedTime(utcDay, clientTimeZone);
+          const dayOfWeek = getDay(utcDay);
+          const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+          const month = dayLocal.getMonth() + 1;
+          const day = dayLocal.getDate();
+          const year = dayLocal.getFullYear();
+          const yearlyKey = `${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+          const fullKey = `${year}-${yearlyKey}`;
+          const isHoliday = holidayDates.has(yearlyKey) || holidayDates.has(fullKey);
+          if (!isWeekend && !isHoliday) {
+            workdays++;
+          }
+        }
+        await db.application.update({
+          where: { id: applicationId },
+          data: { requestedWorkdays: workdays },
+        });
+      }
+      return;
+    }
+
+    // Classic approval (no correction or period unchanged)
     if (needSecondApproval) {
       // Move to APPROVED_FIRST_LEVEL (awaiting GM)
       await db.application.update({
@@ -189,7 +339,7 @@ export async function decideAsGeneralManager(
   ctx: TenantContext,
   input: DecisionInput
 ): Promise<void> {
-  const { applicationId, decision, comment, clientTimeZone } = input;
+  const { applicationId, decision, comment, clientTimeZone, requestedStartDate, requestedEndDate } = input;
 
   // 1. Fetch application with relations
   const application = await db.application.findFirst({
@@ -277,7 +427,78 @@ export async function decideAsGeneralManager(
       },
     });
   } else {
-    // APPROVE (final)
+    // APPROVE (final) — GM always moves to APPROVED
+    const origStartStr = format(toZonedTime(application.startDate, clientTimeZone), "yyyy-MM-dd");
+    const origEndStr = format(toZonedTime(application.endDate, clientTimeZone), "yyyy-MM-dd");
+    const isCorrectionRequested =
+      requestedStartDate != null &&
+      requestedEndDate != null &&
+      (requestedStartDate !== origStartStr || requestedEndDate !== origEndStr);
+
+    if (isCorrectionRequested) {
+      const originalStartDate = application.startDate;
+      const originalEndDate = application.endDate;
+
+      const [startYear, startMonth, startDay] = requestedStartDate.split("-").map(Number);
+      const [endYear, endMonth, endDay] = requestedEndDate.split("-").map(Number);
+      const startLocal = new Date(startYear, startMonth - 1, startDay, 0, 0, 0, 0);
+      const endLocal = new Date(endYear, endMonth - 1, endDay, 23, 59, 59, 999);
+      const newStartUTC = fromZonedTime(startLocal, clientTimeZone);
+      const newEndUTC = fromZonedTime(endLocal, clientTimeZone);
+
+      const validation = await validateApplicationDraft(ctx, {
+        unavailabilityReasonId: application.unavailabilityReasonId,
+        startDateLocalISO: requestedStartDate,
+        endDateLocalISO: requestedEndDate,
+        clientTimeZone,
+        editingApplicationId: applicationId,
+        employeeId: application.employee.id,
+      });
+      if (!validation.isValid) {
+        throw new ValidationError(validation.fieldErrors ?? {}, "Validacija perioda nije prošla");
+      }
+
+      await db.application.update({
+        where: { id: applicationId },
+        data: {
+          startDate: newStartUTC,
+          endDate: newEndUTC,
+          status: "APPROVED",
+          lastUpdatedById: ctx.organisationUser.id,
+        },
+      });
+
+      await db.applicationLog.create({
+        data: {
+          organisationId: ctx.organisationId,
+          applicationId,
+          type: "APPROVED_WITH_DATE_MODIFICATION",
+          createdById: ctx.organisationUser.id,
+        },
+      });
+
+      const correctionText = formatCorrectionComment(
+        originalStartDate,
+        originalEndDate,
+        newStartUTC,
+        newEndUTC,
+        clientTimeZone
+      );
+      const commentBody = [correctionText, comment?.trim()].filter(Boolean).join("\n\n");
+      await db.applicationComment.create({
+        data: {
+          applicationId,
+          comment: commentBody,
+          createdById: ctx.organisationUser.id,
+        },
+      });
+
+      const updatedApplication = { ...application, startDate: newStartUTC, endDate: newEndUTC };
+      await applyApprovalEffects(ctx, updatedApplication, clientTimeZone);
+      return;
+    }
+
+    // Classic approval (no correction or period unchanged)
     await db.application.update({
       where: { id: applicationId },
       data: {

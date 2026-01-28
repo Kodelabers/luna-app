@@ -384,7 +384,9 @@
       "submit": "Submit",
       "approve": "Approve",
       "reject": "Reject",
-      "cancel": "Cancel"
+      "cancel": "Cancel",
+      "correct": "Correct",
+      "cancelCorrection": "Cancel"
     },
     "details": {
       "title": "Application Details",
@@ -409,6 +411,7 @@
       "allReasons": "All reasons",
       "allYears": "All years"
     },
+    "approvedWithDateCorrection": "Request approved with date correction",
     "logType": {
       "CREATED": "Application created",
       "DELETED": "Application deleted",
@@ -416,7 +419,8 @@
       "REJECTED": "Application rejected",
       "REJECTED_ON_FIRST_APPROVAL": "Application rejected at first level",
       "APPROVED": "Application approved",
-      "POST_APPROVAL_IMPACT_CHANGED": "Change after approval"
+      "POST_APPROVAL_IMPACT_CHANGED": "Change after approval",
+      "APPROVED_WITH_DATE_MODIFICATION": "Approved with date correction"
     },
     "dangerZone": "Danger Zone",
     "deleteWarning": "Deleting an application is permanent and cannot be undone."
