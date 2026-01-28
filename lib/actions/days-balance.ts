@@ -35,6 +35,7 @@ export async function getMyDaysBalanceAction(
       pending: number;
       remaining: number;
       balance: number;
+      totalAvailable: number;
     };
   }>;
 }> {
@@ -74,6 +75,7 @@ export async function getMyDaysBalanceByYearAction(
       pending: number;
       remaining: number;
       balance: number;
+      totalAvailable: number;
     };
   }>;
 }> {
@@ -126,6 +128,7 @@ export async function getEmployeeDaysBalanceAction(
         pending: number;
         remaining: number;
         balance: number;
+        totalAvailable: number;
       };
     }>;
   }>;

@@ -44,6 +44,7 @@ export function DaysBalanceTableClient({
         pending: number;
         remaining: number;
         balance: number;
+        totalAvailable: number;
       };
     }>;
   }>>([]);
@@ -98,6 +99,7 @@ export function DaysBalanceTableClient({
           pending: 0,
           remaining: 0,
           balance: 0,
+          totalAvailable: 0,
         },
       },
     };
