@@ -228,8 +228,8 @@ export const inviteMemberSchema = z.object({
   firstName: z.string().min(1, "Ime je obavezno").max(100),
   lastName: z.string().min(1, "Prezime je obavezno").max(100),
   email: z.string().email("Neispravan email format"),
-  isAdmin: z.coerce.boolean().optional().default(false),
-  createEmployee: z.coerce.boolean().optional(),
+  isAdmin: z.coerce.boolean().default(false),
+  createEmployee: z.coerce.boolean().default(false),
   departmentId: z.string().optional(),
   title: z.string().max(100).optional(),
 });
