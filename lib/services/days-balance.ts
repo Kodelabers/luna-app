@@ -189,6 +189,7 @@ export type DaysBalanceBreakdown = {
   pending: number;
   remaining: number;
   balance: number;
+  totalAvailable: number;
 };
 
 /**
@@ -215,10 +216,10 @@ export async function getDaysBalanceBreakdown(
     .filter((entry) => entry.type === "ALLOCATION")
     .reduce((sum, entry) => sum + entry.changeDays, 0);
 
-  // Calculate used (USAGE entries - they are negative)
+  // Calculate used (USAGE + CORRECTION entries - sum then absolute value)
   const used = Math.abs(
     ledgerEntries
-      .filter((entry) => entry.type === "USAGE")
+      .filter((entry) => entry.type === "USAGE" || entry.type === "CORRECTION")
       .reduce((sum, entry) => sum + entry.changeDays, 0)
   );
 
@@ -231,12 +232,18 @@ export async function getDaysBalanceBreakdown(
   // Remaining = balance - pending
   const remaining = balance - pending;
 
+  // Calculate total available (ALLOCATION + TRANSFER only, no CORRECTION)
+  const totalAvailable = ledgerEntries
+    .filter((entry) => entry.type === "ALLOCATION" || entry.type === "TRANSFER")
+    .reduce((sum, entry) => sum + entry.changeDays, 0);
+
   return {
     allocated,
     used,
     pending,
     remaining,
     balance,
+    totalAvailable,
   };
 }
 
@@ -322,7 +329,7 @@ export async function getDaysBalanceForEmployee(
           openYear,
           clientTimeZone
         )
-      : { allocated: 0, used: 0, pending: 0, remaining: 0, balance: 0 };
+      : { allocated: 0, used: 0, pending: 0, remaining: 0, balance: 0, totalAvailable: 0 };
 
     // Get open year balance (if openYear exists)
     const openYearBalance = openYear !== null
@@ -356,7 +363,18 @@ export type ManagerEmployeeDaysBalance = {
 };
 
 /**
- * Get days balance for multiple employees in manager scope
+ * Get days balance for multiple employees in manager scope (OPTIMIZED - batch queries)
+ * 
+ * Performance optimization: Instead of N+1 queries (one per employee+reason combination),
+ * this function uses batch queries to fetch all data in minimal database round-trips:
+ * 1. Single query for employees
+ * 2. Single query for reasons
+ * 3. Single query for all open years (ALLOCATION entries)
+ * 4. Single query for all ledger entries
+ * 5. Single query for all pending applications
+ * 6. Single query for holidays (reused for all workday calculations)
+ * 
+ * For 10 employees × 3 reasons, this reduces ~130+ queries to ~6 queries.
  */
 export async function getDaysBalanceForManager(
   ctx: TenantContext,
@@ -364,7 +382,11 @@ export async function getDaysBalanceForManager(
   currentYear: number,
   clientTimeZone: string
 ): Promise<ManagerEmployeeDaysBalance[]> {
-  // Get employees with their departments
+  if (employeeIds.length === 0) {
+    return [];
+  }
+
+  // 1. Get employees with their departments (single query)
   const employees = await db.employee.findMany({
     where: {
       organisationId: ctx.organisationId,
@@ -386,10 +408,272 @@ export async function getDaysBalanceForManager(
     ],
   });
 
+  if (employees.length === 0) {
+    return [];
+  }
+
+  // 2. Get all active unavailability reasons with hasPlanning=true (single query)
+  const reasons = await db.unavailabilityReason.findMany({
+    where: {
+      organisationId: ctx.organisationId,
+      active: true,
+      hasPlanning: true,
+    },
+    orderBy: {
+      name: "asc",
+    },
+  });
+
+  if (reasons.length === 0) {
+    // Return employees with empty balances
+    return employees.map((emp) => ({
+      employeeId: emp.id,
+      employeeFirstName: emp.firstName,
+      employeeLastName: emp.lastName,
+      employeeEmail: emp.email,
+      departmentId: emp.departmentId,
+      departmentName: emp.department.name,
+      balances: [],
+    }));
+  }
+
+  // 3. Batch fetch all open years for all employee+reason combinations (single query)
+  const openYearEntries = await db.unavailabilityLedgerEntry.findMany({
+    where: {
+      organisationId: ctx.organisationId,
+      employeeId: { in: employeeIds },
+      unavailabilityReasonId: { in: reasons.map((r) => r.id) },
+      type: "ALLOCATION",
+    },
+    select: {
+      employeeId: true,
+      unavailabilityReasonId: true,
+      year: true,
+    },
+    orderBy: [
+      { employeeId: "asc" },
+      { unavailabilityReasonId: "asc" },
+      { year: "desc" },
+    ],
+  });
+
+  // Build openYear map: (employeeId, reasonId) -> year
+  const openYearMap = new Map<string, number>();
+  for (const entry of openYearEntries) {
+    const key = `${entry.employeeId}:${entry.unavailabilityReasonId}`;
+    if (!openYearMap.has(key)) {
+      // First entry for this combination is the latest (due to orderBy year desc)
+      openYearMap.set(key, entry.year);
+    }
+  }
+
+  // 4. Collect all (employeeId, reasonId, year) combinations that need ledger entries
+  const ledgerKeys: Array<{ employeeId: string; reasonId: string; year: number }> = [];
+  for (const employee of employees) {
+    for (const reason of reasons) {
+      const key = `${employee.id}:${reason.id}`;
+      const openYear = openYearMap.get(key);
+      if (openYear !== undefined) {
+        ledgerKeys.push({ employeeId: employee.id, reasonId: reason.id, year: openYear });
+      }
+    }
+  }
+
+  // 5. Batch fetch all ledger entries (single query)
+  const allLedgerEntries = ledgerKeys.length > 0
+    ? await db.unavailabilityLedgerEntry.findMany({
+        where: {
+          organisationId: ctx.organisationId,
+          OR: ledgerKeys.map((k) => ({
+            employeeId: k.employeeId,
+            unavailabilityReasonId: k.reasonId,
+            year: k.year,
+          })),
+        },
+      })
+    : [];
+
+  // Group ledger entries by (employeeId, reasonId, year)
+  const ledgerMap = new Map<string, typeof allLedgerEntries>();
+  for (const entry of allLedgerEntries) {
+    const key = `${entry.employeeId}:${entry.unavailabilityReasonId}:${entry.year}`;
+    if (!ledgerMap.has(key)) {
+      ledgerMap.set(key, []);
+    }
+    ledgerMap.get(key)!.push(entry);
+  }
+
+  // 6. Batch fetch all pending applications (single query)
+  const pendingApplications = await db.application.findMany({
+    where: {
+      organisationId: ctx.organisationId,
+      employeeId: { in: employeeIds },
+      unavailabilityReasonId: { in: reasons.map((r) => r.id) },
+      active: true,
+      status: {
+        in: ["SUBMITTED", "APPROVED_FIRST_LEVEL"],
+      },
+    },
+    select: {
+      id: true,
+      employeeId: true,
+      unavailabilityReasonId: true,
+      startDate: true,
+      endDate: true,
+    },
+  });
+
+  // Group pending applications by (employeeId, reasonId) and calculate workdays per year
+  // Pre-fetch holidays once for all calculations
+  const now = new Date();
+  const minDate = new Date(now.getFullYear() - 1, 0, 1);
+  const maxDate = new Date(now.getFullYear() + 1, 11, 31);
+  const minDateUTC = fromZonedTime(minDate, clientTimeZone);
+  const maxDateUTC = fromZonedTime(maxDate, clientTimeZone);
+
+  const holidays = await db.holiday.findMany({
+    where: {
+      organisationId: ctx.organisationId,
+      active: true,
+      OR: [
+        {
+          repeatYearly: false,
+          date: {
+            gte: minDateUTC,
+            lte: maxDateUTC,
+          },
+        },
+        {
+          repeatYearly: true,
+        },
+      ],
+    },
+  });
+
+  // Build holiday map (reusable for all workday calculations)
+  const holidayDates = new Set<string>();
+  for (const holiday of holidays) {
+    const holidayLocal = toZonedTime(holiday.date, clientTimeZone);
+    const month = holidayLocal.getMonth() + 1;
+    const day = holidayLocal.getDate();
+
+    if (holiday.repeatYearly) {
+      holidayDates.add(`${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`);
+    } else {
+      const year = holidayLocal.getFullYear();
+      holidayDates.add(`${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`);
+    }
+  }
+
+  // Helper function to calculate workdays with pre-fetched holidays
+  function calculateWorkdaysWithHolidays(startDate: Date, endDate: Date): number {
+    const startUTC = fromZonedTime(startDate, clientTimeZone);
+    const endUTC = fromZonedTime(endDate, clientTimeZone);
+    const daysInRange = eachDayOfInterval({ start: startUTC, end: endUTC });
+
+    let workdays = 0;
+    for (const utcDay of daysInRange) {
+      const dayLocal = toZonedTime(utcDay, clientTimeZone);
+      const dayOfWeek = getDay(utcDay);
+      const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+
+      const month = dayLocal.getMonth() + 1;
+      const day = dayLocal.getDate();
+      const year = dayLocal.getFullYear();
+      const yearlyKey = `${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+      const fullKey = `${year}-${yearlyKey}`;
+      const isHoliday = holidayDates.has(yearlyKey) || holidayDates.has(fullKey);
+
+      if (!isWeekend && !isHoliday) {
+        workdays++;
+      }
+    }
+
+    return workdays;
+  }
+
+  // Calculate pending days per (employeeId, reasonId, year)
+  const pendingDaysMap = new Map<string, number>();
+  for (const app of pendingApplications) {
+    const startLocal = toZonedTime(app.startDate, clientTimeZone);
+    const appYear = startLocal.getFullYear();
+    const key = `${app.employeeId}:${app.unavailabilityReasonId}:${appYear}`;
+    
+    const endLocal = toZonedTime(app.endDate, clientTimeZone);
+    const workdays = calculateWorkdaysWithHolidays(startLocal, endLocal);
+    
+    pendingDaysMap.set(key, (pendingDaysMap.get(key) || 0) + workdays);
+  }
+
+  // 7. Build results
   const results: ManagerEmployeeDaysBalance[] = [];
 
   for (const employee of employees) {
-    const balances = await getDaysBalanceForEmployee(ctx, employee.id, currentYear, clientTimeZone);
+    const balances: EmployeeDaysBalance[] = [];
+
+    for (const reason of reasons) {
+      const key = `${employee.id}:${reason.id}`;
+      const openYear = openYearMap.get(key) ?? null;
+
+      let breakdown: DaysBalanceBreakdown;
+      let openYearBalance: number | null = null;
+
+      if (openYear !== null) {
+        // Get ledger entries for this combination
+        const ledgerKey = `${employee.id}:${reason.id}:${openYear}`;
+        const ledgerEntries = ledgerMap.get(ledgerKey) || [];
+
+        // Calculate allocated (ALLOCATION entries)
+        const allocated = ledgerEntries
+          .filter((entry) => entry.type === "ALLOCATION")
+          .reduce((sum, entry) => sum + entry.changeDays, 0);
+
+        // Calculate used (USAGE + CORRECTION entries - sum then absolute value)
+        const used = Math.abs(
+          ledgerEntries
+            .filter((entry) => entry.type === "USAGE" || entry.type === "CORRECTION")
+            .reduce((sum, entry) => sum + entry.changeDays, 0)
+        );
+
+        // Calculate total balance (sum of all changeDays)
+        const balance = ledgerEntries.reduce((sum, entry) => sum + entry.changeDays, 0);
+
+        // Get pending days
+        const pendingKey = `${employee.id}:${reason.id}:${openYear}`;
+        const pending = pendingDaysMap.get(pendingKey) || 0;
+
+        // Remaining = balance - pending
+        const remaining = balance - pending;
+
+        // Calculate total available (ALLOCATION + TRANSFER only, no CORRECTION)
+        const totalAvailable = ledgerEntries
+          .filter((entry) => entry.type === "ALLOCATION" || entry.type === "TRANSFER")
+          .reduce((sum, entry) => sum + entry.changeDays, 0);
+
+        breakdown = {
+          allocated,
+          used,
+          pending,
+          remaining,
+          balance,
+          totalAvailable,
+        };
+
+        // Calculate open year balance
+        openYearBalance = balance;
+      } else {
+        breakdown = { allocated: 0, used: 0, pending: 0, remaining: 0, balance: 0, totalAvailable: 0 };
+      }
+
+      balances.push({
+        unavailabilityReasonId: reason.id,
+        unavailabilityReasonName: reason.name,
+        unavailabilityReasonColorCode: reason.colorCode,
+        openYear,
+        openYearBalance,
+        breakdown,
+      });
+    }
 
     results.push({
       employeeId: employee.id,
@@ -753,16 +1037,16 @@ export async function updateAllocation(
     },
   });
 
-  // Calculate current allocated (sum of ALLOCATION + all CORRECTION entries)
+  // Calculate current allocated (sum of ALLOCATION entries only)
   // This gives us the current total allocation including all previous corrections
   const currentAllocated = ledgerEntries
-    .filter((entry) => entry.type === "ALLOCATION" || entry.type === "CORRECTION")
+    .filter((entry) => entry.type === "ALLOCATION")
     .reduce((sum, entry) => sum + entry.changeDays, 0);
 
-  // Calculate used (absolute sum of USAGE entries)
+  // Calculate used (absolute sum of USAGE + CORRECTION entries)
   const used = Math.abs(
     ledgerEntries
-      .filter((entry) => entry.type === "USAGE")
+      .filter((entry) => entry.type === "USAGE" || entry.type === "CORRECTION")
       .reduce((sum, entry) => sum + entry.changeDays, 0)
   );
 
@@ -770,10 +1054,28 @@ export async function updateAllocation(
   const adjustment = adjustmentType === "INCREASE" ? adjustmentDays : -adjustmentDays;
   const newAllocated = currentAllocated + adjustment;
 
-  // Validate: new allocated must be >= used
-  if (newAllocated < used) {
+  // Calculate transfer and correction sums
+  const transfer = ledgerEntries
+    .filter((entry) => entry.type === "TRANSFER")
+    .reduce((sum, entry) => sum + entry.changeDays, 0);
+  const correction = ledgerEntries
+    .filter((entry) => entry.type === "CORRECTION")
+    .reduce((sum, entry) => sum + entry.changeDays, 0);
+
+  // Calculate new balance after allocation change
+  const newBalance = newAllocated + transfer + correction - used;
+
+  // Get pending days
+  const pending = await getPendingDays(ctx, employeeId, unavailabilityReasonId, year, clientTimeZone);
+
+  // Calculate remaining = balance - pending
+  const newRemaining = newBalance - pending;
+
+  // Validate: remaining must be >= 0
+  if (newRemaining < 0) {
+    const minAllocated = used + pending - transfer - correction;
     throw new ValidationError(
-      { adjustmentDays: [`Nova dodjela (${newAllocated} dana) ne može biti manja od već iskorištenih dana (${used})`] },
+      { adjustmentDays: [`Nova dodjela bi rezultirala negativnim preostalim danima (${newRemaining}). Minimalna dodjela: ${minAllocated} dana`] },
       "Neispravan broj dana"
     );
   }
@@ -791,7 +1093,7 @@ export async function updateAllocation(
     return { success: true };
   }
 
-  // Create CORRECTION entry with simple note format
+  // Create ALLOCATION entry with simple note format
   const adjustmentSign = adjustment > 0 ? "+" : "";
   await db.unavailabilityLedgerEntry.create({
     data: {
@@ -800,7 +1102,7 @@ export async function updateAllocation(
       unavailabilityReasonId,
       year,
       changeDays: adjustment,
-      type: "CORRECTION",
+      type: "ALLOCATION",
       createdById: ctx.organisationUser.id,
       note: `Ispravak dodjele ${adjustmentSign}${adjustmentDays} dana`,
     },

@@ -327,7 +327,7 @@ export async function updateAllocationAction(
     if (!employee) {
       throw new ForbiddenError("Zaposlenik nije pronađen");
     }
-
+/*
     if (managerStatus.isGeneralManager) {
       // GM can access all employees
     } else {
@@ -335,7 +335,7 @@ export async function updateAllocationAction(
       if (!managerStatus.managedDepartmentIds.includes(employee.departmentId)) {
         throw new ForbiddenError("Nemate pristup ovom zaposleniku");
       }
-    }
+    }*/
 
     // Get client timezone (default to Europe/Zagreb if not provided)
     const clientTimeZone = data.clientTimeZone || "Europe/Zagreb";
