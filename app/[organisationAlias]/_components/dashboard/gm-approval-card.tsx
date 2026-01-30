@@ -10,8 +10,14 @@ import { gmDecideApplicationAction } from "@/lib/actions/application";
 import { format } from "date-fns";
 import { hr, enUS } from "date-fns/locale";
 import { useLocale } from "next-intl";
-import { Calendar, CheckCircle, XCircle } from "lucide-react";
+import { Calendar, CheckCircle, XCircle, MoreVertical } from "lucide-react";
 import { FormState } from "@/lib/errors";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 type GmApprovalCardProps = {
   applications: ApplicationSummary[];
@@ -46,12 +52,12 @@ export function GmApprovalCard({ applications, organisationAlias }: GmApprovalCa
 
   return (
     <>
-      <Card>
+      <Card className="h-[400px] md:h-[350px] lg:h-[400px] flex flex-col overflow-hidden">
         <CardHeader>
           <CardTitle>{t("finalApproval")}</CardTitle>
           <CardDescription>{t("requestsForFinalApproval")}</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex-1 overflow-y-auto min-h-0">
           {applications.length === 0 ? (
             <p className="text-sm text-muted-foreground">{t("noRequestsForFinalApproval")}</p>
           ) : (
@@ -92,26 +98,26 @@ export function GmApprovalCard({ applications, organisationAlias }: GmApprovalCa
                         </div>
                       )}
                     </div>
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleApprove(app)}
-                        className="gap-1"
-                      >
-                        <CheckCircle className="h-4 w-4" />
-                        {t("approve")}
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handleReject(app)}
-                        className="gap-1 text-destructive hover:text-destructive"
-                      >
-                        <XCircle className="h-4 w-4" />
-                        {t("reject")}
-                      </Button>
-                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => handleApprove(app)}>
+                          <CheckCircle className="h-4 w-4" />
+                          {t("approve")}
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          variant="destructive"
+                          onClick={() => handleReject(app)}
+                        >
+                          <XCircle className="h-4 w-4" />
+                          {t("reject")}
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 );
               })}
