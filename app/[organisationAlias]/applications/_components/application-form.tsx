@@ -513,6 +513,13 @@ export function ApplicationForm({
                 {state.fieldErrors?.startDateLocalISO?.[0] || state.fieldErrors?.endDateLocalISO?.[0]}
               </p>
             )}
+            {validationResult?.workdays != null && (
+              <p className="text-sm text-muted-foreground">
+                {validationResult.workdays === 1
+                  ? t("workdaysInPeriodOne")
+                  : t("workdaysInPeriod", { count: validationResult.workdays })}
+              </p>
+            )}
           </div>
 
           {/* Description */}
