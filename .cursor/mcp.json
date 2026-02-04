@@ -1,8 +1,5 @@
 {
   "mcpServers": {
-    "supabase": {
-      "url": "https://mcp.supabase.com/mcp?project_ref=odiirmcvanhtfedwsonl"
-    },
     "shadcn": {
       "command": "npx",
       "args": [
@@ -16,6 +13,9 @@
       "headers": {
         "Authorization": "Bearer sk_test_2FHnximVqxmFlEMsxMEuXsyISvnZj5I5CZBs6ZXvNI"
       }
+    },
+    "supabase_luna": {
+      "url": "https://mcp.supabase.com/mcp?project_ref=odiirmcvanhtfedwsonl"
     }
   }
 }
