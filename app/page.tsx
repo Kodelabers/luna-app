@@ -72,7 +72,7 @@ export default async function HomePage() {
             Imate pristup više organizacija
           </p>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 sm:grid-cols-1 max-w-2xl w-full">
           {organisationUsers.map((ou) => (
             <Card key={ou.id} className="cursor-pointer hover:bg-accent/50 transition-colors">
               <Link href={`/${ou.organisation.alias}`}>
