@@ -328,6 +328,8 @@
     "selectEndDate": "Odaberite datum završetka",
     "dateRange": "Period",
     "selectDateRange": "Odaberite period",
+    "workdaysInPeriodOne": "1 radni dan",
+    "workdaysInPeriod": "{count} radnih dana",
     "selectReasonFirst": "Prvo odaberite razlog",
     "legend": "Legenda",
     "pendingApproval": "U procesu odobravanja",

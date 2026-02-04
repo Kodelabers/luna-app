@@ -328,6 +328,8 @@
     "selectEndDate": "Select end date",
     "dateRange": "Date Range",
     "selectDateRange": "Select date range",
+    "workdaysInPeriodOne": "1 workday",
+    "workdaysInPeriod": "{count} workdays",
     "selectReasonFirst": "Select reason first",
     "legend": "Legend",
     "pendingApproval": "Pending approval",
