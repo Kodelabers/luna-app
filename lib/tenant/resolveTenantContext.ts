@@ -16,6 +16,16 @@ export type TenantContext = {
 };
 
 /**
+ * Organisation info for org switcher
+ */
+export type UserOrganisation = {
+  id: string;
+  name: string;
+  alias: string;
+  logoUrl: string | null;
+};
+
+/**
  * Resolve tenant context from organisation alias
  * 
  * Per spec:
@@ -231,5 +241,35 @@ export async function requireManagerAccess(
   if (!manager) {
     throw new ForbiddenError("Nemate pristup kao manager");
   }
+}
+
+/**
+ * Get all organisations that the user is a member of
+ * Used for org switcher in sidebar
+ */
+export async function getUserOrganisations(userId: string): Promise<UserOrganisation[]> {
+  const organisationUsers = await db.organisationUser.findMany({
+    where: {
+      userId,
+      active: true,
+    },
+    include: {
+      organisation: {
+        select: {
+          id: true,
+          name: true,
+          alias: true,
+          logoUrl: true,
+        },
+      },
+    },
+    orderBy: {
+      organisation: {
+        name: "asc",
+      },
+    },
+  });
+
+  return organisationUsers.map((ou) => ou.organisation);
 }
 

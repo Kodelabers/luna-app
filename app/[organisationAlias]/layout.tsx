@@ -1,4 +1,4 @@
-import { resolveTenantContext, isAdmin, getManagerStatus, getEmployeeForUser } from "@/lib/tenant/resolveTenantContext";
+import { resolveTenantContext, isAdmin, getManagerStatus, getEmployeeForUser, getUserOrganisations } from "@/lib/tenant/resolveTenantContext";
 import { notFound } from "next/navigation";
 import { NotFoundError, ForbiddenError } from "@/lib/errors";
 import Link from "next/link";
@@ -35,6 +35,9 @@ export default async function TenantLayout({ children, params }: Props) {
         ? await getPlanningAbsenceReasons(ctx)
         : [];
 
+    // Get all organisations for org switcher
+    const userOrganisations = await getUserOrganisations(ctx.user.id);
+
     const userName = `${ctx.user.firstName} ${ctx.user.lastName}`.trim();
 
     return (
@@ -53,6 +56,7 @@ export default async function TenantLayout({ children, params }: Props) {
           hasEmployee={hasEmployee}
           managedDepartments={managedDepartments}
           planningAbsenceReasons={planningAbsenceReasons}
+          userOrganisations={userOrganisations}
         />
         <SidebarInset>
           <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-12">

@@ -23,6 +23,13 @@ type PlanningAbsenceReason = {
   colorCode: string | null;
 };
 
+type UserOrganisation = {
+  id: string;
+  name: string;
+  alias: string;
+  logoUrl: string | null;
+};
+
 type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
   organisation: {
     name: string;
@@ -38,6 +45,7 @@ type AppSidebarProps = React.ComponentProps<typeof Sidebar> & {
   hasEmployee: boolean;
   managedDepartments: Department[];
   planningAbsenceReasons: PlanningAbsenceReason[];
+  userOrganisations: UserOrganisation[];
 };
 
 export function AppSidebar({
@@ -48,6 +56,7 @@ export function AppSidebar({
   hasEmployee,
   managedDepartments,
   planningAbsenceReasons,
+  userOrganisations,
   ...props
 }: AppSidebarProps) {
   const t = useTranslations("nav");
@@ -143,7 +152,11 @@ export function AppSidebar({
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <OrgHeader organisation={organisation} />
+        <OrgHeader 
+          organisation={organisation} 
+          organisationAlias={organisationAlias}
+          userOrganisations={userOrganisations}
+        />
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={mainNavItems} />
