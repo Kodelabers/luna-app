@@ -434,6 +434,7 @@
     "filtersDescription": "Select date range and department to display",
     "planningTable": "Planning Table",
     "planningTableDescription": "Showing {employeeCount} employees for {dayCount} days",
+    "fetchError": "Error fetching data",
     "selectDateRange": "Select date range",
     "allDepartments": "All departments",
     "noDepartments": "No departments",
@@ -680,6 +681,20 @@
       "since": "Since",
       "days": "{count} days"
     }
+  },
+  "vacationExport": {
+    "trigger": "Export Leave",
+    "title": "Export Annual Leave",
+    "yearLabel": "Year",
+    "currentYear": "Current year ({year})",
+    "nextYear": "Next year ({year})",
+    "formatLabel": "Format",
+    "formatPdf": "PDF (.pdf)",
+    "formatXlsx": "Excel (.xlsx)",
+    "download": "Download",
+    "cancel": "Cancel",
+    "generating": "Generating...",
+    "error": "Error generating file"
   }
 }
 
