@@ -434,6 +434,7 @@
     "filtersDescription": "Odaberite raspon datuma i odjel za prikaz",
     "planningTable": "Tablica planiranja",
     "planningTableDescription": "Prikazano {employeeCount} zaposlenika za {dayCount} dana",
+    "fetchError": "Greška pri dohvaćanju podataka",
     "selectDateRange": "Odaberite period",
     "allDepartments": "Svi odjeli",
     "noDepartments": "Nijedan odjel",
@@ -680,6 +681,20 @@
       "since": "Od",
       "days": "{count} dana"
     }
+  },
+  "vacationExport": {
+    "trigger": "Izvoz GO",
+    "title": "Izvoz godišnjih odmora",
+    "yearLabel": "Godina",
+    "currentYear": "Tekuća godina ({year})",
+    "nextYear": "Iduća godina ({year})",
+    "formatLabel": "Format",
+    "formatPdf": "PDF (.pdf)",
+    "formatXlsx": "Excel (.xlsx)",
+    "download": "Preuzmi",
+    "cancel": "Odustani",
+    "generating": "Generiranje...",
+    "error": "Greška pri generiranju"
   }
 }
 

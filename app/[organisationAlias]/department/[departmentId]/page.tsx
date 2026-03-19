@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Users } from "lucide-react";
 import { getPlanningDataAction } from "@/lib/actions/planning";
 import { DepartmentPlanningFilters } from "./_components/department-planning-filters";
+import { VacationExportDialog } from "./_components/vacation-export-dialog";
 import { PlanningTable } from "../../planning/_components/planning-table";
 import { format } from "date-fns";
 import { getTranslations } from "next-intl/server";
@@ -161,15 +162,20 @@ export default async function DepartmentPage({ params, searchParams }: Props) {
       {/* Planning section */}
       <Card className="overflow-hidden">
         <CardHeader>
-          <CardTitle>{t("planningTable")}</CardTitle>
-          <CardDescription>
-            {result.success
-              ? t("planningTableDescription", {
-                  employeeCount: result.data.employees.length,
-                  dayCount: result.data.days.length,
-                })
-              : "Greška pri dohvaćanju podataka"}
-          </CardDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>{t("planningTable")}</CardTitle>
+              <CardDescription>
+                {result.success
+                  ? t("planningTableDescription", {
+                      employeeCount: result.data.employees.length,
+                      dayCount: result.data.days.length,
+                    })
+                  : t("fetchError")}
+              </CardDescription>
+            </div>
+            <VacationExportDialog organisationAlias={organisationAlias} departmentId={deptId} />
+          </div>
         </CardHeader>
         <CardContent className="space-y-6">
           <DepartmentPlanningFilters
