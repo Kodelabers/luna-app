@@ -45,7 +45,7 @@ export default async function DashboardPage({ params, searchParams }: Props) {
 
   if (employee) {
     // Employee's open requests
-    openApplications = await getOpenApplicationsForEmployee(ctx, employee.id);
+    openApplications = await getOpenApplicationsForEmployee(ctx, employee.id, clientTimeZone);
 
     // Employee's calendar - fetch 12 months for multi-month display
     calendarDays = await getEmployeeMonthCalendar(ctx, {
