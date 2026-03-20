@@ -36,7 +36,8 @@ export async function createHoliday(
       rawData.repeatYearly = false;
     }
 
-    const result = createHolidaySchema.safeParse(rawData);
+    const tVal = await getTranslations("validation");
+    const result = createHolidaySchema(tVal).safeParse(rawData);
 
     if (!result.success) {
       const fieldErrors: Record<string, string[]> = {};
@@ -123,7 +124,8 @@ export async function updateHoliday(
       rawData.repeatYearly = false;
     }
 
-    const result = createHolidaySchema.safeParse(rawData);
+    const tVal = await getTranslations("validation");
+    const result = createHolidaySchema(tVal).safeParse(rawData);
 
     if (!result.success) {
       const fieldErrors: Record<string, string[]> = {};

@@ -27,12 +27,12 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { createDepartmentSchema } from "@/lib/validation/schemas";
+import { createDepartmentSchema, type CreateDepartmentInput } from "@/lib/validation/schemas";
 import { createDepartment, updateDepartment } from "@/lib/actions/department";
 import { initialFormState, type FormState } from "@/lib/errors";
 import { Loader2, Plus, Pencil } from "lucide-react";
 
-type DepartmentFormValues = z.infer<typeof createDepartmentSchema>;
+type DepartmentFormValues = CreateDepartmentInput;
 
 type Department = {
   id: string;
@@ -66,9 +66,10 @@ export function DepartmentDialog({
   const isEditing = !!department;
   const t = useTranslations("departments");
   const tCommon = useTranslations("common");
+  const tVal = useTranslations("validation");
 
   const form = useForm<DepartmentFormValues>({
-    resolver: zodResolver(createDepartmentSchema),
+    resolver: zodResolver(createDepartmentSchema(tVal)),
     defaultValues: {
       name: department?.name || "",
       alias: department?.alias || "",

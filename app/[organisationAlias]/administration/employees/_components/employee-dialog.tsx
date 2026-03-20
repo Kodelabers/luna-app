@@ -33,13 +33,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { createEmployeeSchema } from "@/lib/validation/schemas";
+import { createEmployeeSchema, type CreateEmployeeInput } from "@/lib/validation/schemas";
 import { createEmployee, updateEmployee } from "@/lib/actions/employee";
 import { initialFormState } from "@/lib/errors";
 import { Loader2, Plus } from "lucide-react";
 import { UserLookup } from "./user-lookup";
 
-type EmployeeFormValues = z.infer<typeof createEmployeeSchema>;
+type EmployeeFormValues = CreateEmployeeInput;
 
 type Department = {
   id: string;
@@ -86,9 +86,10 @@ export function EmployeeDialog({
   const isEditing = !!employee;
   const t = useTranslations("employees");
   const tCommon = useTranslations("common");
+  const tVal = useTranslations("validation");
 
   const form = useForm<EmployeeFormValues>({
-    resolver: zodResolver(createEmployeeSchema),
+    resolver: zodResolver(createEmployeeSchema(tVal)),
     defaultValues: {
       firstName: employee?.firstName || "",
       lastName: employee?.lastName || "",

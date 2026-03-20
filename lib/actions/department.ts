@@ -6,7 +6,6 @@ import { db } from "@/lib/db";
 import { resolveTenantContext, requireAdmin } from "@/lib/tenant/resolveTenantContext";
 import {
   createDepartmentSchema,
-  updateDepartmentSchema,
 } from "@/lib/validation/schemas";
 import {
   FormState,
@@ -26,12 +25,13 @@ export async function createDepartment(
 ): Promise<FormState> {
   try {
     const t = await getTranslations("messages");
+    const tVal = await getTranslations("validation");
     const ctx = await resolveTenantContext(organisationAlias);
     await requireAdmin(ctx);
 
     // Parse and validate form data
     const rawData = Object.fromEntries(formData.entries());
-    const result = createDepartmentSchema.safeParse(rawData);
+    const result = createDepartmentSchema(tVal).safeParse(rawData);
 
     if (!result.success) {
       const fieldErrors: Record<string, string[]> = {};
@@ -91,6 +91,7 @@ export async function updateDepartment(
 ): Promise<FormState> {
   try {
     const t = await getTranslations("messages");
+    const tVal = await getTranslations("validation");
     const ctx = await resolveTenantContext(organisationAlias);
     await requireAdmin(ctx);
 
@@ -109,7 +110,7 @@ export async function updateDepartment(
 
     // Parse and validate form data
     const rawData = Object.fromEntries(formData.entries());
-    const result = createDepartmentSchema.safeParse(rawData);
+    const result = createDepartmentSchema(tVal).safeParse(rawData);
 
     if (!result.success) {
       const fieldErrors: Record<string, string[]> = {};
@@ -210,4 +211,3 @@ export async function deleteDepartment(
     return await mapErrorToFormState(error);
   }
 }
-

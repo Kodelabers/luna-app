@@ -40,17 +40,19 @@ import { initialFormState } from "@/lib/errors";
 import { Loader2, Plus } from "lucide-react";
 
 // Client-side schema without coercion for proper TypeScript inference
-const inviteMemberClientSchema = z.object({
-  firstName: z.string().min(1, "Ime je obavezno").max(100),
-  lastName: z.string().min(1, "Prezime je obavezno").max(100),
-  email: z.string().email("Neispravan email format"),
-  isAdmin: z.boolean(),
-  createEmployee: z.boolean(),
-  departmentId: z.string().optional(),
-  title: z.string().max(100).optional(),
-});
+function inviteMemberClientSchema(t: (key: string) => string) {
+  return z.object({
+    firstName: z.string().min(1, t("firstNameRequired")).max(100),
+    lastName: z.string().min(1, t("lastNameRequired")).max(100),
+    email: z.string().email(t("invalidEmail")),
+    isAdmin: z.boolean(),
+    createEmployee: z.boolean(),
+    departmentId: z.string().optional(),
+    title: z.string().max(100).optional(),
+  });
+}
 
-type InviteMemberFormValues = z.infer<typeof inviteMemberClientSchema>;
+type InviteMemberFormValues = z.infer<ReturnType<typeof inviteMemberClientSchema>>;
 
 type Department = {
   id: string;
@@ -70,9 +72,10 @@ export function InviteMemberDialog({ organisationAlias, departments }: InviteMem
   const [title, setTitle] = useState("");
   const t = useTranslations("members");
   const tCommon = useTranslations("common");
+  const tVal = useTranslations("validation");
 
   const form = useForm<InviteMemberFormValues>({
-    resolver: zodResolver(inviteMemberClientSchema),
+    resolver: zodResolver(inviteMemberClientSchema(tVal)),
     defaultValues: {
       firstName: "",
       lastName: "",

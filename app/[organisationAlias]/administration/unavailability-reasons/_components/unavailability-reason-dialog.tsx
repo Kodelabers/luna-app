@@ -28,7 +28,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Checkbox } from "@/components/ui/checkbox";
-import { createUnavailabilityReasonSchema } from "@/lib/validation/schemas";
+import { createUnavailabilityReasonSchema, type CreateUnavailabilityReasonInput } from "@/lib/validation/schemas";
 import {
   createUnavailabilityReason,
   updateUnavailabilityReason,
@@ -36,9 +36,7 @@ import {
 import { initialFormState, type FormState } from "@/lib/errors";
 import { Loader2, Plus, Pencil } from "lucide-react";
 
-type UnavailabilityReasonFormValues = z.infer<
-  typeof createUnavailabilityReasonSchema
->;
+type UnavailabilityReasonFormValues = CreateUnavailabilityReasonInput;
 
 type UnavailabilityReason = {
   id: string;
@@ -74,6 +72,7 @@ export function UnavailabilityReasonDialog({
   const isEditing = !!reason;
   const t = useTranslations("unavailabilityReasons");
   const tCommon = useTranslations("common");
+  const tVal = useTranslations("validation");
 
   // Refs for hidden inputs
   const needApprovalRef = useRef<HTMLInputElement>(null);
@@ -83,7 +82,7 @@ export function UnavailabilityReasonDialog({
 
   const form = useForm<UnavailabilityReasonFormValues>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    resolver: zodResolver(createUnavailabilityReasonSchema) as any,
+    resolver: zodResolver(createUnavailabilityReasonSchema(tVal)) as any,
     defaultValues: {
       name: reason?.name || "",
       colorCode: reason?.colorCode || "#3b82f6",

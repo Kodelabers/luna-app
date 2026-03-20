@@ -863,6 +863,32 @@
     "statusAPPROVED": "Approved",
     "statusREJECTED": "Rejected",
     "statusCANCELLED": "Cancelled"
+  },
+  "validation": {
+    "aliasMinLength": "Alias must be at least 2 characters",
+    "aliasMaxLength": "Alias can be at most 50 characters",
+    "aliasFormat": "Alias can only contain lowercase letters, numbers and hyphens",
+    "nameMinLength": "Name must be at least 2 characters",
+    "invalidColorFormat": "Invalid color format",
+    "firstNameRequired": "First name is required",
+    "lastNameRequired": "Last name is required",
+    "invalidEmail": "Invalid email format",
+    "departmentRequired": "Department is required",
+    "reasonRequired": "Reason is required",
+    "startDateRequired": "Start date is required",
+    "endDateRequired": "End date is required",
+    "applicationIdRequired": "Application ID is required",
+    "employeeRequired": "Employee is required",
+    "daysMustBeInteger": "Number of days must be an integer",
+    "daysMin": "Number of days must be at least 1",
+    "daysMax": "Number of days can be at most 50",
+    "dateFormat": "Date must be in YYYY-MM-DD format",
+    "startBeforeEnd": "Start date must be before or equal to end date",
+    "maxDateRange": "Date range must not exceed 12 months",
+    "sickLeaveIdRequired": "Sick leave ID is required",
+    "memberIdRequired": "Member ID is required",
+    "employeeIdRequired": "Employee ID is required",
+    "reasonTypeRequired": "Absence type is required"
   }
 }
 
