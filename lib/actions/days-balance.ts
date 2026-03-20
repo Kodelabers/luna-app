@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getTranslations } from "next-intl/server";
 import { resolveTenantContext, getManagerStatus, getEmployeeForUser, isAdmin } from "@/lib/tenant/resolveTenantContext";
 import { ForbiddenError, FormState, mapErrorToFormState, successState } from "@/lib/errors";
 import { toZonedTime } from "date-fns-tz";
@@ -39,13 +40,14 @@ export async function getMyDaysBalanceAction(
     };
   }>;
 }> {
+  const tErr = await getTranslations("errors");
   const ctx = await resolveTenantContext(organisationAlias);
 
   // Get employee for current user
   const employee = await getEmployeeForUser(ctx);
 
   if (!employee) {
-    throw new ForbiddenError("Nemate Employee profil u ovoj organizaciji");
+    throw new ForbiddenError(tErr("noEmployeeProfile"));
   }
 
   // Get current year in client timezone (default to Europe/Zagreb if not provided)
@@ -79,13 +81,14 @@ export async function getMyDaysBalanceByYearAction(
     };
   }>;
 }> {
+  const tErr = await getTranslations("errors");
   const ctx = await resolveTenantContext(organisationAlias);
 
   // Get employee for current user
   const employee = await getEmployeeForUser(ctx);
 
   if (!employee) {
-    throw new ForbiddenError("Nemate Employee profil u ovoj organizaciji");
+    throw new ForbiddenError(tErr("noEmployeeProfile"));
   }
 
   const clientTimeZone = "Europe/Zagreb"; // TODO: get from user preferences or browser
@@ -133,6 +136,7 @@ export async function getEmployeeDaysBalanceAction(
     }>;
   }>;
 }> {
+  const tErr = await getTranslations("errors");
   const ctx = await resolveTenantContext(organisationAlias);
 
   // Check manager status
@@ -140,7 +144,7 @@ export async function getEmployeeDaysBalanceAction(
   const userIsAdmin = isAdmin(ctx);
 
   if (!userIsAdmin) {
-    throw new ForbiddenError("Nemate pristup ovoj funkcionalnosti");
+    throw new ForbiddenError(tErr("noAccess"));
   }
 
   const clientTimeZone = "Europe/Zagreb"; // TODO: get from user preferences or browser
@@ -188,7 +192,7 @@ export async function getEmployeeDaysBalanceAction(
     //   },
     // });
     // employeeIds = employees.map((e) => e.id);
-    throw new ForbiddenError("Nemate pristup ovoj funkcionalnosti");
+    throw new ForbiddenError(tErr("noAccess"));
   }
 
   if (employeeIds.length === 0) {
@@ -209,6 +213,8 @@ export async function allocateDaysAction(
   formData: FormData
 ): Promise<FormState> {
   try {
+    const tErr = await getTranslations("errors");
+    const t = await getTranslations("daysBalance");
     const ctx = await resolveTenantContext(organisationAlias);
 
     // Check manager status
@@ -216,7 +222,7 @@ export async function allocateDaysAction(
     const userIsAdmin = isAdmin(ctx);
 
     if (!userIsAdmin) {
-      throw new ForbiddenError("Nemate pristup ovoj funkcionalnosti");
+      throw new ForbiddenError(tErr("noAccess"));
     }
 
     // Parse and validate form data
@@ -250,7 +256,7 @@ export async function allocateDaysAction(
     });
 
     if (!employee) {
-      throw new ForbiddenError("Zaposlenik nije pronađen");
+      throw new ForbiddenError(tErr("employeeNotFound"));
     }
 
     // if (managerStatus.isGeneralManager) {
@@ -273,9 +279,9 @@ export async function allocateDaysAction(
 
     revalidatePath(`/${organisationAlias}/administration/days-balance`, "layout");
 
-    return successState("Dodjela dana je uspješno kreirana");
+    return successState(t("messages.allocationCreated"));
   } catch (error) {
-    return mapErrorToFormState(error);
+    return await mapErrorToFormState(error);
   }
 }
 
@@ -288,13 +294,15 @@ export async function updateAllocationAction(
   formData: FormData
 ): Promise<FormState> {
   try {
+    const tErr = await getTranslations("errors");
+    const t = await getTranslations("daysBalance");
     const ctx = await resolveTenantContext(organisationAlias);
 
     // Check manager status
     const managerStatus = await getManagerStatus(ctx);
 
     if (!managerStatus.isGeneralManager && !managerStatus.isDepartmentManager) {
-      throw new ForbiddenError("Nemate pristup ovoj funkcionalnosti");
+      throw new ForbiddenError(tErr("noAccess"));
     }
 
     // Parse and validate form data
@@ -328,7 +336,7 @@ export async function updateAllocationAction(
     });
 
     if (!employee) {
-      throw new ForbiddenError("Zaposlenik nije pronađen");
+      throw new ForbiddenError(tErr("employeeNotFound"));
     }
 /*
     if (managerStatus.isGeneralManager) {
@@ -351,9 +359,9 @@ export async function updateAllocationAction(
 
     revalidatePath(`/${organisationAlias}/administration/days-balance`, "layout");
 
-    return successState("Dodjela dana je uspješno ažurirana");
+    return successState(t("messages.allocationUpdated"));
   } catch (error) {
-    return mapErrorToFormState(error);
+    return await mapErrorToFormState(error);
   }
 }
 
@@ -381,6 +389,7 @@ export async function getLedgerHistoryAction(
     } | null;
   }>;
 }> {
+  const tErr = await getTranslations("errors");
   const ctx = await resolveTenantContext(organisationAlias);
 
   // Check manager status
@@ -388,7 +397,7 @@ export async function getLedgerHistoryAction(
   const userIsAdmin = isAdmin(ctx);
 
   if (!userIsAdmin) {
-    throw new ForbiddenError("Nemate pristup ovoj funkcionalnosti");
+    throw new ForbiddenError(tErr("noAccess"));
   }
 
   // Validate employee is in manager scope
@@ -401,7 +410,7 @@ export async function getLedgerHistoryAction(
   });
 
   if (!employee) {
-    throw new ForbiddenError("Zaposlenik nije pronađen");
+    throw new ForbiddenError(tErr("employeeNotFound"));
   }
 
   // if (managerStatus.isGeneralManager) {

@@ -6,8 +6,9 @@ import {
   ConflictError,
   ValidationError,
 } from "@/lib/errors";
-import { eachDayOfInterval, getDay, parseISO, startOfDay } from "date-fns";
+import { eachDayOfInterval, format, getDay, parseISO, startOfDay } from "date-fns";
 import { toZonedTime, fromZonedTime } from "date-fns-tz";
+import { getTranslations } from "next-intl/server";
 import { SickLeaveStatus, Prisma } from "@prisma/client";
 
 /**
@@ -199,6 +200,7 @@ async function applySickLeaveCorrections(
   clientTimeZone: string,
   cancelRemainingDays?: boolean
 ): Promise<void> {
+  const t = await getTranslations("sickLeave");
   const correctionFromUTC = fromZonedTime(correctionFromLocal, clientTimeZone);
   const correctionToUTC = correctionToLocal
     ? fromZonedTime(correctionToLocal, clientTimeZone)
@@ -320,7 +322,7 @@ async function applySickLeaveCorrections(
           year,
           changeDays: workdays, // Positive = returning days
           type: "CORRECTION",
-          note: `Korekcija zbog bolovanja (ID: ${sickLeave.id})`,
+          note: t("ledger.correctionNote", { id: sickLeave.id }),
           createdById: ctx.organisationUser.id,
         },
       });
@@ -351,7 +353,11 @@ async function applySickLeaveCorrections(
       await db.applicationComment.create({
         data: {
           applicationId: applicationId,
-          comment: `Zahtjev je djelomično prekinut zbog bolovanja od ${intervalStart.toLocaleDateString("hr-HR")} do ${intervalEnd.toLocaleDateString("hr-HR")}. Vraćeno ${workdays} radnih dana.`,
+          comment: t("ledger.partialCancellation", {
+            start: format(intervalStart, "dd.MM.yyyy"),
+            end: format(intervalEnd, "dd.MM.yyyy"),
+            workdays,
+          }),
           createdById: ctx.organisationUser.id,
         },
       });
@@ -404,7 +410,7 @@ async function applySickLeaveCorrections(
             year,
             changeDays: workdays, // Positive = returning days
             type: "CORRECTION",
-            note: `Korekcija zbog bolovanja - poništeni preostali dani (ID: ${sickLeave.id})`,
+            note: t("ledger.correctionCancelledNote", { id: sickLeave.id }),
             createdById: ctx.organisationUser.id,
           },
         });
@@ -436,7 +442,11 @@ async function applySickLeaveCorrections(
       await db.applicationComment.create({
         data: {
           applicationId: applicationIdForRemainingDays,
-          comment: `Preostali dani zahtjeva su poništeni zbog bolovanja od ${intervalStart.toLocaleDateString("hr-HR")} do ${intervalEnd.toLocaleDateString("hr-HR")}. Vraćeno ${workdays} radnih dana.`,
+          comment: t("ledger.remainingDaysCancelled", {
+            start: format(intervalStart, "dd.MM.yyyy"),
+            end: format(intervalEnd, "dd.MM.yyyy"),
+            workdays,
+          }),
           createdById: ctx.organisationUser.id,
         },
       });
@@ -510,6 +520,7 @@ export async function openSickLeave(
   ctx: TenantContext,
   input: OpenSickLeaveInput
 ): Promise<void> {
+  const t = await getTranslations("sickLeave");
   const { employeeId, unavailabilityReasonId, startDateLocalISO, clientTimeZone, note } =
     input;
 
@@ -523,7 +534,7 @@ export async function openSickLeave(
   });
 
   if (!employee) {
-    throw new NotFoundError("Zaposlenik nije pronađen");
+    throw new NotFoundError(t("errors.employeeNotFound"));
   }
 
   // 2. Fetch unavailability reason and check sickLeave flag
@@ -536,12 +547,12 @@ export async function openSickLeave(
   });
 
   if (!reason) {
-    throw new NotFoundError("Vrsta odsutnosti nije pronađena");
+    throw new NotFoundError(t("errors.reasonNotFound"));
   }
 
   if (!reason.sickLeave) {
     throw new ValidationError({
-      unavailabilityReasonId: ["Odabrana vrsta odsutnosti nije označena kao bolovanje"],
+      unavailabilityReasonId: [t("errors.notSickLeaveReason")],
     });
   }
 
@@ -552,7 +563,7 @@ export async function openSickLeave(
 
   if (startDateUTC > now) {
     throw new ValidationError({
-      startDateLocalISO: ["Datum početka ne može biti u budućnosti"],
+      startDateLocalISO: [t("errors.futureStartDate")],
     });
   }
 
@@ -565,7 +576,7 @@ export async function openSickLeave(
   );
 
   if (hasOverlap) {
-    throw new ConflictError("Postoji preklapanje s drugim bolovanjem za ovog zaposlenika");
+    throw new ConflictError(t("errors.overlapExists"));
   }
 
   // 5. Create SickLeave record (status=OPENED, endDate=null)
@@ -593,6 +604,7 @@ export async function closeSickLeave(
   ctx: TenantContext,
   input: CloseSickLeaveInput
 ): Promise<void> {
+  const t = await getTranslations("sickLeave");
   const { sickLeaveId, endDateLocalISO, clientTimeZone, note } = input;
 
   // 1. Fetch sick leave
@@ -605,12 +617,12 @@ export async function closeSickLeave(
   });
 
   if (!sickLeave) {
-    throw new NotFoundError("Bolovanje nije pronađeno");
+    throw new NotFoundError(t("errors.notFound"));
   }
 
   // 2. Check status (must be OPENED)
   if (sickLeave.status !== "OPENED") {
-    throw new ConflictError("Bolovanje mora biti u statusu OPENED");
+    throw new ConflictError(t("errors.notOpened"));
   }
 
   // 3. Parse and validate end date
@@ -620,7 +632,7 @@ export async function closeSickLeave(
 
   if (endDateUTC < sickLeave.startDate) {
     throw new ValidationError({
-      endDateLocalISO: ["Datum završetka mora biti jednak ili veći od datuma početka"],
+      endDateLocalISO: [t("errors.endBeforeStart")],
     });
   }
 
@@ -733,6 +745,7 @@ export async function cancelSickLeave(
   ctx: TenantContext,
   input: CancelSickLeaveInput
 ): Promise<void> {
+  const t = await getTranslations("sickLeave");
   const { sickLeaveId } = input;
 
   // 1. Fetch sick leave
@@ -745,16 +758,16 @@ export async function cancelSickLeave(
   });
 
   if (!sickLeave) {
-    throw new NotFoundError("Bolovanje nije pronađeno");
+    throw new NotFoundError(t("errors.notFound"));
   }
 
   // 2. Check status (must be OPENED and endDate must be null)
   if (sickLeave.status !== "OPENED") {
-    throw new ConflictError("Poništavanje je dozvoljeno samo za otvorena bolovanja");
+    throw new ConflictError(t("errors.notOpened"));
   }
 
   if (sickLeave.endDate !== null) {
-    throw new ConflictError("Bolovanje ima definirani datum završetka i ne može biti poništeno");
+    throw new ConflictError(t("errors.cannotCancelClosed"));
   }
 
   // 3. Update SickLeave (status=CANCELLED)

@@ -18,6 +18,8 @@ export default async function DaysBalanceByReasonPage(props: PageProps) {
   const params = await props.params;
   const searchParams = await props.searchParams;
   const t = await getTranslations("daysBalance");
+  const tErrors = await getTranslations("errors");
+  const tCommon = await getTranslations("common");
 
   // Resolve tenant context
   const ctx = await resolveTenantContext(params.organisationAlias);
@@ -33,7 +35,7 @@ export default async function DaysBalanceByReasonPage(props: PageProps) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <p className="text-muted-foreground">
-          Nemate pristup ovoj funkcionalnosti
+          {tErrors("noAccess")}
         </p>
       </div>
     );
@@ -56,7 +58,7 @@ export default async function DaysBalanceByReasonPage(props: PageProps) {
   });
 
   if (!reason) {
-    throw new NotFoundError("Vrsta odsutnosti nije pronađena");
+    throw new NotFoundError(tErrors("reasonNotFound"));
   }
 
   // Get managed departments for filter
@@ -121,7 +123,7 @@ export default async function DaysBalanceByReasonPage(props: PageProps) {
 
         )}
         <CardContent>
-          <Suspense fallback={<div>Učitavanje...</div>}>
+          <Suspense fallback={<div>{tCommon("loading")}</div>}>
             <DaysBalanceTableClient
               organisationAlias={params.organisationAlias}
               unavailabilityReasonId={reasonId}

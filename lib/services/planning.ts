@@ -4,6 +4,7 @@ import { ForbiddenError, ValidationError } from "@/lib/errors";
 import { ApplicationStatus, EmployeeStatus } from "@prisma/client";
 import { fromZonedTime, toZonedTime } from "date-fns-tz";
 import { parseISO, format, eachDayOfInterval, getDay } from "date-fns";
+import { getTranslations } from "next-intl/server";
 
 /**
  * Planning employee model (UC-PLAN-01)
@@ -91,12 +92,13 @@ export async function getPlanningData(
   ctx: TenantContext,
   input: GetPlanningDataInput
 ): Promise<PlanningData> {
+  const t = await getTranslations("planning");
   const { fromLocalISO, toLocalISO, clientTimeZone, departmentIds } = input;
 
   // 1. Check manager access
   const managerStatus = await getManagerStatus(ctx);
   if (!managerStatus.isGeneralManager && !managerStatus.isDepartmentManager) {
-    throw new ForbiddenError("Nemate manager pristup za prikaz planiranja");
+    throw new ForbiddenError(t("errors.noManagerAccess"));
   }
 
   // 2. Determine department scope
@@ -114,7 +116,7 @@ export async function getPlanningData(
         select: { id: true },
       });
       if (depts.length !== departmentIds.length) {
-        throw new ForbiddenError("Neki odjeli nisu pronađeni ili nisu u vašoj organizaciji");
+        throw new ForbiddenError(t("errors.departmentsNotFound"));
       }
       departmentScope = departmentIds;
     } else {
@@ -136,7 +138,7 @@ export async function getPlanningData(
         (id) => !managerStatus.managedDepartmentIds.includes(id)
       );
       if (invalidDepts.length > 0) {
-        throw new ForbiddenError("Nemate pristup nekim od odabranih odjela");
+        throw new ForbiddenError(t("errors.noDepartmentAccess"));
       }
       departmentScope = departmentIds;
     } else {

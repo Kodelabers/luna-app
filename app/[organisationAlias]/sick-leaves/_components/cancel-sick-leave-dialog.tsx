@@ -12,9 +12,10 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useTranslations, useLocale } from "next-intl";
 import { cancelSickLeaveAction } from "@/lib/actions/sick-leave";
 import { format } from "date-fns";
-import { hr } from "date-fns/locale";
+import { hr, enUS } from "date-fns/locale";
 import { AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
@@ -48,6 +49,10 @@ export default function CancelSickLeaveDialog({
   organisationAlias,
 }: Props) {
   const router = useRouter();
+  const t = useTranslations("sickLeave");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
+  const dateLocale = locale === "hr" ? hr : enUS;
   const [state, formAction, isPending] = useActionState(
     cancelSickLeaveAction.bind(null, organisationAlias),
     initialState
@@ -55,7 +60,7 @@ export default function CancelSickLeaveDialog({
 
   useEffect(() => {
     if (state.success) {
-      toast.success(state.message || "Bolovanje je uspješno poništeno");
+      toast.success(state.message || t("messages.cancelled"));
       onOpenChange(false);
       router.refresh();
     } else if (state.formError) {
@@ -67,35 +72,34 @@ export default function CancelSickLeaveDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Poništi bolovanje</DialogTitle>
-          <DialogDescription>Poništavanje otvorenog bolovanja</DialogDescription>
+          <DialogTitle>{t("cancelDialog.title")}</DialogTitle>
+          <DialogDescription>{t("cancelDialog.description")}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           <Alert>
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              Poništavanje će obrisati sve DaySchedule zapise, ali neće revertirati
-              korekcije ledgera koje su već napravljene.
+              {t("cancelDescription")}
             </AlertDescription>
           </Alert>
 
           <div className="space-y-2">
             <p className="text-sm text-muted-foreground">
-              <strong>Zaposlenik:</strong> {sickLeave.employee.firstName}{" "}
+              <strong>{t("employee")}:</strong> {sickLeave.employee.firstName}{" "}
               {sickLeave.employee.lastName}
             </p>
             <p className="text-sm text-muted-foreground">
-              <strong>Vrsta:</strong> {sickLeave.unavailabilityReason.name}
+              <strong>{t("reason")}:</strong> {sickLeave.unavailabilityReason.name}
             </p>
             <p className="text-sm text-muted-foreground">
-              <strong>Datum početka:</strong>{" "}
-              {format(sickLeave.startDate, "dd.MM.yyyy", { locale: hr })}
+              <strong>{t("startDate")}:</strong>{" "}
+              {format(sickLeave.startDate, "dd.MM.yyyy", { locale: dateLocale })}
             </p>
           </div>
 
           <p className="text-sm font-medium">
-            Jeste li sigurni da želite poništiti ovo bolovanje?
+            {t("confirmCancel")}
           </p>
 
           <form action={formAction}>
@@ -103,10 +107,10 @@ export default function CancelSickLeaveDialog({
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                Odustani
+                {tCommon("cancel")}
               </Button>
               <Button type="submit" variant="destructive" disabled={isPending}>
-                {isPending ? "Poništavanje..." : "Poništi bolovanje"}
+                {isPending ? t("cancelling") : t("cancelDialog.title")}
               </Button>
             </DialogFooter>
           </form>

@@ -2,6 +2,7 @@ import { resolveTenantContext, isAdmin, getManagerStatus, getEmployeeForUser, ge
 import { notFound } from "next/navigation";
 import { NotFoundError, ForbiddenError } from "@/lib/errors";
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { Button } from "@/components/ui/button";
 import { getManagedDepartments, getPlanningAbsenceReasons } from "@/lib/services/sidebar";
 import { AppSidebar } from "@/components/sidebar/app-sidebar";
@@ -83,15 +84,16 @@ export default async function TenantLayout({ children, params }: Props) {
       notFound();
     }
     if (error instanceof ForbiddenError) {
+      const tCommon = await getTranslations("common");
       return (
         <div className="flex min-h-screen items-center justify-center">
           <div className="text-center">
-            <h1 className="text-2xl font-bold">Pristup odbijen</h1>
+            <h1 className="text-2xl font-bold">{tCommon("accessDenied")}</h1>
             <p className="mt-2 text-muted-foreground">
-              Nemate pristup ovoj organizaciji.
+              {tCommon("noOrganisationAccess")}
             </p>
             <Button asChild className="mt-4">
-              <Link href="/">Povratak</Link>
+              <Link href="/">{tCommon("back")}</Link>
             </Button>
           </div>
         </div>

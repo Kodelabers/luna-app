@@ -9,9 +9,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { PendingInvitations } from "./_components/pending-invitations";
 import { AutoRedirect } from "./_components/auto-redirect";
+import { getTranslations } from "next-intl/server";
 
 export default async function HomePage() {
   const { userId } = await auth();
+  const tLanding = await getTranslations("landing");
+  const tAuth = await getTranslations("auth");
 
   // If not signed in, show landing page
   if (!userId) {
@@ -20,15 +23,15 @@ export default async function HomePage() {
         <div className="text-center">
           <h1 className="text-4xl font-bold tracking-tight">Luna HR</h1>
           <p className="mt-2 text-lg text-muted-foreground">
-            Sustav za upravljanje ljudskim resursima
+            {tLanding("tagline")}
           </p>
         </div>
         <div className="flex gap-4">
           <Button asChild>
-            <Link href="/sign-in">Prijava</Link>
+            <Link href="/sign-in">{tAuth("signIn")}</Link>
           </Button>
           <Button variant="outline" asChild>
-            <Link href="/sign-up">Registracija</Link>
+            <Link href="/sign-up">{tLanding("signUp")}</Link>
           </Button>
         </div>
       </div>
@@ -67,9 +70,9 @@ export default async function HomePage() {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center gap-6 p-4">
         <div className="text-center">
-          <h1 className="text-2xl font-bold">Odaberite organizaciju</h1>
+          <h1 className="text-2xl font-bold">{tLanding("selectOrganisation")}</h1>
           <p className="mt-1 text-muted-foreground">
-            Imate pristup više organizacija
+            {tLanding("multipleOrganisations")}
           </p>
         </div>
         <div className="grid gap-4 sm:grid-cols-1 max-w-2xl w-full">
@@ -86,7 +89,7 @@ export default async function HomePage() {
         </div>
         <SignOutButton>
           <Button variant="ghost" size="sm">
-            Odjava
+            {tAuth("signOut")}
           </Button>
         </SignOutButton>
       </div>
@@ -128,20 +131,20 @@ export default async function HomePage() {
     <div className="flex min-h-screen flex-col items-center justify-center gap-6 p-4">
       <Card className="max-w-md">
         <CardHeader>
-          <CardTitle>Dobrodošli u Luna HR</CardTitle>
+          <CardTitle>{tLanding("welcome")}</CardTitle>
           <CardDescription>
-            Trenutno niste član nijedne organizacije.
+            {tLanding("noOrganisation")}
           </CardDescription>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-muted-foreground">
-            Kontaktirajte administratora vaše organizacije kako bi vas dodao u sustav.
+            {tLanding("contactAdmin")}
           </p>
         </CardContent>
       </Card>
       <SignOutButton>
         <Button variant="ghost" size="sm">
-          Odjava
+          {tAuth("signOut")}
         </Button>
       </SignOutButton>
     </div>

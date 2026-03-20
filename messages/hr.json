@@ -5,7 +5,22 @@
     "next": "Sljedeća",
     "pageOf": "Stranica {current} od {total}"
   },
+  "landing": {
+    "tagline": "Sustav za upravljanje ljudskim resursima",
+    "signUp": "Registracija",
+    "selectOrganisation": "Odaberite organizaciju",
+    "multipleOrganisations": "Imate pristup više organizacija",
+    "welcome": "Dobrodošli u Luna HR",
+    "noOrganisation": "Trenutno niste član nijedne organizacije.",
+    "contactAdmin": "Kontaktirajte administratora vaše organizacije kako bi vas dodao u sustav.",
+    "foundOrganisations": "Pronašli smo organizacije koje vas čekaju",
+    "emailRegistered": "Vaš email je registriran kao zaposlenik ove organizacije.",
+    "joining": "Pridruživanje...",
+    "join": "Pridruži se",
+    "joinedOrganisation": "Uspješno ste se pridružili organizaciji {name}"
+  },
   "common": {
+    "redirecting": "Preusmjeravanje...",
     "save": "Spremi",
     "cancel": "Odustani",
     "create": "Kreiraj",
@@ -21,7 +36,23 @@
     "yes": "Da",
     "no": "Ne",
     "sortAsc": "Sortirano A-Z",
-    "sortDesc": "Sortirano Z-A"
+    "sortDesc": "Sortirano Z-A",
+    "accessDenied": "Pristup odbijen",
+    "noOrganisationAccess": "Nemate pristup ovoj organizaciji."
+  },
+  "errors": {
+    "noEmployeeProfile": "Nemate Employee profil u ovoj organizaciji",
+    "noAccess": "Nemate pristup ovoj funkcionalnosti",
+    "employeeNotFound": "Zaposlenik nije pronađen",
+    "reasonNotFound": "Vrsta odsutnosti nije pronađena",
+    "userNotFound": "Korisnik nije pronađen",
+    "invalidData": "Neispravni podaci",
+    "emailMismatch": "Email adresa ne odgovara",
+    "employeeAlreadyLinked": "Zaposlenik je već povezan s korisnikom",
+    "alreadyMember": "Već ste član ove organizacije",
+    "unexpectedError": "Došlo je do neočekivane greške. Pokušajte ponovno.",
+    "organisationNotFound": "Organizacija nije pronađena",
+    "adminRequired": "Potrebna je administratorska uloga"
   },
   "auth": {
     "signOut": "Odjava",
@@ -61,7 +92,7 @@
     "contactAdmin": "Kontaktirajte administratora kako bi povezao vaš korisnički račun sa evidencijom zaposlenika.",
     "myRequests": "Moji zahtjevi",
     "openRequests": "Otvoreni zahtjevi za odsutnost",
-    "openRequestsDescription": "Ovdje će se prikazati vaši otvoreni zahtjevi (DRAFT, SUBMITTED, APPROVED_FIRST_LEVEL).",
+    "openRequestsDescription": "Ovdje će se prikazati vaši otvoreni zahtjevi (DRAFT, SUBMITTED, APPROVED_FIRST_LEVEL, APPROVED).",
     "forApproval": "Za odobrenje",
     "requestsAwaitingDecision": "Zahtjevi koji čekaju vašu odluku",
     "requestsAwaitingDescription": "Ovdje će se prikazati zahtjevi za odobrenje (SUBMITTED status).",
@@ -98,8 +129,18 @@
     "from": "Od",
     "to": "Do",
     "createdAt": "Kreirano",
+    "genericError": "Došlo je do greške",
     "previousMonth": "Prethodni mjesec",
     "nextMonth": "Sljedeći mjesec",
+    "dayHeaders": {
+      "mon": "Pon",
+      "tue": "Uto",
+      "wed": "Sri",
+      "thu": "Čet",
+      "fri": "Pet",
+      "sat": "Sub",
+      "sun": "Ned"
+    },
     "legend": {
       "workday": "Radni dan",
       "weekend": "Vikend",
@@ -145,7 +186,11 @@
     "editDescription": "Izmijenite podatke o odjelu.",
     "deleteConfirm": "Jeste li sigurni da želite obrisati odjel {name}? Ova akcija se ne može poništiti.",
     "deleteError": "Greška pri brisanju odjela",
-    "reset": "Resetiraj"
+    "reset": "Resetiraj",
+    "departmentInfo": "Informacije o odjelu",
+    "departmentManagers": "Manageri odjela",
+    "managersDescription": "Osobe odgovorne za odobrenja",
+    "viewAllEmployees": "Pogledaj sve zaposlenike ({count})"
   },
   "employees": {
     "title": "Zaposlenici",
@@ -179,7 +224,14 @@
     "searchUsers": "Pretraži korisnike...",
     "noUsersFound": "Nema pronađenih korisnika",
     "typeToSearch": "Unesite najmanje 2 znaka za pretragu",
-    "noLinkedUser": "Nije povezan"
+    "noLinkedUser": "Nije povezan",
+    "messages": {
+      "created": "Zaposlenik je uspješno kreiran",
+      "updated": "Zaposlenik je uspješno ažuriran",
+      "deleted": "Zaposlenik je uspješno obrisan",
+      "emailExists": "Zaposlenik s ovim emailom već postoji",
+      "profileError": "Greška pri dohvaćanju profila zaposlenika"
+    }
   },
   "messages": {
     "departmentCreated": "Odjel je uspješno kreiran",
@@ -218,7 +270,9 @@
     "filterByDepartment": "Filtriraj po odjelu",
     "allDepartments": "Svi odjeli",
     "employee": "Zaposlenik",
-    "emailColumn": "Email"
+    "emailColumn": "Email",
+    "manager": "Manager",
+    "notFound": "Manager nije pronađen"
   },
   "unavailabilityReasons": {
     "title": "Vrste odsutnosti",
@@ -254,7 +308,14 @@
     "secondLevel": "2. razina",
     "notRequired": "Nije potrebno",
     "yes": "Da",
-    "no": "Ne"
+    "no": "Ne",
+    "messages": {
+      "created": "Razlog nedostupnosti je uspješno kreiran",
+      "updated": "Razlog nedostupnosti je uspješno ažuriran",
+      "deleted": "Razlog nedostupnosti je uspješno obrisan",
+      "notFound": "Razlog nedostupnosti nije pronađen",
+      "nameExists": "Razlog s ovim nazivom već postoji"
+    }
   },
   "holidays": {
     "title": "Praznici",
@@ -281,7 +342,14 @@
     "reset": "Resetiraj",
     "allTypes": "Svi tipovi",
     "sortDateAsc": "Datum (najstariji prvi)",
-    "sortDateDesc": "Datum (najnoviji prvi)"
+    "sortDateDesc": "Datum (najnoviji prvi)",
+    "messages": {
+      "created": "Praznik je uspješno kreiran",
+      "updated": "Praznik je uspješno ažuriran",
+      "deleted": "Praznik je uspješno obrisan",
+      "notFound": "Praznik nije pronađen",
+      "duplicateExists": "Praznik s ovim nazivom i datumom već postoji"
+    }
   },
   "language": {
     "select": "Jezik",
@@ -333,6 +401,7 @@
     "selectReasonFirst": "Prvo odaberite razlog",
     "legend": "Legenda",
     "pendingApproval": "U procesu odobravanja",
+    "inProcess": "U procesu",
     "employee": "Zaposlenik",
     "creatingOnBehalf": "Kreirate zahtjev u ime odabranog zaposlenika",
     "ledgerBalance": "Stanje dana po vrstama odsutnosti",
@@ -353,10 +422,10 @@
     "cancelled": "Otkazan",
     "statusDRAFT": "Nacrt",
     "statusSUBMITTED": "Poslan",
-    "statusAPPROVED_FIRST_LEVEL": "Odobren (1. razina)",
-    "statusAPPROVED": "Odobren",
-    "statusREJECTED": "Odbijen",
-    "statusCANCELLED": "Otkazan",
+    "statusAPPROVED_FIRST_LEVEL": "Odobreno (1. razina)",
+    "statusAPPROVED": "Odobreno",
+    "statusREJECTED": "Odbijeno",
+    "statusCANCELLED": "Otkazano",
     "allStatuses": "Svi statusi",
     "validation": {
       "startDateRequired": "Datum početka je obavezan",
@@ -378,7 +447,8 @@
       "submitted": "Zahtjev je uspješno poslan na odobrenje",
       "deleted": "Zahtjev je uspješno obrisan",
       "approved": "Zahtjev je uspješno odobren",
-      "rejected": "Zahtjev je uspješno odbijen"
+      "rejected": "Zahtjev je uspješno odbijen",
+      "finallyApproved": "Zahtjev je uspješno finalno odobren"
     },
     "actions": {
       "edit": "Uredi",
@@ -388,7 +458,12 @@
       "reject": "Odbij",
       "cancel": "Otkaži",
       "correct": "Korigiraj",
-      "cancelCorrection": "Odustani"
+      "cancelCorrection": "Odustani",
+      "approveDescription": "Potvrdite odobrenje zahtjeva.",
+      "rejectDescription": "Molimo unesite razlog odbijanja zahtjeva.",
+      "comment": "Komentar",
+      "rejectPlaceholder": "Razlog odbijanja...",
+      "commentOptionalPlaceholder": "Dodatni komentar (opcionalno)..."
     },
     "details": {
       "title": "Detalji zahtjeva",
@@ -414,6 +489,16 @@
       "allYears": "Sve godine"
     },
     "approvedWithDateCorrection": "Zahtjev odobren uz korekciju datuma",
+    "logs": {
+      "approvedWithCorrection": "Zahtjev odobren uz korekciju datuma — {origStart} – {origEnd} → izmijenjeni u odobravanju u {newStart} – {newEnd}"
+    },
+    "errors": {
+      "notFound": "Zahtjev nije pronađen",
+      "invalidStatusForApproval": "Zahtjev nije u statusu koji čeka odobrenje",
+      "noDepartmentAccess": "Nemate pristup ovom odjelu",
+      "commentRequiredOnReject": "Komentar je obavezan kod odbijanja zahtjeva",
+      "noGeneralManagerRole": "Nemate General Manager ulogu"
+    },
     "logType": {
       "CREATED": "Zahtjev kreiran",
       "DELETED": "Zahtjev obrisan",
@@ -459,6 +544,11 @@
       "approvedFirstLevel": "Odobreno (1. razina)",
       "approved": "Odobreno"
     },
+    "status": {
+      "available": "Dostupan",
+      "notAvailable": "Nedostupan",
+      "selectedForDuty": "Odabran za dužnost"
+    },
     "cellDetails": {
       "title": "Detalji",
       "dayInfo": "Informacije o danu",
@@ -472,6 +562,13 @@
       "applications": "Zahtjevi",
       "viewApplication": "Pregled zahtjeva",
       "noData": "Nema podataka za ovaj dan"
+    },
+    "errors": {
+      "invalidData": "Neispravni podaci za dohvat planiranja",
+      "fetchError": "Došlo je do greške pri dohvaćanju podataka",
+      "noManagerAccess": "Nemate manager pristup za prikaz planiranja",
+      "departmentsNotFound": "Neki odjeli nisu pronađeni ili nisu u vašoj organizaciji",
+      "noDepartmentAccess": "Nemate pristup nekim od odabranih odjela"
     }
   },
   "profile": {
@@ -514,7 +611,25 @@
     "notPlanned": "nije planirano",
     "totalAvailable": "Ukupno na raspolaganju",
     "plannedThrough": "Planirano do: {year}",
-    "lastPlanned": "Zadnje planirano: {year}"
+    "lastPlanned": "Zadnje planirano: {year}",
+    "messages": {
+      "allocationCreated": "Dodjela dana je uspješno kreirana",
+      "allocationUpdated": "Dodjela dana je uspješno ažurirana"
+    },
+    "errors": {
+      "yearMustBe": "Godina mora biti {expectedYear} (sljedeća nakon otvorene godine {openYear})",
+      "yearOutOfRange": "Godina mora biti u rasponu {min}..{max}",
+      "noOpenYear": "Nema otvorene godine za izmjenu",
+      "allocationNotFound": "Dodjela za godinu {year} nije pronađena",
+      "negativeRemaining": "Nova dodjela bi rezultirala negativnim preostalim danima ({remaining}). Minimalna dodjela: {minAllocated} dana",
+      "negativeAllocation": "Dodjela ne može biti negativna. Trenutna dodjela: {currentAllocated} dana"
+    },
+    "ledger": {
+      "allocation": "Dodjela dana za godinu {year}",
+      "transferToNext": "prijenos u iduću godinu",
+      "transferFromPrevious": "prijenos iz prethodne godine",
+      "adjustmentNote": "Ispravak dodjele {sign}{days} dana"
+    }
   },
   "allocateDays": {
     "title": "Dodjela dana",
@@ -550,10 +665,16 @@
     "noEntries": "Nema unosa u povijesti",
     "date": "Datum",
     "year": "Godina",
-    "type": "Tip",
+    "typeColumn": "Tip",
     "changeDays": "Promjena dana",
     "note": "Napomena",
-    "createdBy": "Kreirao"
+    "createdBy": "Kreirao",
+    "type": {
+      "ALLOCATION": "Dodjela",
+      "USAGE": "Iskorištenje",
+      "TRANSFER": "Prijenos",
+      "CORRECTION": "Ispravak"
+    }
   },
   "members": {
     "title": "Korisnici",
@@ -604,7 +725,10 @@
       "memberRemoved": "Korisnik je uspješno uklonjen",
       "inviteSent": "Korisnik je uspješno pozvan u organizaciju",
       "employeeLinked": "Zaposlenik je uspješno povezan",
-      "employeeCreated": "Zaposlenik je uspješno kreiran i povezan"
+      "employeeCreated": "Zaposlenik je uspješno kreiran i povezan",
+      "memberAndEmployeeCreated": "Korisnik i zaposlenik su uspješno kreirani",
+      "employeeNotFoundOrLinked": "Zaposlenik nije pronađen ili je već povezan",
+      "userAlreadyHasEmployee": "Korisnik već ima povezanog zaposlenika"
     }
   },
   "sickLeave": {
@@ -653,7 +777,16 @@
       "notOpened": "Bolovanje mora biti u statusu OPENED",
       "endBeforeStart": "Datum završetka mora biti nakon datuma početka",
       "notFound": "Bolovanje nije pronađeno",
-      "notSickLeaveReason": "Odabrana vrsta odsutnosti nije označena kao bolovanje"
+      "employeeNotFound": "Zaposlenik nije pronađen",
+      "notSickLeaveReason": "Odabrana vrsta odsutnosti nije označena kao bolovanje",
+      "reasonNotFound": "Vrsta odsutnosti nije pronađena",
+      "cannotCancelClosed": "Bolovanje ima definirani datum završetka i ne može biti poništeno"
+    },
+    "ledger": {
+      "correctionNote": "Korekcija zbog bolovanja (ID: {id})",
+      "partialCancellation": "Zahtjev je djelomično prekinut zbog bolovanja od {start} do {end}. Vraćeno {workdays} radnih dana.",
+      "correctionCancelledNote": "Korekcija zbog bolovanja - poništeni preostali dani (ID: {id})",
+      "remainingDaysCancelled": "Preostali dani zahtjeva su poništeni zbog bolovanja od {start} do {end}. Vraćeno {workdays} radnih dana."
     },
     "messages": {
       "opened": "Bolovanje je uspješno otvoreno",
@@ -680,7 +813,22 @@
       "employee": "Zaposlenik",
       "since": "Od",
       "days": "{count} dana"
-    }
+    },
+    "today": "danas",
+    "departmentFilter": "Odjel (filter)",
+    "sickLeaveType": "Vrsta bolovanja",
+    "selectDate": "Odaberite datum",
+    "saving": "Spremanje...",
+    "cancelling": "Poništavanje...",
+    "checkingDays": "Provjeravam preostale dane...",
+    "remainingDaysAlert": "Na dan zatvaranja bolovanja postoji odobreno odsustvo. Odaberite kako želite postupiti s preostalim danima tog odsustva.",
+    "remainingDaysOption": "Opcija za preostale dane",
+    "keepRemainingDays": "Ostavi preostale dane netaknute",
+    "keepRemainingDaysDesc": "Vraćaju se samo dani koji su se preklopili s bolovanjem. Preostali dani odsustva nakon datuma zatvaranja ostaju u rasporedu.",
+    "cancelRemainingDays": "Poništi sve preostale dane",
+    "cancelRemainingDaysDesc": "Svi preostali dani odsustva nakon datuma zatvaranja bolovanja bit će poništeni i vraćeni u stanje dana.",
+    "closeAction": "Zatvori",
+    "cancelAction": "Poništi"
   },
   "vacationExport": {
     "trigger": "Izvoz GO",
@@ -695,6 +843,26 @@
     "cancel": "Odustani",
     "generating": "Generiranje...",
     "error": "Greška pri generiranju"
+  },
+  "employeeProfile": {
+    "loading": "Učitavanje profila zaposlenika",
+    "error": "Greška",
+    "linkedToUser": "Povezan s korisnikom:",
+    "applicationsTab": "Zahtjevi",
+    "daysBalanceTab": "Saldo dana",
+    "noOpenRequests": "Nema otvorenih zahtjeva",
+    "noBalanceReasons": "Nema razloga nedostupnosti s planiranjem",
+    "reasonHeader": "Razlog",
+    "totalShort": "Ukupno",
+    "usedShort": "Isk.",
+    "pendingShort": "Čeka",
+    "remainingShort": "Prest.",
+    "statusDRAFT": "Nacrt",
+    "statusSUBMITTED": "Poslan",
+    "statusAPPROVED_FIRST_LEVEL": "Odobreno (1. razina)",
+    "statusAPPROVED": "Odobreno",
+    "statusREJECTED": "Odbijeno",
+    "statusCANCELLED": "Otkazano"
   }
 }
 

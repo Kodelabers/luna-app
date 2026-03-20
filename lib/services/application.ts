@@ -6,6 +6,7 @@ import { getOpenYear, getDaysBalance } from "./days-balance";
 import { eachDayOfInterval, format, getDay, parseISO } from "date-fns";
 import { toZonedTime, fromZonedTime } from "date-fns-tz";
 import { ApplicationStatus } from "@prisma/client";
+import { getTranslations } from "next-intl/server";
 
 /**
  * Formats the correction comment for approval-with-date-modification (period_correction.md).
@@ -16,14 +17,15 @@ export function formatCorrectionComment(
   originalEndDate: Date,
   newStartDate: Date,
   newEndDate: Date,
-  clientTimeZone: string
+  clientTimeZone: string,
+  translate: (key: string, params: Record<string, string>) => string
 ): string {
   const fmt = (d: Date) => format(toZonedTime(d, clientTimeZone), "dd.MM.yyyy");
   const origStart = fmt(originalStartDate);
   const origEnd = fmt(originalEndDate);
   const newStart = fmt(newStartDate);
   const newEnd = fmt(newEndDate);
-  return `Zahtjev odobren uz korekciju datuma — ${origStart} – ${origEnd} → izmijenjeni u odobravanju u ${newStart} – ${newEnd}`;
+  return translate("logs.approvedWithCorrection", { origStart, origEnd, newStart, newEnd });
 }
 
 /**
@@ -47,6 +49,8 @@ export async function decideAsDepartmentManager(
   ctx: TenantContext,
   input: DecisionInput
 ): Promise<void> {
+  const t = await getTranslations("applications");
+  const tErrors = await getTranslations("errors");
   const { applicationId, decision, comment, clientTimeZone, requestedStartDate, requestedEndDate } = input;
 
   // 1. Fetch application with relations
@@ -67,12 +71,12 @@ export async function decideAsDepartmentManager(
   });
 
   if (!application) {
-    throw new NotFoundError("Zahtjev nije pronađen");
+    throw new NotFoundError(t("errors.notFound"));
   }
 
   // 2. Check status
   if (application.status !== "SUBMITTED") {
-    throw new ConflictError("Zahtjev nije u statusu koji čeka odobrenje");
+    throw new ConflictError(t("errors.invalidStatusForApproval"));
   }
 
   // 3. Check DM access to department
@@ -85,7 +89,7 @@ export async function decideAsDepartmentManager(
   });
 
   if (!employee) {
-    throw new ForbiddenError("Nemate Employee profil u ovoj organizaciji");
+    throw new ForbiddenError(tErrors("noEmployeeProfile"));
   }
 
   const isDm = await db.manager.findFirst({
@@ -97,14 +101,14 @@ export async function decideAsDepartmentManager(
   });
 
   if (!isDm) {
-    throw new ForbiddenError("Nemate pristup ovom odjelu");
+    throw new ForbiddenError(t("errors.noDepartmentAccess"));
   }
 
   // 4. Process decision
   if (decision === "REJECT") {
     // Comment is required for rejection
     if (!comment || comment.trim().length === 0) {
-      throw new ValidationError({ comment: ["Komentar je obavezan kod odbijanja zahtjeva"] });
+      throw new ValidationError({ comment: [t("errors.commentRequiredOnReject")] });
     }
 
     // Update status to REJECTED
@@ -194,7 +198,8 @@ export async function decideAsDepartmentManager(
         originalEndDate,
         newStartUTC,
         newEndUTC,
-        clientTimeZone
+        clientTimeZone,
+        (key, params) => t(key as any, params as any)
       );
       const commentBody = [correctionText, comment?.trim()].filter(Boolean).join("\n\n");
       await db.applicationComment.create({
@@ -339,6 +344,8 @@ export async function decideAsGeneralManager(
   ctx: TenantContext,
   input: DecisionInput
 ): Promise<void> {
+  const t = await getTranslations("applications");
+  const tErrors = await getTranslations("errors");
   const { applicationId, decision, comment, clientTimeZone, requestedStartDate, requestedEndDate } = input;
 
   // 1. Fetch application with relations
@@ -359,7 +366,7 @@ export async function decideAsGeneralManager(
   });
 
   if (!application) {
-    throw new NotFoundError("Zahtjev nije pronađen");
+    throw new NotFoundError(t("errors.notFound"));
   }
 
   // 2. Check GM role first
@@ -372,7 +379,7 @@ export async function decideAsGeneralManager(
   });
 
   if (!employee) {
-    throw new ForbiddenError("Nemate Employee profil u ovoj organizaciji");
+    throw new ForbiddenError(tErrors("noEmployeeProfile"));
   }
 
   const isGm = await db.manager.findFirst({
@@ -384,19 +391,19 @@ export async function decideAsGeneralManager(
   });
 
   if (!isGm) {
-    throw new ForbiddenError("Nemate General Manager ulogu");
+    throw new ForbiddenError(t("errors.noGeneralManagerRole"));
   }
 
   // 3. Check status - GM can approve both APPROVED_FIRST_LEVEL and SUBMITTED
   if (application.status !== "SUBMITTED" && application.status !== "APPROVED_FIRST_LEVEL") {
-    throw new ConflictError("Zahtjev nije u statusu koji čeka odobrenje");
+    throw new ConflictError(t("errors.invalidStatusForApproval"));
   }
 
   // 4. Process decision
   if (decision === "REJECT") {
     // Comment is required for rejection
     if (!comment || comment.trim().length === 0) {
-      throw new ValidationError({ comment: ["Komentar je obavezan kod odbijanja zahtjeva"] });
+      throw new ValidationError({ comment: [t("errors.commentRequiredOnReject")] });
     }
 
     // Update status to REJECTED
@@ -482,7 +489,8 @@ export async function decideAsGeneralManager(
         originalEndDate,
         newStartUTC,
         newEndUTC,
-        clientTimeZone
+        clientTimeZone,
+        (key, params) => t(key as any, params as any)
       );
       const commentBody = [correctionText, comment?.trim()].filter(Boolean).join("\n\n");
       await db.applicationComment.create({

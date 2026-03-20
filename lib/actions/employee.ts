@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getTranslations } from "next-intl/server";
 import { db } from "@/lib/db";
 import { resolveTenantContext, requireAdmin } from "@/lib/tenant/resolveTenantContext";
 import { createEmployeeSchema } from "@/lib/validation/schemas";
@@ -25,7 +26,7 @@ export async function createEmployee(
 ): Promise<FormState> {
   try {
     const ctx = await resolveTenantContext(organisationAlias);
-    requireAdmin(ctx);
+    await requireAdmin(ctx);
 
     // Parse and validate form data
     const rawData = Object.fromEntries(formData.entries());
@@ -46,6 +47,9 @@ export async function createEmployee(
       };
     }
 
+    const tErr = await getTranslations("errors");
+    const tEmp = await getTranslations("employees");
+    const tMsg = await getTranslations("messages");
     const data = result.data;
 
     // Check if department belongs to organisation
@@ -58,7 +62,7 @@ export async function createEmployee(
     });
 
     if (!department) {
-      throw new NotFoundError("Odjel nije pronađen");
+      throw new NotFoundError(tMsg("departmentNotFound"));
     }
 
     // Check for duplicate email within organisation
@@ -71,7 +75,7 @@ export async function createEmployee(
     });
 
     if (existing) {
-      throw new ConflictError("Zaposlenik s ovim emailom već postoji");
+      throw new ConflictError(tEmp("messages.emailExists"));
     }
 
     // Handle userId
@@ -88,7 +92,7 @@ export async function createEmployee(
       });
 
       if (!user) {
-        throw new NotFoundError("Korisnik nije pronađen");
+        throw new NotFoundError(tErr("userNotFound"));
       }
     }
 
@@ -106,9 +110,9 @@ export async function createEmployee(
     });
 
     revalidatePath(`/${organisationAlias}/administration/employees`);
-    return successState("Zaposlenik je uspješno kreiran");
+    return successState(tEmp("messages.created"));
   } catch (error) {
-    return mapErrorToFormState(error);
+    return await mapErrorToFormState(error);
   }
 }
 
@@ -123,7 +127,11 @@ export async function updateEmployee(
 ): Promise<FormState> {
   try {
     const ctx = await resolveTenantContext(organisationAlias);
-    requireAdmin(ctx);
+    await requireAdmin(ctx);
+
+    const tErr = await getTranslations("errors");
+    const tEmp = await getTranslations("employees");
+    const tMsg = await getTranslations("messages");
 
     // Check employee exists and belongs to organisation
     const employee = await db.employee.findFirst({
@@ -135,7 +143,7 @@ export async function updateEmployee(
     });
 
     if (!employee) {
-      throw new NotFoundError("Zaposlenik nije pronađen");
+      throw new NotFoundError(tErr("employeeNotFound"));
     }
 
     // Parse and validate form data
@@ -169,7 +177,7 @@ export async function updateEmployee(
     });
 
     if (!department) {
-      throw new NotFoundError("Odjel nije pronađen");
+      throw new NotFoundError(tMsg("departmentNotFound"));
     }
 
     // Check for duplicate email (excluding current employee)
@@ -183,7 +191,7 @@ export async function updateEmployee(
     });
 
     if (existing) {
-      throw new ConflictError("Zaposlenik s ovim emailom već postoji");
+      throw new ConflictError(tEmp("messages.emailExists"));
     }
 
     // Handle userId
@@ -200,7 +208,7 @@ export async function updateEmployee(
       });
 
       if (!user) {
-        throw new NotFoundError("Korisnik nije pronađen");
+        throw new NotFoundError(tErr("userNotFound"));
       }
     }
 
@@ -218,9 +226,9 @@ export async function updateEmployee(
     });
 
     revalidatePath(`/${organisationAlias}/administration/employees`);
-    return successState("Zaposlenik je uspješno ažuriran");
+    return successState(tEmp("messages.updated"));
   } catch (error) {
-    return mapErrorToFormState(error);
+    return await mapErrorToFormState(error);
   }
 }
 
@@ -233,7 +241,10 @@ export async function deleteEmployee(
 ): Promise<FormState> {
   try {
     const ctx = await resolveTenantContext(organisationAlias);
-    requireAdmin(ctx);
+    await requireAdmin(ctx);
+
+    const tErr = await getTranslations("errors");
+    const tEmp = await getTranslations("employees");
 
     // Check employee exists and belongs to organisation
     const employee = await db.employee.findFirst({
@@ -245,7 +256,7 @@ export async function deleteEmployee(
     });
 
     if (!employee) {
-      throw new NotFoundError("Zaposlenik nije pronađen");
+      throw new NotFoundError(tErr("employeeNotFound"));
     }
 
     // Soft delete
@@ -255,9 +266,9 @@ export async function deleteEmployee(
     });
 
     revalidatePath(`/${organisationAlias}/administration/employees`);
-    return successState("Zaposlenik je uspješno obrisan");
+    return successState(tEmp("messages.deleted"));
   } catch (error) {
-    return mapErrorToFormState(error);
+    return await mapErrorToFormState(error);
   }
 }
 
@@ -271,7 +282,7 @@ export async function searchUsers(
 ): Promise<{ id: string; firstName: string; lastName: string; email: string }[]> {
   try {
     const ctx = await resolveTenantContext(organisationAlias);
-    requireAdmin(ctx);
+    await requireAdmin(ctx);
 
     if (!query || query.length < 2) {
       return [];
@@ -316,7 +327,7 @@ export async function getUserById(
 ): Promise<{ id: string; firstName: string; lastName: string; email: string } | null> {
   try {
     const ctx = await resolveTenantContext(organisationAlias);
-    requireAdmin(ctx);
+    await requireAdmin(ctx);
 
     const user = await db.user.findFirst({
       where: {
@@ -413,7 +424,8 @@ export async function getEmployeeProfileAction(
     });
 
     if (!employee) {
-      return { success: false, error: "Zaposlenik nije pronađen" };
+      const tErr = await getTranslations("errors");
+      return { success: false, error: tErr("employeeNotFound") };
     }
 
     // Get current year in client timezone
@@ -484,7 +496,8 @@ export async function getEmployeeProfileAction(
     };
   } catch (error) {
     console.error("Error getting employee profile:", error);
-    return { success: false, error: "Greška pri dohvaćanju profila zaposlenika" };
+    const tEmp = await getTranslations("employees");
+    return { success: false, error: tEmp("messages.profileError") };
   }
 }
 

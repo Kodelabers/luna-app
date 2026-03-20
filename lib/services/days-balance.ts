@@ -4,6 +4,7 @@ import { ForbiddenError, NotFoundError, ValidationError } from "@/lib/errors";
 import { eachDayOfInterval, getDay } from "date-fns";
 import { toZonedTime, fromZonedTime } from "date-fns-tz";
 import { ApplicationStatus, LedgerEntryType } from "@prisma/client";
+import { getTranslations } from "next-intl/server";
 
 /**
  * Calculate workdays in a date range (excluding weekends and holidays)
@@ -746,11 +747,12 @@ export async function getLedgerHistory(
   });
 
   // Map entry types to UI labels (per 09_terminology_glossary.md)
+  const tLedger = await getTranslations("ledgerHistory");
   const typeLabelMap: Record<LedgerEntryType, string> = {
-    ALLOCATION: "Dodjela",
-    USAGE: "Iskorištenje",
-    TRANSFER: "Prijenos",
-    CORRECTION: "Ispravak",
+    ALLOCATION: tLedger("type.ALLOCATION"),
+    USAGE: tLedger("type.USAGE"),
+    TRANSFER: tLedger("type.TRANSFER"),
+    CORRECTION: tLedger("type.CORRECTION"),
   };
 
   return entries.map((entry) => ({
@@ -790,6 +792,9 @@ export async function allocateDays(
   ctx: TenantContext,
   input: AllocateDaysInput
 ): Promise<{ success: true }> {
+  const tErrors = await getTranslations("errors");
+  const tDaysBalance = await getTranslations("daysBalance");
+  const tAllocate = await getTranslations("allocateDays");
   const { employeeId, unavailabilityReasonId, year, days, clientTimeZone } = input;
 
   // Validate employee exists and is in organisation
@@ -802,7 +807,7 @@ export async function allocateDays(
   });
 
   if (!employee) {
-    throw new NotFoundError("Zaposlenik nije pronađen");
+    throw new NotFoundError(tErrors("employeeNotFound"));
   }
 
   // Validate unavailability reason exists
@@ -815,7 +820,7 @@ export async function allocateDays(
   });
 
   if (!reason) {
-    throw new NotFoundError("Vrsta odsutnosti nije pronađena");
+    throw new NotFoundError(tErrors("reasonNotFound"));
   }
 
   // Get current year in client timezone
@@ -833,24 +838,18 @@ export async function allocateDays(
     // If openYear exists and is not stale, year must be openYear + 1 and <= currentYear + 1
     const expectedYear = openYear + 1;
     if (year !== expectedYear) {
-      throw new ValidationError(
-        { year: [`Godina mora biti ${expectedYear} (sljedeća nakon otvorene godine ${openYear})`] },
-        `Godina mora biti ${expectedYear} (sljedeća nakon otvorene godine ${openYear})`
-      );
+      const msg = tDaysBalance("errors.yearMustBe", { expectedYear, openYear });
+      throw new ValidationError({ year: [msg] }, msg);
     }
     if (year > currentYear + 1) {
-      throw new ValidationError(
-        { year: [`Ne možete otvoriti godinu unaprijed (maksimalno ${currentYear + 1})`] },
-        `Ne možete otvoriti godinu unaprijed (maksimalno ${currentYear + 1})`
-      );
+      const msg = tDaysBalance("cannotOpenFutureYear", { maxYear: currentYear + 1 });
+      throw new ValidationError({ year: [msg] }, msg);
     }
   } else {
     // If no openYear exists or openYear is stale, treat as "first plan": year must be in range currentYear-1..currentYear+1
     if (year < currentYear - 1 || year > currentYear + 1) {
-      throw new ValidationError(
-        { year: [`Godina mora biti u rasponu ${currentYear - 1}..${currentYear + 1}`] },
-        `Godina mora biti u rasponu ${currentYear - 1}..${currentYear + 1}`
-      );
+      const msg = tDaysBalance("errors.yearOutOfRange", { min: currentYear - 1, max: currentYear + 1 });
+      throw new ValidationError({ year: [msg] }, msg);
     }
   }
 
@@ -866,10 +865,7 @@ export async function allocateDays(
   });
 
   if (existingAllocation) {
-    throw new ValidationError(
-      {},
-      `Dodjela za godinu ${year} već postoji. Koristite izmjenu umjesto nove dodjele.`
-    );
+    throw new ValidationError({}, tAllocate("yearAlreadyOpen", { year }));
   }
 
   // Create ALLOCATION entry
@@ -882,7 +878,7 @@ export async function allocateDays(
       changeDays: days,
       type: "ALLOCATION",
       createdById: ctx.organisationUser.id,
-      note: `Dodjela dana za godinu ${year}`,
+      note: tDaysBalance("ledger.allocation", { year }),
     },
   });
 
@@ -911,7 +907,7 @@ export async function allocateDays(
         unavailabilityReasonId,
         year: previousYear,
         type: "TRANSFER",
-        note: "prijenos u iduću godinu",
+        changeDays: { lt: 0 }, // negative = transferred out to next year
       },
     });
 
@@ -926,7 +922,7 @@ export async function allocateDays(
           changeDays: -prevBalance,
           type: "TRANSFER",
           createdById: ctx.organisationUser.id,
-          note: "prijenos u iduću godinu",
+          note: tDaysBalance("ledger.transferToNext"),
         },
       });
 
@@ -940,7 +936,7 @@ export async function allocateDays(
           changeDays: prevBalance,
           type: "TRANSFER",
           createdById: ctx.organisationUser.id,
-          note: "prijenos iz prethodne godine",
+          note: tDaysBalance("ledger.transferFromPrevious"),
         },
       });
     }
@@ -969,6 +965,9 @@ export async function updateAllocation(
   ctx: TenantContext,
   input: UpdateAllocationInput
 ): Promise<{ success: true }> {
+  const tErrors = await getTranslations("errors");
+  const tDaysBalance = await getTranslations("daysBalance");
+  const tUpdateAlloc = await getTranslations("updateAllocation");
   const { employeeId, unavailabilityReasonId, year, adjustmentType, adjustmentDays, clientTimeZone } = input;
 
   // Validate employee exists and is in organisation
@@ -981,7 +980,7 @@ export async function updateAllocation(
   });
 
   if (!employee) {
-    throw new NotFoundError("Zaposlenik nije pronađen");
+    throw new NotFoundError(tErrors("employeeNotFound"));
   }
 
   // Validate unavailability reason exists
@@ -994,22 +993,18 @@ export async function updateAllocation(
   });
 
   if (!reason) {
-    throw new NotFoundError("Vrsta odsutnosti nije pronađena");
+    throw new NotFoundError(tErrors("reasonNotFound"));
   }
 
   // Get open year and validate that year is openYear
   const openYear = await getOpenYear(ctx, employeeId, unavailabilityReasonId);
   if (openYear === null) {
-    throw new ValidationError(
-      { year: ["Nema otvorene godine za izmjenu"] },
-      "Nema otvorene godine za izmjenu"
-    );
+    const msg = tDaysBalance("errors.noOpenYear");
+    throw new ValidationError({ year: [msg] }, msg);
   }
   if (year !== openYear) {
-    throw new ValidationError(
-      { year: [`Izmjena je moguća samo za otvorenu godinu ${openYear}`] },
-      `Izmjena je moguća samo za otvorenu godinu ${openYear}`
-    );
+    const msg = tUpdateAlloc("openYearOnly", { openYear });
+    throw new ValidationError({ year: [msg] }, msg);
   }
 
   // Get current allocation
@@ -1024,7 +1019,7 @@ export async function updateAllocation(
   });
 
   if (!currentAllocation) {
-    throw new NotFoundError(`Dodjela za godinu ${year} nije pronađena`);
+    throw new NotFoundError(tDaysBalance("errors.allocationNotFound", { year }));
   }
 
   // Get all ledger entries for this year to calculate current balance
@@ -1074,18 +1069,14 @@ export async function updateAllocation(
   // Validate: remaining must be >= 0
   if (newRemaining < 0) {
     const minAllocated = used + pending - transfer - correction;
-    throw new ValidationError(
-      { adjustmentDays: [`Nova dodjela bi rezultirala negativnim preostalim danima (${newRemaining}). Minimalna dodjela: ${minAllocated} dana`] },
-      "Neispravan broj dana"
-    );
+    const msg = tDaysBalance("errors.negativeRemaining", { remaining: newRemaining, minAllocated });
+    throw new ValidationError({ adjustmentDays: [msg] }, msg);
   }
 
   // Validate: adjustment cannot result in negative allocation
   if (newAllocated < 0) {
-    throw new ValidationError(
-      { adjustmentDays: [`Dodjela ne može biti negativna. Trenutna dodjela: ${currentAllocated} dana`] },
-      "Neispravan broj dana"
-    );
+    const msg = tDaysBalance("errors.negativeAllocation", { currentAllocated });
+    throw new ValidationError({ adjustmentDays: [msg] }, msg);
   }
 
   if (adjustment === 0) {
@@ -1104,7 +1095,7 @@ export async function updateAllocation(
       changeDays: adjustment,
       type: "ALLOCATION",
       createdById: ctx.organisationUser.id,
-      note: `Ispravak dodjele ${adjustmentSign}${adjustmentDays} dana`,
+      note: tDaysBalance("ledger.adjustmentNote", { sign: adjustmentSign, days: adjustmentDays }),
     },
   });
 

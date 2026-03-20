@@ -7,6 +7,7 @@ import { Card, CardDescription, CardHeader, CardTitle, CardContent, CardFooter }
 import { Button } from "@/components/ui/button";
 import { joinOrganisation } from "@/lib/actions/organisation";
 import { toast } from "sonner";
+import { useTranslations } from "next-intl";
 
 type PendingInvitation = {
   id: string;
@@ -26,16 +27,19 @@ interface PendingInvitationsProps {
 export function PendingInvitations({ invitations }: PendingInvitationsProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const tLanding = useTranslations("landing");
+  const tAuth = useTranslations("auth");
+  const tDashboard = useTranslations("dashboard");
 
   const handleJoin = (employeeId: string, organisationAlias: string) => {
     startTransition(async () => {
       const result = await joinOrganisation(employeeId);
-      
+
       if (result.success) {
         toast.success(result.message);
         router.push(`/${organisationAlias}`);
       } else {
-        toast.error(result.formError || "Došlo je do greške");
+        toast.error(result.formError || tDashboard("genericError"));
       }
     });
   };
@@ -43,9 +47,9 @@ export function PendingInvitations({ invitations }: PendingInvitationsProps) {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-6 p-4">
       <div className="text-center">
-        <h1 className="text-2xl font-bold">Dobrodošli u Luna HR</h1>
+        <h1 className="text-2xl font-bold">{tLanding("welcome")}</h1>
         <p className="mt-1 text-muted-foreground">
-          Pronašli smo organizacije koje vas čekaju
+          {tLanding("foundOrganisations")}
         </p>
       </div>
       <div className="grid gap-4 sm:grid-cols-1 max-w-2xl w-full">
@@ -53,11 +57,11 @@ export function PendingInvitations({ invitations }: PendingInvitationsProps) {
           <Card key={invitation.id}>
             <CardHeader>
               <CardTitle>{invitation.organisation.name}</CardTitle>
-              <CardDescription>Odjel: {invitation.department.name}</CardDescription>
+              <CardDescription>{tDashboard("department")}: {invitation.department.name}</CardDescription>
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                Vaš email je registriran kao zaposlenik ove organizacije.
+                {tLanding("emailRegistered")}
               </p>
             </CardContent>
             <CardFooter>
@@ -66,7 +70,7 @@ export function PendingInvitations({ invitations }: PendingInvitationsProps) {
                 disabled={isPending}
                 className="w-full"
               >
-                {isPending ? "Pridruživanje..." : "Pridruži se"}
+                {isPending ? tLanding("joining") : tLanding("join")}
               </Button>
             </CardFooter>
           </Card>
@@ -74,7 +78,7 @@ export function PendingInvitations({ invitations }: PendingInvitationsProps) {
       </div>
       <SignOutButton>
         <Button variant="ghost" size="sm">
-          Odjava
+          {tAuth("signOut")}
         </Button>
       </SignOutButton>
     </div>

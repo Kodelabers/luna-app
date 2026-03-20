@@ -15,7 +15,7 @@ export default async function AdministrationLayout({ children, params }: Props) 
 
   try {
     const ctx = await resolveTenantContext(organisationAlias);
-    requireAdmin(ctx);
+    await requireAdmin(ctx);
 
     return <>{children}</>;
   } catch (error) {

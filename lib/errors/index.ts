@@ -63,10 +63,12 @@ export class ConflictError extends Error {
   }
 }
 
+import { getTranslations } from "next-intl/server";
+
 /**
  * Map domain errors to FormState for Server Actions
  */
-export function mapErrorToFormState(error: unknown): FormState {
+export async function mapErrorToFormState(error: unknown): Promise<FormState> {
   if (error instanceof ValidationError) {
     return {
       success: false,
@@ -98,9 +100,10 @@ export function mapErrorToFormState(error: unknown): FormState {
 
   // Unknown error - don't leak internal details
   console.error("Unexpected error:", error);
+  const t = await getTranslations("errors");
   return {
     success: false,
-    formError: "Došlo je do neočekivane greške. Pokušajte ponovno.",
+    formError: t("unexpectedError"),
   };
 }
 

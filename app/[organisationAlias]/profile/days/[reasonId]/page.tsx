@@ -18,6 +18,7 @@ export default async function DaysBalanceByYearPage(props: PageProps) {
   const params = await props.params;
   const t = await getTranslations("daysBalance");
   const tCommon = await getTranslations("common");
+  const tErrors = await getTranslations("errors");
 
   // Resolve tenant context
   const ctx = await resolveTenantContext(params.organisationAlias);
@@ -29,7 +30,7 @@ export default async function DaysBalanceByYearPage(props: PageProps) {
     return (
       <div className="flex flex-col items-center justify-center py-12">
         <p className="text-muted-foreground">
-          Nemate Employee profil u ovoj organizaciji
+          {tErrors("noEmployeeProfile")}
         </p>
       </div>
     );
@@ -46,7 +47,7 @@ export default async function DaysBalanceByYearPage(props: PageProps) {
   });
 
   if (!reason) {
-    throw new NotFoundError("Vrsta odsutnosti nije pronađena");
+    throw new NotFoundError(tErrors("reasonNotFound"));
   }
 
   return (
@@ -68,7 +69,7 @@ export default async function DaysBalanceByYearPage(props: PageProps) {
           </div>
         </CardHeader>
         <CardContent>
-          <Suspense fallback={<div>Učitavanje...</div>}>
+          <Suspense fallback={<div>{tCommon("loading")}</div>}>
             <DaysBalanceByYearClient
               organisationAlias={params.organisationAlias}
               unavailabilityReasonId={reasonId}

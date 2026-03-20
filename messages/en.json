@@ -5,7 +5,22 @@
     "next": "Next",
     "pageOf": "Page {current} of {total}"
   },
+  "landing": {
+    "tagline": "HR management system",
+    "signUp": "Sign up",
+    "selectOrganisation": "Select organisation",
+    "multipleOrganisations": "You have access to multiple organisations",
+    "welcome": "Welcome to Luna HR",
+    "noOrganisation": "You are not a member of any organisation.",
+    "contactAdmin": "Contact your organisation administrator to be added to the system.",
+    "foundOrganisations": "We found organisations waiting for you",
+    "emailRegistered": "Your email is registered as an employee of this organisation.",
+    "joining": "Joining...",
+    "join": "Join",
+    "joinedOrganisation": "Successfully joined organization {name}"
+  },
   "common": {
+    "redirecting": "Redirecting...",
     "save": "Save",
     "cancel": "Cancel",
     "create": "Create",
@@ -21,7 +36,23 @@
     "yes": "Yes",
     "no": "No",
     "sortAsc": "Sorted A-Z",
-    "sortDesc": "Sorted Z-A"
+    "sortDesc": "Sorted Z-A",
+    "accessDenied": "Access Denied",
+    "noOrganisationAccess": "You do not have access to this organisation."
+  },
+  "errors": {
+    "noEmployeeProfile": "You do not have an employee profile in this organization",
+    "noAccess": "You do not have access to this feature",
+    "employeeNotFound": "Employee not found",
+    "reasonNotFound": "Absence type not found",
+    "userNotFound": "User not found",
+    "invalidData": "Invalid data",
+    "emailMismatch": "Email address does not match",
+    "employeeAlreadyLinked": "Employee is already linked to a user",
+    "alreadyMember": "You are already a member of this organization",
+    "unexpectedError": "An unexpected error occurred. Please try again.",
+    "organisationNotFound": "Organisation not found",
+    "adminRequired": "Administrator role is required"
   },
   "auth": {
     "signOut": "Sign out",
@@ -61,7 +92,7 @@
     "contactAdmin": "Contact the administrator to link your user account with the employee record.",
     "myRequests": "My Requests",
     "openRequests": "Open absence requests",
-    "openRequestsDescription": "Your open requests will be displayed here (DRAFT, SUBMITTED, APPROVED_FIRST_LEVEL).",
+    "openRequestsDescription": "Your open requests will be displayed here (DRAFT, SUBMITTED, APPROVED_FIRST_LEVEL, APPROVED).",
     "forApproval": "For Approval",
     "requestsAwaitingDecision": "Requests awaiting your decision",
     "requestsAwaitingDescription": "Requests for approval will be displayed here (SUBMITTED status).",
@@ -98,8 +129,18 @@
     "from": "From",
     "to": "To",
     "createdAt": "Created",
+    "genericError": "An error occurred",
     "previousMonth": "Previous month",
     "nextMonth": "Next month",
+    "dayHeaders": {
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat",
+      "sun": "Sun"
+    },
     "legend": {
       "workday": "Workday",
       "weekend": "Weekend",
@@ -145,7 +186,11 @@
     "editDescription": "Modify department details.",
     "deleteConfirm": "Are you sure you want to delete the department {name}? This action cannot be undone.",
     "deleteError": "Error deleting department",
-    "reset": "Reset"
+    "reset": "Reset",
+    "departmentInfo": "Department Information",
+    "departmentManagers": "Department Managers",
+    "managersDescription": "People responsible for approvals",
+    "viewAllEmployees": "View all employees ({count})"
   },
   "employees": {
     "title": "Employees",
@@ -179,7 +224,14 @@
     "searchUsers": "Search users...",
     "noUsersFound": "No users found",
     "typeToSearch": "Type at least 2 characters to search",
-    "noLinkedUser": "Not linked"
+    "noLinkedUser": "Not linked",
+    "messages": {
+      "created": "Employee created successfully",
+      "updated": "Employee updated successfully",
+      "deleted": "Employee deleted successfully",
+      "emailExists": "An employee with this email already exists",
+      "profileError": "Error loading employee profile"
+    }
   },
   "messages": {
     "departmentCreated": "Department created successfully",
@@ -218,7 +270,9 @@
     "filterByDepartment": "Filter by department",
     "allDepartments": "All departments",
     "employee": "Employee",
-    "emailColumn": "Email"
+    "emailColumn": "Email",
+    "manager": "Manager",
+    "notFound": "Manager not found"
   },
   "unavailabilityReasons": {
     "title": "Absence Types",
@@ -254,7 +308,14 @@
     "secondLevel": "2nd Level",
     "notRequired": "Not Required",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "messages": {
+      "created": "Absence type created successfully",
+      "updated": "Absence type updated successfully",
+      "deleted": "Absence type deleted successfully",
+      "notFound": "Absence type not found",
+      "nameExists": "A reason with this name already exists"
+    }
   },
   "holidays": {
     "title": "Holidays",
@@ -281,7 +342,14 @@
     "reset": "Reset",
     "allTypes": "All types",
     "sortDateAsc": "Date (oldest first)",
-    "sortDateDesc": "Date (newest first)"
+    "sortDateDesc": "Date (newest first)",
+    "messages": {
+      "created": "Holiday created successfully",
+      "updated": "Holiday updated successfully",
+      "deleted": "Holiday deleted successfully",
+      "notFound": "Holiday not found",
+      "duplicateExists": "A holiday with this name and date already exists"
+    }
   },
   "language": {
     "select": "Language",
@@ -333,6 +401,7 @@
     "selectReasonFirst": "Select reason first",
     "legend": "Legend",
     "pendingApproval": "Pending approval",
+    "inProcess": "In progress",
     "employee": "Employee",
     "creatingOnBehalf": "Creating request on behalf of selected employee",
     "ledgerBalance": "Days balance by absence type",
@@ -378,7 +447,8 @@
       "submitted": "Application submitted successfully",
       "deleted": "Application deleted successfully",
       "approved": "Application approved successfully",
-      "rejected": "Application rejected successfully"
+      "rejected": "Application rejected successfully",
+      "finallyApproved": "Application finally approved successfully"
     },
     "actions": {
       "edit": "Edit",
@@ -388,7 +458,12 @@
       "reject": "Reject",
       "cancel": "Cancel",
       "correct": "Correct",
-      "cancelCorrection": "Cancel"
+      "cancelCorrection": "Cancel",
+      "approveDescription": "Confirm request approval.",
+      "rejectDescription": "Please enter the reason for rejecting the request.",
+      "comment": "Comment",
+      "rejectPlaceholder": "Rejection reason...",
+      "commentOptionalPlaceholder": "Additional comment (optional)..."
     },
     "details": {
       "title": "Application Details",
@@ -414,6 +489,16 @@
       "allYears": "All years"
     },
     "approvedWithDateCorrection": "Request approved with date correction",
+    "logs": {
+      "approvedWithCorrection": "Request approved with date correction — {origStart} – {origEnd} → modified during approval to {newStart} – {newEnd}"
+    },
+    "errors": {
+      "notFound": "Application not found",
+      "invalidStatusForApproval": "Application is not in a status awaiting approval",
+      "noDepartmentAccess": "You do not have access to this department",
+      "commentRequiredOnReject": "Comment is required when rejecting a request",
+      "noGeneralManagerRole": "You do not have the General Manager role"
+    },
     "logType": {
       "CREATED": "Application created",
       "DELETED": "Application deleted",
@@ -459,6 +544,11 @@
       "approvedFirstLevel": "Approved (1st Level)",
       "approved": "Approved"
     },
+    "status": {
+      "available": "Available",
+      "notAvailable": "Not Available",
+      "selectedForDuty": "Selected for duty"
+    },
     "cellDetails": {
       "title": "Details",
       "dayInfo": "Day Information",
@@ -472,6 +562,13 @@
       "applications": "Applications",
       "viewApplication": "View Application",
       "noData": "No data for this day"
+    },
+    "errors": {
+      "invalidData": "Invalid planning data",
+      "fetchError": "Error fetching data",
+      "noManagerAccess": "You do not have manager access to view planning",
+      "departmentsNotFound": "Some departments were not found or are not in your organisation",
+      "noDepartmentAccess": "You do not have access to some of the selected departments"
     }
   },
   "profile": {
@@ -514,7 +611,25 @@
     "notPlanned": "not planned",
     "totalAvailable": "Total available",
     "plannedThrough": "Planned through: {year}",
-    "lastPlanned": "Last planned: {year}"
+    "lastPlanned": "Last planned: {year}",
+    "messages": {
+      "allocationCreated": "Days allocation created successfully",
+      "allocationUpdated": "Days allocation updated successfully"
+    },
+    "errors": {
+      "yearMustBe": "Year must be {expectedYear} (next after open year {openYear})",
+      "yearOutOfRange": "Year must be in range {min}..{max}",
+      "noOpenYear": "No open year for update",
+      "allocationNotFound": "Allocation for year {year} not found",
+      "negativeRemaining": "New allocation would result in negative remaining days ({remaining}). Minimum allocation: {minAllocated} days",
+      "negativeAllocation": "Allocation cannot be negative. Current allocation: {currentAllocated} days"
+    },
+    "ledger": {
+      "allocation": "Day allocation for year {year}",
+      "transferToNext": "transfer to next year",
+      "transferFromPrevious": "transfer from previous year",
+      "adjustmentNote": "Allocation adjustment {sign}{days} days"
+    }
   },
   "allocateDays": {
     "title": "Allocate Days",
@@ -550,10 +665,16 @@
     "noEntries": "No entries in history",
     "date": "Date",
     "year": "Year",
-    "type": "Type",
+    "typeColumn": "Type",
     "changeDays": "Change Days",
     "note": "Note",
-    "createdBy": "Created By"
+    "createdBy": "Created By",
+    "type": {
+      "ALLOCATION": "Allocation",
+      "USAGE": "Usage",
+      "TRANSFER": "Transfer",
+      "CORRECTION": "Adjustment"
+    }
   },
   "members": {
     "title": "Users",
@@ -604,7 +725,10 @@
       "memberRemoved": "User removed successfully",
       "inviteSent": "User invited to organization successfully",
       "employeeLinked": "Employee linked successfully",
-      "employeeCreated": "Employee created and linked successfully"
+      "employeeCreated": "Employee created and linked successfully",
+      "memberAndEmployeeCreated": "User and employee created successfully",
+      "employeeNotFoundOrLinked": "Employee not found or already linked",
+      "userAlreadyHasEmployee": "User already has a linked employee"
     }
   },
   "sickLeave": {
@@ -653,7 +777,16 @@
       "notOpened": "Sick leave must be in OPENED status",
       "endBeforeStart": "End date must be after start date",
       "notFound": "Sick leave not found",
-      "notSickLeaveReason": "Selected absence type is not marked as sick leave"
+      "employeeNotFound": "Employee not found",
+      "notSickLeaveReason": "Selected absence type is not marked as sick leave",
+      "reasonNotFound": "Absence type not found",
+      "cannotCancelClosed": "Sick leave has a defined end date and cannot be cancelled"
+    },
+    "ledger": {
+      "correctionNote": "Correction due to sick leave (ID: {id})",
+      "partialCancellation": "Request partially cancelled due to sick leave from {start} to {end}. {workdays} working days returned.",
+      "correctionCancelledNote": "Correction due to sick leave - remaining days cancelled (ID: {id})",
+      "remainingDaysCancelled": "Remaining request days cancelled due to sick leave from {start} to {end}. {workdays} working days returned."
     },
     "messages": {
       "opened": "Sick leave successfully opened",
@@ -680,7 +813,22 @@
       "employee": "Employee",
       "since": "Since",
       "days": "{count} days"
-    }
+    },
+    "today": "today",
+    "departmentFilter": "Department (filter)",
+    "sickLeaveType": "Sick Leave Type",
+    "selectDate": "Select date",
+    "saving": "Saving...",
+    "cancelling": "Cancelling...",
+    "checkingDays": "Checking remaining days...",
+    "remainingDaysAlert": "On the closing date there is an approved absence. Choose how you want to handle the remaining days of that absence.",
+    "remainingDaysOption": "Option for remaining days",
+    "keepRemainingDays": "Keep remaining days intact",
+    "keepRemainingDaysDesc": "Only days that overlapped with the sick leave are returned. Remaining absence days after the closing date remain in the schedule.",
+    "cancelRemainingDays": "Cancel all remaining days",
+    "cancelRemainingDaysDesc": "All remaining absence days after the sick leave closing date will be cancelled and returned to the days balance.",
+    "closeAction": "Close",
+    "cancelAction": "Cancel"
   },
   "vacationExport": {
     "trigger": "Export Leave",
@@ -695,6 +843,26 @@
     "cancel": "Cancel",
     "generating": "Generating...",
     "error": "Error generating file"
+  },
+  "employeeProfile": {
+    "loading": "Loading employee profile",
+    "error": "Error",
+    "linkedToUser": "Linked to user:",
+    "applicationsTab": "Applications",
+    "daysBalanceTab": "Days Balance",
+    "noOpenRequests": "No open requests",
+    "noBalanceReasons": "No absence reasons with planning",
+    "reasonHeader": "Reason",
+    "totalShort": "Total",
+    "usedShort": "Used",
+    "pendingShort": "Pend.",
+    "remainingShort": "Rem.",
+    "statusDRAFT": "Draft",
+    "statusSUBMITTED": "Submitted",
+    "statusAPPROVED_FIRST_LEVEL": "Approved (1st Level)",
+    "statusAPPROVED": "Approved",
+    "statusREJECTED": "Rejected",
+    "statusCANCELLED": "Cancelled"
   }
 }
 

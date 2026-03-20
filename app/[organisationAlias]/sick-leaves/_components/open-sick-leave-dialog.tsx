@@ -3,7 +3,7 @@
 import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
-import { hr } from "date-fns/locale";
+import { hr, enUS } from "date-fns/locale";
 import { CalendarIcon, PlusIcon } from "lucide-react";
 import {
   Dialog,
@@ -31,6 +31,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { toast } from "sonner";
+import { useTranslations, useLocale } from "next-intl";
 import { openSickLeaveAction } from "@/lib/actions/sick-leave";
 import { cn } from "@/lib/utils";
 
@@ -81,6 +82,10 @@ export default function OpenSickLeaveDialog({
   onOpenChange: controlledOnOpenChange,
 }: Props) {
   const router = useRouter();
+  const t = useTranslations("sickLeave");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
+  const dateLocale = locale === "hr" ? hr : enUS;
   const [internalOpen, setInternalOpen] = useState(false);
   const [selectedDepartment, setSelectedDepartment] = useState<string>("ALL");
   const [startDate, setStartDate] = useState<Date | undefined>();
@@ -97,7 +102,7 @@ export default function OpenSickLeaveDialog({
 
   useEffect(() => {
     if (state.success) {
-      toast.success(state.message || "Bolovanje je uspješno otvoreno");
+      toast.success(state.message || t("messages.opened"));
       setOpen(false);
       setStartDate(undefined);
       setSelectedDepartment("ALL");
@@ -126,17 +131,15 @@ export default function OpenSickLeaveDialog({
           {trigger || (
             <Button>
               <PlusIcon className="h-4 w-4 mr-2" />
-              Otvori bolovanje
+              {t("openDialog.title")}
             </Button>
           )}
         </DialogTrigger>
       )}
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Otvori bolovanje</DialogTitle>
-          <DialogDescription>
-            Evidentiranje bolovanja bez datuma završetka
-          </DialogDescription>
+          <DialogTitle>{t("openDialog.title")}</DialogTitle>
+          <DialogDescription>{t("openDialog.description")}</DialogDescription>
         </DialogHeader>
 
         <form action={formAction} className="space-y-4">
@@ -147,13 +150,13 @@ export default function OpenSickLeaveDialog({
           />
 
           <div className="space-y-2">
-            <Label htmlFor="departmentFilter">Odjel (filter)</Label>
+            <Label htmlFor="departmentFilter">{t("departmentFilter")}</Label>
             <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
               <SelectTrigger id="departmentFilter">
-                <SelectValue placeholder="Svi odjeli" />
+                <SelectValue placeholder={t("allDepartments")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="ALL">Svi odjeli</SelectItem>
+                <SelectItem value="ALL">{t("allDepartments")}</SelectItem>
                 {departments.map((dept) => (
                   <SelectItem key={dept.id} value={dept.id}>
                     {dept.name}
@@ -164,10 +167,10 @@ export default function OpenSickLeaveDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="employeeId">Zaposlenik *</Label>
+            <Label htmlFor="employeeId">{t("employee")} *</Label>
             <Select name="employeeId" required>
               <SelectTrigger id="employeeId">
-                <SelectValue placeholder="Odaberite zaposlenika" />
+                <SelectValue placeholder={t("selectEmployee")} />
               </SelectTrigger>
               <SelectContent>
                 {filteredEmployees.map((employee) => (
@@ -183,10 +186,10 @@ export default function OpenSickLeaveDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="unavailabilityReasonId">Vrsta bolovanja *</Label>
+            <Label htmlFor="unavailabilityReasonId">{t("sickLeaveType")} *</Label>
             <Select name="unavailabilityReasonId" required>
               <SelectTrigger id="unavailabilityReasonId">
-                <SelectValue placeholder="Odaberite vrstu bolovanja" />
+                <SelectValue placeholder={t("selectReason")} />
               </SelectTrigger>
               <SelectContent>
                 {sickLeaveReasons.map((reason) => (
@@ -212,7 +215,7 @@ export default function OpenSickLeaveDialog({
           </div>
 
           <div className="space-y-2">
-            <Label>Datum početka *</Label>
+            <Label>{t("startDate")} *</Label>
             <input
               type="hidden"
               name="startDateLocalISO"
@@ -230,9 +233,9 @@ export default function OpenSickLeaveDialog({
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {startDate ? (
-                    format(startDate, "dd.MM.yyyy", { locale: hr })
+                    format(startDate, "dd.MM.yyyy", { locale: dateLocale })
                   ) : (
-                    <span>Odaberite datum</span>
+                    <span>{t("selectDate")}</span>
                   )}
                 </Button>
               </PopoverTrigger>
@@ -242,7 +245,7 @@ export default function OpenSickLeaveDialog({
                   selected={startDate}
                   onSelect={setStartDate}
                   disabled={(date) => date > new Date()}
-                  locale={hr}
+                  locale={dateLocale}
                   initialFocus
                 />
               </PopoverContent>
@@ -255,11 +258,11 @@ export default function OpenSickLeaveDialog({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="note">Napomena</Label>
+            <Label htmlFor="note">{t("note")}</Label>
             <Textarea
               id="note"
               name="note"
-              placeholder="Dodatne napomene (opcionalno)"
+              placeholder={t("notePlaceholder")}
               rows={3}
             />
             {state.fieldErrors?.note && (
@@ -269,10 +272,10 @@ export default function OpenSickLeaveDialog({
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-              Odustani
+              {tCommon("cancel")}
             </Button>
             <Button type="submit" disabled={isPending}>
-              {isPending ? "Spremanje..." : "Otvori bolovanje"}
+              {isPending ? t("saving") : t("openDialog.title")}
             </Button>
           </DialogFooter>
         </form>

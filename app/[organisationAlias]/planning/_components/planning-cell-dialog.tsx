@@ -19,7 +19,7 @@ import type {
   PlanningDay,
   PlanningEmployee,
 } from "@/lib/services/planning";
-import { ApplicationStatus, EmployeeStatus } from "@prisma/client";
+import { EmployeeStatus } from "@prisma/client";
 import { ExternalLink } from "lucide-react";
 
 type PlanningCellDialogProps = {
@@ -31,19 +31,10 @@ type PlanningCellDialogProps = {
   organisationAlias?: string;
 };
 
-const statusLabels: Record<EmployeeStatus, string> = {
-  AVAILABLE: "Dostupan",
-  NOT_AVAILABLE: "Nedostupan",
-  SELECTED_FOR_DUTY: "Odabran za dužnost",
-};
-
-const applicationStatusLabels: Record<ApplicationStatus, string> = {
-  DRAFT: "Nacrt",
-  SUBMITTED: "Poslan",
-  APPROVED_FIRST_LEVEL: "Odobreno (1. razina)",
-  APPROVED: "Odobreno",
-  REJECTED: "Odbijeno",
-  CANCELLED: "Otkazano",
+const STATUS_KEY_MAP: Record<EmployeeStatus, string> = {
+  AVAILABLE: "status.available",
+  NOT_AVAILABLE: "status.notAvailable",
+  SELECTED_FOR_DUTY: "status.selectedForDuty",
 };
 
 export function PlanningCellDialog({
@@ -108,7 +99,7 @@ export function PlanningCellDialog({
                       {t("cellDetails.status")}
                     </span>
                     <Badge variant="outline">
-                      {statusLabels[cell.daySchedule.status]}
+                      {t(STATUS_KEY_MAP[cell.daySchedule.status])}
                     </Badge>
                   </div>
                   {cell.daySchedule.unavailabilityReasonName && (
@@ -186,7 +177,7 @@ export function PlanningCellDialog({
                               : "secondary"
                           }
                         >
-                          {applicationStatusLabels[app.status]}
+                          {tApp(`status${app.status}`)}
                         </Badge>
                       </div>
                       <div className="flex justify-between text-xs text-muted-foreground">
