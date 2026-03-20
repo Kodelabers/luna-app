@@ -151,7 +151,7 @@ export async function getOpenApplicationsForEmployee(
 			active: true,
 			OR: [
 				{ status: { in: ["DRAFT", "SUBMITTED", "APPROVED_FIRST_LEVEL"] } },
-				{ status: "APPROVED", endDate: { gte: startOfTodayUtc } },
+				{ status: { in: ["APPROVED", "REJECTED"] }, endDate: { gte: startOfTodayUtc } },
 			],
 		},
 		include: {
@@ -176,10 +176,11 @@ export async function getOpenApplicationsForEmployee(
 	});
 
 	const STATUS_PRIORITY: Record<string, number> = {
-		APPROVED: 0,
-		APPROVED_FIRST_LEVEL: 1,
-		SUBMITTED: 2,
-		DRAFT: 3,
+		REJECTED: 0,
+		APPROVED: 1,
+		APPROVED_FIRST_LEVEL: 2,
+		SUBMITTED: 3,
+		DRAFT: 4,
 	};
 
 	applications.sort((a, b) => {
