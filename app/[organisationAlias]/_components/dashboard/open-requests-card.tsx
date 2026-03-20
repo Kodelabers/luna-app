@@ -15,7 +15,9 @@ type OpenRequestsCardProps = {
 };
 
 function getStatusBadgeClassName(status: ApplicationStatus): string {
-  return status === "APPROVED" ? "border-transparent bg-green-500 text-white" : "";
+  if (status === "APPROVED") return "border-transparent bg-green-500 text-white";
+  if (status === "REJECTED") return "border-transparent bg-red-500 text-white";
+  return "";
 }
 
 function getStatusBadgeVariant(
