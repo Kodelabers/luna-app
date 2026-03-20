@@ -38,13 +38,13 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { createHolidaySchema } from "@/lib/validation/schemas";
+import { createHolidaySchema, type CreateHolidayInput } from "@/lib/validation/schemas";
 import { createHoliday, updateHoliday } from "@/lib/actions/holiday";
 import { initialFormState } from "@/lib/errors";
 import { Loader2, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-type HolidayFormValues = z.infer<typeof createHolidaySchema>;
+type HolidayFormValues = CreateHolidayInput;
 
 type Holiday = {
   id: string;
@@ -79,10 +79,11 @@ export function HolidayDialog({
   const isEditing = !!holiday;
   const t = useTranslations("holidays");
   const tCommon = useTranslations("common");
+  const tVal = useTranslations("validation");
 
   const form = useForm<HolidayFormValues>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    resolver: zodResolver(createHolidaySchema) as any,
+    resolver: zodResolver(createHolidaySchema(tVal)) as any,
     defaultValues: {
       name: holiday?.name || "",
       date: holiday?.date || new Date(),

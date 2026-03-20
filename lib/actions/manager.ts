@@ -34,7 +34,8 @@ export async function createManager(
     await requireAdmin(ctx);
 
     // Validate input
-    const result = createManagerSchema.safeParse({ employeeId, departmentId });
+    const tVal = await getTranslations("validation");
+    const result = createManagerSchema(tVal).safeParse({ employeeId, departmentId });
     // #region agent log
     fetch('http://127.0.0.1:7242/ingest/b2b7332b-7e97-456c-84b1-92faf4f81900',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.ts:createManager:validation',message:'Schema validation result',data:{success:result.success,errors:result.success?null:result.error.issues},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A'})}).catch(()=>{});
     // #endregion

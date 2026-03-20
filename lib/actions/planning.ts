@@ -24,7 +24,8 @@ export async function getPlanningDataAction(
     const ctx = await resolveTenantContext(organisationAlias);
 
     // 2. Validate input
-    const validationResult = getPlanningDataSchema.safeParse({
+    const tVal = await getTranslations("validation");
+    const validationResult = getPlanningDataSchema(tVal).safeParse({
       fromLocalISO,
       toLocalISO,
       clientTimeZone,

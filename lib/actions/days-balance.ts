@@ -227,7 +227,8 @@ export async function allocateDaysAction(
 
     // Parse and validate form data
     const rawData = Object.fromEntries(formData.entries());
-    const result = allocateDaysSchema.safeParse(rawData);
+    const tVal = await getTranslations("validation");
+    const result = allocateDaysSchema(tVal).safeParse(rawData);
 
     if (!result.success) {
       const fieldErrors: Record<string, string[]> = {};
@@ -307,7 +308,8 @@ export async function updateAllocationAction(
 
     // Parse and validate form data
     const rawData = Object.fromEntries(formData.entries());
-    const result = updateAllocationSchema.safeParse(rawData);
+    const tVal = await getTranslations("validation");
+    const result = updateAllocationSchema(tVal).safeParse(rawData);
 
     if (!result.success) {
       const fieldErrors: Record<string, string[]> = {};

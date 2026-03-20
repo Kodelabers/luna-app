@@ -8,7 +8,6 @@ import {
   createApplicationSchema,
   submitApplicationSchema,
   deleteApplicationSchema,
-  validateApplicationDraftSchema,
 } from "@/lib/validation/schemas";
 import {
   FormState,
@@ -37,11 +36,12 @@ export async function dmDecideApplicationAction(
 ): Promise<FormState> {
   try {
     const t = await getTranslations("applications");
+    const tVal = await getTranslations("validation");
     const ctx = await resolveTenantContext(organisationAlias);
 
     // Parse and validate form data
     const rawData = Object.fromEntries(formData.entries());
-    const result = applicationDecisionSchema.safeParse(rawData);
+    const result = applicationDecisionSchema(tVal).safeParse(rawData);
 
     if (!result.success) {
       const fieldErrors: Record<string, string[]> = {};
@@ -92,11 +92,12 @@ export async function gmDecideApplicationAction(
 ): Promise<FormState> {
   try {
     const t = await getTranslations("applications");
+    const tVal = await getTranslations("validation");
     const ctx = await resolveTenantContext(organisationAlias);
 
     // Parse and validate form data
     const rawData = Object.fromEntries(formData.entries());
-    const result = applicationDecisionSchema.safeParse(rawData);
+    const result = applicationDecisionSchema(tVal).safeParse(rawData);
 
     if (!result.success) {
       const fieldErrors: Record<string, string[]> = {};
@@ -171,10 +172,11 @@ export async function createApplicationAction(
 ): Promise<FormState> {
   try {
     const ctx = await resolveTenantContext(organisationAlias);
+    const tVal = await getTranslations("validation");
 
     // Parse and validate form data
     const rawData = Object.fromEntries(formData.entries());
-    const result = createApplicationSchema.safeParse(rawData);
+    const result = createApplicationSchema(tVal).safeParse(rawData);
 
     if (!result.success) {
       const fieldErrors: Record<string, string[]> = {};
@@ -210,7 +212,7 @@ export async function createApplicationAction(
     } else {
       message = t("messages.draftSaved");
     }
-    
+
     return {
       ...successState(message),
       data: { applicationId: saved.applicationId },
@@ -230,10 +232,11 @@ export async function submitApplicationAction(
 ): Promise<FormState> {
   try {
     const ctx = await resolveTenantContext(organisationAlias);
+    const tVal = await getTranslations("validation");
 
     // Parse and validate form data
     const rawData = Object.fromEntries(formData.entries());
-    const result = submitApplicationSchema.safeParse(rawData);
+    const result = submitApplicationSchema(tVal).safeParse(rawData);
 
     if (!result.success) {
       const fieldErrors: Record<string, string[]> = {};
@@ -276,10 +279,11 @@ export async function deleteDraftApplicationAction(
 ): Promise<FormState> {
   try {
     const ctx = await resolveTenantContext(organisationAlias);
+    const tVal = await getTranslations("validation");
 
     // Parse and validate form data
     const rawData = Object.fromEntries(formData.entries());
-    const result = deleteApplicationSchema.safeParse(rawData);
+    const result = deleteApplicationSchema(tVal).safeParse(rawData);
 
     if (!result.success) {
       const fieldErrors: Record<string, string[]> = {};
@@ -325,14 +329,14 @@ export async function listMyApplicationsAction(
 ) {
   try {
     const ctx = await resolveTenantContext(organisationAlias);
-    
+
     // Convert status string to ApplicationStatus if provided
     const parsedFilters = filters ? {
       ...filters,
       status: filters.status as any,
       clientTimeZone: filters.clientTimeZone,
     } : undefined;
-    
+
     const applications = await listMyApplications(ctx, parsedFilters);
     return applications;
   } catch (error) {
@@ -354,21 +358,20 @@ export async function listDepartmentApplicationsAction(
 ) {
   try {
     const ctx = await resolveTenantContext(organisationAlias);
-    
+
     // Check department access (DM or GM)
     await requireDepartmentAccess(ctx, departmentId);
-    
+
     // Convert status string to ApplicationStatus if provided
     const parsedFilters = filters ? {
       ...filters,
       status: filters.status as any,
       clientTimeZone: filters.clientTimeZone,
     } : undefined;
-    
+
     const applications = await listDepartmentApplications(ctx, departmentId, parsedFilters);
     return applications;
   } catch (error) {
     throw error;
   }
 }
-

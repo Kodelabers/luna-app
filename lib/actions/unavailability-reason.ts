@@ -54,7 +54,8 @@ export async function createUnavailabilityReason(
       rawData.sickLeave = false;
     }
 
-    const result = createUnavailabilityReasonSchema.safeParse(rawData);
+    const tVal = await getTranslations("validation");
+    const result = createUnavailabilityReasonSchema(tVal).safeParse(rawData);
 
     if (!result.success) {
       const fieldErrors: Record<string, string[]> = {};
@@ -159,7 +160,8 @@ export async function updateUnavailabilityReason(
       rawData.sickLeave = false;
     }
 
-    const result = createUnavailabilityReasonSchema.safeParse(rawData);
+    const tVal = await getTranslations("validation");
+    const result = createUnavailabilityReasonSchema(tVal).safeParse(rawData);
 
     if (!result.success) {
       const fieldErrors: Record<string, string[]> = {};

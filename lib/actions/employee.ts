@@ -30,7 +30,8 @@ export async function createEmployee(
 
     // Parse and validate form data
     const rawData = Object.fromEntries(formData.entries());
-    const result = createEmployeeSchema.safeParse(rawData);
+    const tVal = await getTranslations("validation");
+    const result = createEmployeeSchema(tVal).safeParse(rawData);
 
     if (!result.success) {
       const fieldErrors: Record<string, string[]> = {};
@@ -132,6 +133,7 @@ export async function updateEmployee(
     const tErr = await getTranslations("errors");
     const tEmp = await getTranslations("employees");
     const tMsg = await getTranslations("messages");
+    const tVal = await getTranslations("validation");
 
     // Check employee exists and belongs to organisation
     const employee = await db.employee.findFirst({
@@ -148,7 +150,7 @@ export async function updateEmployee(
 
     // Parse and validate form data
     const rawData = Object.fromEntries(formData.entries());
-    const result = createEmployeeSchema.safeParse(rawData);
+    const result = createEmployeeSchema(tVal).safeParse(rawData);
 
     if (!result.success) {
       const fieldErrors: Record<string, string[]> = {};
@@ -500,4 +502,3 @@ export async function getEmployeeProfileAction(
     return { success: false, error: tEmp("messages.profileError") };
   }
 }
-

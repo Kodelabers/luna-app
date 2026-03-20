@@ -31,13 +31,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { allocateDaysSchema } from "@/lib/validation/schemas";
+import { allocateDaysSchema, type AllocateDaysInput } from "@/lib/validation/schemas";
 import { allocateDaysAction } from "@/lib/actions/days-balance";
 import { initialFormState, type FormState } from "@/lib/errors";
 import { Loader2 } from "lucide-react";
-import { z } from "zod";
 
-type AllocateDaysFormValues = z.infer<typeof allocateDaysSchema>;
+type AllocateDaysFormValues = AllocateDaysInput;
 
 type AllocateDaysDialogProps = {
   organisationAlias: string;
@@ -62,6 +61,7 @@ export function AllocateDaysDialog({
 }: AllocateDaysDialogProps) {
   const t = useTranslations("allocateDays");
   const tCommon = useTranslations("common");
+  const tVal = useTranslations("validation");
 
   // Get client timezone
   const clientTimeZone = typeof window !== "undefined" 
@@ -94,7 +94,7 @@ export function AllocateDaysDialog({
 
   const form = useForm<AllocateDaysFormValues>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    resolver: zodResolver(allocateDaysSchema) as any,
+    resolver: zodResolver(allocateDaysSchema(tVal)) as any,
     defaultValues: {
       employeeId,
       unavailabilityReasonId,

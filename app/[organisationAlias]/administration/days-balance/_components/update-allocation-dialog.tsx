@@ -31,13 +31,12 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { updateAllocationSchema } from "@/lib/validation/schemas";
+import { updateAllocationSchema, type UpdateAllocationInput } from "@/lib/validation/schemas";
 import { updateAllocationAction } from "@/lib/actions/days-balance";
 import { initialFormState, type FormState } from "@/lib/errors";
 import { Loader2 } from "lucide-react";
-import { z } from "zod";
 
-type UpdateAllocationFormValues = z.infer<typeof updateAllocationSchema>;
+type UpdateAllocationFormValues = UpdateAllocationInput;
 
 type UpdateAllocationDialogProps = {
   organisationAlias: string;
@@ -62,6 +61,7 @@ export function UpdateAllocationDialog({
 }: UpdateAllocationDialogProps) {
   const t = useTranslations("updateAllocation");
   const tCommon = useTranslations("common");
+  const tVal = useTranslations("validation");
 
   // Get client timezone
   const clientTimeZone = typeof window !== "undefined" 
@@ -73,7 +73,7 @@ export function UpdateAllocationDialog({
 
   const form = useForm<UpdateAllocationFormValues>({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    resolver: zodResolver(updateAllocationSchema) as any,
+    resolver: zodResolver(updateAllocationSchema(tVal)) as any,
     defaultValues: {
       employeeId,
       unavailabilityReasonId,

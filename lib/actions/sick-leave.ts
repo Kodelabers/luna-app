@@ -37,7 +37,8 @@ export async function openSickLeaveAction(
 
     // Parse and validate form data
     const rawData = Object.fromEntries(formData.entries());
-    const result = openSickLeaveSchema.safeParse(rawData);
+    const tVal = await getTranslations("validation");
+    const result = openSickLeaveSchema(tVal).safeParse(rawData);
 
     if (!result.success) {
       const fieldErrors: Record<string, string[]> = {};
@@ -104,7 +105,8 @@ export async function closeSickLeaveAction(
 
     // Parse and validate form data
     const rawData = Object.fromEntries(formData.entries());
-    const result = closeSickLeaveSchema.safeParse(rawData);
+    const tVal = await getTranslations("validation");
+    const result = closeSickLeaveSchema(tVal).safeParse(rawData);
 
     if (!result.success) {
       const fieldErrors: Record<string, string[]> = {};
@@ -171,7 +173,8 @@ export async function cancelSickLeaveAction(
 
     // Parse and validate form data
     const rawData = Object.fromEntries(formData.entries());
-    const result = cancelSickLeaveSchema.safeParse(rawData);
+    const tVal = await getTranslations("validation");
+    const result = cancelSickLeaveSchema(tVal).safeParse(rawData);
 
     if (!result.success) {
       const fieldErrors: Record<string, string[]> = {};

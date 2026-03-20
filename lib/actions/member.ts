@@ -29,7 +29,8 @@ export async function updateMemberRoles(
 
     // Parse and validate form data
     const rawData = Object.fromEntries(formData.entries());
-    const result = updateMemberRolesSchema.safeParse({
+    const tVal = await getTranslations("validation");
+    const result = updateMemberRolesSchema(tVal).safeParse({
       ...rawData,
       memberId,
     });
@@ -182,7 +183,8 @@ export async function inviteMember(
 
     // Parse and validate form data
     const rawData = Object.fromEntries(formData.entries());
-    const result = inviteMemberSchema.safeParse(rawData);
+    const tVal = await getTranslations("validation");
+    const result = inviteMemberSchema(tVal).safeParse(rawData);
 
     if (!result.success) {
       const fieldErrors: Record<string, string[]> = {};
@@ -382,7 +384,8 @@ export async function linkEmployeeToMember(
     const employeeId = formData.get("employeeId") as string;
 
     // Validate
-    const result = linkEmployeeSchema.safeParse({ memberId, employeeId });
+    const tVal = await getTranslations("validation");
+    const result = linkEmployeeSchema(tVal).safeParse({ memberId, employeeId });
     if (!result.success) {
       const tErr = await getTranslations("errors");
       return {
@@ -455,7 +458,8 @@ export async function createEmployeeForMember(
     const title = formData.get("title") as string;
 
     // Validate
-    const result = createEmployeeForMemberSchema.safeParse({
+    const tVal = await getTranslations("validation");
+    const result = createEmployeeForMemberSchema(tVal).safeParse({
       memberId,
       departmentId,
       title,

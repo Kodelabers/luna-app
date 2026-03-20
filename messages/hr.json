@@ -863,6 +863,32 @@
     "statusAPPROVED": "Odobreno",
     "statusREJECTED": "Odbijeno",
     "statusCANCELLED": "Otkazano"
+  },
+  "validation": {
+    "aliasMinLength": "Alias mora imati najmanje 2 znaka",
+    "aliasMaxLength": "Alias može imati najviše 50 znakova",
+    "aliasFormat": "Alias može sadržavati samo mala slova, brojeve i crtice",
+    "nameMinLength": "Naziv mora imati najmanje 2 znaka",
+    "invalidColorFormat": "Neispravan format boje",
+    "firstNameRequired": "Ime je obavezno",
+    "lastNameRequired": "Prezime je obavezno",
+    "invalidEmail": "Neispravan email format",
+    "departmentRequired": "Odjel je obavezan",
+    "reasonRequired": "Razlog je obavezan",
+    "startDateRequired": "Datum početka je obavezan",
+    "endDateRequired": "Datum završetka je obavezan",
+    "applicationIdRequired": "ID zahtjeva je obavezan",
+    "employeeRequired": "Zaposlenik je obavezan",
+    "daysMustBeInteger": "Broj dana mora biti cijeli broj",
+    "daysMin": "Broj dana mora biti najmanje 1",
+    "daysMax": "Broj dana može biti najviše 50",
+    "dateFormat": "Datum mora biti u formatu YYYY-MM-DD",
+    "startBeforeEnd": "Datum početka mora biti prije ili jednak datumu završetka",
+    "maxDateRange": "Raspon datuma ne smije biti veći od 12 mjeseci",
+    "sickLeaveIdRequired": "ID bolovanja je obavezno",
+    "memberIdRequired": "ID člana je obavezan",
+    "employeeIdRequired": "ID zaposlenika je obavezan",
+    "reasonTypeRequired": "Vrsta odsutnosti je obavezna"
   }
 }
 
