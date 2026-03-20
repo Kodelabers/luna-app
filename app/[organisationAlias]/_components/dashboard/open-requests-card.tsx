@@ -8,13 +8,32 @@ import { format } from "date-fns";
 import { hr, enUS } from "date-fns/locale";
 import { useLocale } from "next-intl";
 import { Calendar, Clock } from "lucide-react";
+import { ApplicationStatus } from "@prisma/client";
 
 type OpenRequestsCardProps = {
   applications: ApplicationSummary[];
 };
 
+function getStatusBadgeClassName(status: ApplicationStatus): string {
+  return status === "APPROVED" ? "border-transparent bg-green-500 text-white" : "";
+}
+
+function getStatusBadgeVariant(
+  status: ApplicationStatus
+): "default" | "secondary" | "outline" {
+  switch (status) {
+    case "SUBMITTED":
+      return "secondary";
+    case "DRAFT":
+      return "outline";
+    default:
+      return "default";
+  }
+}
+
 export function OpenRequestsCard({ applications }: OpenRequestsCardProps) {
   const t = useTranslations("dashboard");
+  const tApp = useTranslations("applications");
   const locale = useLocale();
   const dateLocale = locale === "hr" ? hr : enUS;
 
@@ -68,15 +87,10 @@ export function OpenRequestsCard({ applications }: OpenRequestsCardProps) {
                     </div>
                   </div>
                   <Badge
-                    variant={
-                      app.status === "DRAFT"
-                        ? "outline"
-                        : app.status === "SUBMITTED"
-                          ? "secondary"
-                          : "default"
-                    }
+                    variant={getStatusBadgeVariant(app.status)}
+                    className={getStatusBadgeClassName(app.status)}
                   >
-                    {app.status}
+                    {tApp(`status${app.status}`)}
                   </Badge>
                 </div>
               );
