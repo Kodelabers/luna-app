@@ -128,7 +128,7 @@ export function DaysBalanceTableClient({
             <TableHead className="text-right">{t("used")}</TableHead>
             <TableHead className="text-right">{t("pending")}</TableHead>
             <TableHead className="text-right">{t("remaining")}</TableHead>
-            <TableHead className="text-right">{t("actions")}</TableHead>
+            <TableHead>{t("actions")}</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -191,10 +191,10 @@ export function DaysBalanceTableClient({
                   <TableCell className="text-right font-bold">
                     {emp.balance.breakdown.remaining}
                   </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      {!hasAllocation ? (
-                        // Show "Allocate" button if no allocation exists
+                  <TableCell>
+                    {!hasAllocation ? (
+                      // Show "Allocate" button if no allocation exists
+                      <div className="flex justify-end">
                         <Button
                           variant="default"
                           size="sm"
@@ -207,9 +207,11 @@ export function DaysBalanceTableClient({
                           <Plus className="mr-2 h-4 w-4" />
                           {t("allocate")}
                         </Button>
-                      ) : (
-                        // Show "Update", "Add New Year", and "History" buttons if allocation exists
-                        <>
+                      </div>
+                    ) : (
+                      // Show "Update", "Add New Year", and "History" buttons if allocation exists
+                      <div className="flex items-center justify-end gap-2">
+                        <div className="flex items-center gap-1">
                           {openYear !== null && (
                             <Button
                               variant="ghost"
@@ -224,32 +226,6 @@ export function DaysBalanceTableClient({
                               <Edit className="h-4 w-4" />
                             </Button>
                           )}
-                          {openYear !== null && canOpenNextYear && !hasNextYearAllocation && (
-                            <Button
-                              variant="default"
-                              size="sm"
-                              onClick={() => {
-                                setSelectedEmployee(emp.employeeId);
-                                setSelectedReason(unavailabilityReasonId);
-                                setAllocateDialogOpen(true);
-                              }}
-                              title={t("addNewYear")}
-                            >
-                              <Plus className="mr-2 h-4 w-4" />
-                              {t("addNewYear")}
-                            </Button>
-                          )}
-                          {openYear !== null && !canOpenNextYear && (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              disabled
-                              title={t("cannotOpenFutureYear", { maxYear: currentYear + 1 })}
-                            >
-                              <Plus className="mr-2 h-4 w-4" />
-                              {t("addNewYear")}
-                            </Button>
-                          )}
                           <Button
                             variant="ghost"
                             size="icon"
@@ -262,9 +238,39 @@ export function DaysBalanceTableClient({
                           >
                             <History className="h-4 w-4" />
                           </Button>
-                        </>
-                      )}
-                    </div>
+                        </div>
+                        {openYear !== null && (
+                          <div>
+                            {canOpenNextYear && !hasNextYearAllocation && (
+                              <Button
+                                variant="default"
+                                size="sm"
+                                onClick={() => {
+                                  setSelectedEmployee(emp.employeeId);
+                                  setSelectedReason(unavailabilityReasonId);
+                                  setAllocateDialogOpen(true);
+                                }}
+                                title={t("addNewYear")}
+                              >
+                                <Plus className="mr-2 h-4 w-4" />
+                                {t("addNewYear")}
+                              </Button>
+                            )}
+                            {!canOpenNextYear && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                disabled
+                                title={t("cannotOpenFutureYear", { maxYear: currentYear + 1 })}
+                              >
+                                <Plus className="mr-2 h-4 w-4" />
+                                {t("addNewYear")}
+                              </Button>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </TableCell>
                 </TableRow>
               );

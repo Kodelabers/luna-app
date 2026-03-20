@@ -166,7 +166,7 @@ export function PlanningFilters({
             <Button
               variant="outline"
               className={cn(
-                "w-full sm:w-[300px] justify-start text-left font-normal",
+                "w-full sm:w-auto justify-start text-left font-normal",
                 !dateRange?.from && "text-muted-foreground"
               )}
             >
