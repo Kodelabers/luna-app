@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getTranslations } from "next-intl/server";
 import { db } from "@/lib/db";
 import { resolveTenantContext, requireAdmin } from "@/lib/tenant/resolveTenantContext";
 import {
@@ -24,8 +25,9 @@ export async function createDepartment(
   formData: FormData
 ): Promise<FormState> {
   try {
+    const t = await getTranslations("messages");
     const ctx = await resolveTenantContext(organisationAlias);
-    requireAdmin(ctx);
+    await requireAdmin(ctx);
 
     // Parse and validate form data
     const rawData = Object.fromEntries(formData.entries());
@@ -57,7 +59,7 @@ export async function createDepartment(
     });
 
     if (existing) {
-      throw new ConflictError("Odjel s ovim aliasom već postoji");
+      throw new ConflictError(t("departmentAliasExists"));
     }
 
     // Create department
@@ -72,9 +74,9 @@ export async function createDepartment(
     });
 
     revalidatePath(`/${organisationAlias}/administration/departments`);
-    return successState("Odjel je uspješno kreiran");
+    return successState(t("departmentCreated"));
   } catch (error) {
-    return mapErrorToFormState(error);
+    return await mapErrorToFormState(error);
   }
 }
 
@@ -88,8 +90,9 @@ export async function updateDepartment(
   formData: FormData
 ): Promise<FormState> {
   try {
+    const t = await getTranslations("messages");
     const ctx = await resolveTenantContext(organisationAlias);
-    requireAdmin(ctx);
+    await requireAdmin(ctx);
 
     // Check department exists and belongs to organisation
     const department = await db.department.findFirst({
@@ -101,7 +104,7 @@ export async function updateDepartment(
     });
 
     if (!department) {
-      throw new NotFoundError("Odjel nije pronađen");
+      throw new NotFoundError(t("departmentNotFound"));
     }
 
     // Parse and validate form data
@@ -135,7 +138,7 @@ export async function updateDepartment(
     });
 
     if (existing) {
-      throw new ConflictError("Odjel s ovim aliasom već postoji");
+      throw new ConflictError(t("departmentAliasExists"));
     }
 
     // Update department
@@ -150,9 +153,9 @@ export async function updateDepartment(
     });
 
     revalidatePath(`/${organisationAlias}/administration/departments`);
-    return successState("Odjel je uspješno ažuriran");
+    return successState(t("departmentUpdated"));
   } catch (error) {
-    return mapErrorToFormState(error);
+    return await mapErrorToFormState(error);
   }
 }
 
@@ -164,8 +167,9 @@ export async function deleteDepartment(
   departmentId: string
 ): Promise<FormState> {
   try {
+    const t = await getTranslations("messages");
     const ctx = await resolveTenantContext(organisationAlias);
-    requireAdmin(ctx);
+    await requireAdmin(ctx);
 
     // Check department exists and belongs to organisation
     const department = await db.department.findFirst({
@@ -184,13 +188,13 @@ export async function deleteDepartment(
     });
 
     if (!department) {
-      throw new NotFoundError("Odjel nije pronađen");
+      throw new NotFoundError(t("departmentNotFound"));
     }
 
     // Check if department has active employees
     if (department._count.employees > 0) {
       throw new ConflictError(
-        `Nije moguće obrisati odjel koji ima ${department._count.employees} aktivnih zaposlenika`
+        t("cannotDeleteWithEmployees", { count: department._count.employees })
       );
     }
 
@@ -201,9 +205,9 @@ export async function deleteDepartment(
     });
 
     revalidatePath(`/${organisationAlias}/administration/departments`);
-    return successState("Odjel je uspješno obrisan");
+    return successState(t("departmentDeleted"));
   } catch (error) {
-    return mapErrorToFormState(error);
+    return await mapErrorToFormState(error);
   }
 }
 

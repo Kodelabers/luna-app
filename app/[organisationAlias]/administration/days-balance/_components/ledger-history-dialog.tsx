@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import {
   Dialog,
   DialogContent,
@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getLedgerHistoryAction } from "@/lib/actions/days-balance";
 import { format } from "date-fns";
-import { hr } from "date-fns/locale";
+import { hr, enUS } from "date-fns/locale";
 
 type LedgerHistoryDialogProps = {
   organisationAlias: string;
@@ -32,6 +32,8 @@ export function LedgerHistoryDialog({
   onOpenChange,
 }: LedgerHistoryDialogProps) {
   const t = useTranslations("ledgerHistory");
+  const locale = useLocale();
+  const dateLocale = locale === "hr" ? hr : enUS;
   const [entries, setEntries] = useState<Array<{
     id: string;
     year: number;
@@ -95,7 +97,7 @@ export function LedgerHistoryDialog({
                 <TableRow>
                   <TableHead className="whitespace-nowrap">{t("date")}</TableHead>
                   <TableHead className="whitespace-nowrap">{t("year")}</TableHead>
-                  <TableHead className="whitespace-nowrap">{t("type")}</TableHead>
+                  <TableHead className="whitespace-nowrap">{t("typeColumn")}</TableHead>
                   <TableHead className="text-right whitespace-nowrap">{t("changeDays")}</TableHead>
                   <TableHead className="min-w-[200px]">{t("note")}</TableHead>
                   <TableHead className="whitespace-nowrap">{t("createdBy")}</TableHead>
@@ -105,7 +107,7 @@ export function LedgerHistoryDialog({
                 {entries.map((entry) => (
                   <TableRow key={entry.id}>
                     <TableCell className="whitespace-nowrap">
-                      {format(new Date(entry.createdAt), "dd.MM.yyyy HH:mm", { locale: hr })}
+                      {format(new Date(entry.createdAt), "dd.MM.yyyy HH:mm", { locale: dateLocale })}
                     </TableCell>
                     <TableCell className="whitespace-nowrap">{entry.year}</TableCell>
                     <TableCell className="whitespace-nowrap">

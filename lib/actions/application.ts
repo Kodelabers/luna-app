@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getTranslations } from "next-intl/server";
 import { resolveTenantContext } from "@/lib/tenant/resolveTenantContext";
 import {
   applicationDecisionSchema,
@@ -35,6 +36,7 @@ export async function dmDecideApplicationAction(
   formData: FormData
 ): Promise<FormState> {
   try {
+    const t = await getTranslations("applications");
     const ctx = await resolveTenantContext(organisationAlias);
 
     // Parse and validate form data
@@ -69,14 +71,14 @@ export async function dmDecideApplicationAction(
     });
 
     revalidatePath(`/${organisationAlias}`);
-    
-    const message = data.decision === "APPROVE" 
-      ? "Zahtjev je uspješno odobren"
-      : "Zahtjev je uspješno odbijen";
-    
+
+    const message = data.decision === "APPROVE"
+      ? t("messages.approved")
+      : t("messages.rejected");
+
     return successState(message);
   } catch (error) {
-    return mapErrorToFormState(error);
+    return await mapErrorToFormState(error);
   }
 }
 
@@ -89,6 +91,7 @@ export async function gmDecideApplicationAction(
   formData: FormData
 ): Promise<FormState> {
   try {
+    const t = await getTranslations("applications");
     const ctx = await resolveTenantContext(organisationAlias);
 
     // Parse and validate form data
@@ -123,14 +126,14 @@ export async function gmDecideApplicationAction(
     });
 
     revalidatePath(`/${organisationAlias}`);
-    
-    const message = data.decision === "APPROVE" 
-      ? "Zahtjev je uspješno finalno odobren"
-      : "Zahtjev je uspješno odbijen";
-    
+
+    const message = data.decision === "APPROVE"
+      ? t("messages.finallyApproved")
+      : t("messages.rejected");
+
     return successState(message);
   } catch (error) {
-    return mapErrorToFormState(error);
+    return await mapErrorToFormState(error);
   }
 }
 
@@ -190,20 +193,22 @@ export async function createApplicationAction(
 
     const data = result.data;
 
+    const t = await getTranslations("applications");
+
     // Call service
     const saved = await createApplication(ctx, data);
 
     revalidatePath(`/${organisationAlias}/applications`);
     revalidatePath(`/${organisationAlias}`);
-    
+
     // Determine message based on status
     let message: string;
     if (data.applicationId) {
-      message = "Nacrt je uspješno ažuriran";
+      message = t("messages.draftUpdated");
     } else if (saved.status === "SUBMITTED") {
-      message = "Zahtjev je uspješno poslan na odobrenje";
+      message = t("messages.submitted");
     } else {
-      message = "Nacrt je uspješno spremljen";
+      message = t("messages.draftSaved");
     }
     
     return {
@@ -211,7 +216,7 @@ export async function createApplicationAction(
       data: { applicationId: saved.applicationId },
     };
   } catch (error) {
-    return mapErrorToFormState(error);
+    return await mapErrorToFormState(error);
   }
 }
 
@@ -247,15 +252,17 @@ export async function submitApplicationAction(
 
     const data = result.data;
 
+    const t = await getTranslations("applications");
+
     // Call service
     await submitApplication(ctx, data);
 
     revalidatePath(`/${organisationAlias}/applications`);
     revalidatePath(`/${organisationAlias}`);
-    
-    return successState("Zahtjev je uspješno poslan na odobrenje");
+
+    return successState(t("messages.submitted"));
   } catch (error) {
-    return mapErrorToFormState(error);
+    return await mapErrorToFormState(error);
   }
 }
 
@@ -291,14 +298,16 @@ export async function deleteDraftApplicationAction(
 
     const data = result.data;
 
+    const t = await getTranslations("applications");
+
     // Call service
     await deleteDraftApplication(ctx, data.applicationId);
 
     revalidatePath(`/${organisationAlias}/applications`);
-    
-    return successState("Zahtjev je uspješno obrisan");
+
+    return successState(t("messages.deleted"));
   } catch (error) {
-    return mapErrorToFormState(error);
+    return await mapErrorToFormState(error);
   }
 }
 

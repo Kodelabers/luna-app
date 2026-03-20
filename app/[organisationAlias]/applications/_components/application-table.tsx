@@ -12,9 +12,9 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Eye, Pencil, Trash2 } from "lucide-react";
 import { ApplicationStatus } from "@prisma/client";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { format, parseISO } from "date-fns";
-import { hr } from "date-fns/locale";
+import { hr, enUS } from "date-fns/locale";
 
 type Application = {
   applicationId: string;
@@ -58,6 +58,8 @@ export function ApplicationTable({
 }: ApplicationTableProps) {
   const t = useTranslations("applications");
   const tCommon = useTranslations("common");
+  const locale = useLocale();
+  const dateLocale = locale === "hr" ? hr : enUS;
 
   if (applications.length === 0) {
     return (
@@ -95,9 +97,9 @@ export function ApplicationTable({
               <TableCell>
                 <Badge variant="outline">
                   {format(parseISO(app.startLocalISO), "dd.MM.yyyy", {
-                    locale: hr,
+                    locale: dateLocale,
                   })} - {format(parseISO(app.endLocalISO), "dd.MM.yyyy", {
-                    locale: hr,
+                    locale: dateLocale,
                   })}
                 </Badge>
               </TableCell>

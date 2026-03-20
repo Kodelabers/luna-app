@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { useTranslations } from "next-intl";
 import CloseSickLeaveDialog from "./close-sick-leave-dialog";
 import CancelSickLeaveDialog from "./cancel-sick-leave-dialog";
 
@@ -44,6 +45,7 @@ export function SickLeaveActions({
   sickLeave,
   organisationAlias,
 }: SickLeaveActionsProps) {
+  const t = useTranslations("sickLeave");
   const [closeDialogOpen, setCloseDialogOpen] = useState(false);
   const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
 
@@ -58,20 +60,20 @@ export function SickLeaveActions({
         <DropdownMenuTrigger asChild>
           <Button variant="ghost" size="icon-sm">
             <MoreVertical className="h-4 w-4" />
-            <span className="sr-only">Akcije</span>
+            <span className="sr-only">{t("actions")}</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem onClick={() => setCloseDialogOpen(true)}>
             <CheckCircle className="h-4 w-4" />
-            Zatvori
+            {t("closeAction")}
           </DropdownMenuItem>
           <DropdownMenuItem
             variant="destructive"
             onClick={() => setCancelDialogOpen(true)}
           >
             <XCircle className="h-4 w-4" />
-            Poništi
+            {t("cancelAction")}
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>

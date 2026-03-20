@@ -63,13 +63,13 @@ export function MonthCalendarCard({ calendarDays, month, year }: MonthCalendarCa
         <div className="space-y-2">
           {/* Day headers */}
           <div className="grid grid-cols-7 gap-1 text-center text-xs font-medium text-muted-foreground">
-            <div>Pon</div>
-            <div>Uto</div>
-            <div>Sri</div>
-            <div>Čet</div>
-            <div>Pet</div>
-            <div>Sub</div>
-            <div>Ned</div>
+            <div>{t("dayHeaders.mon")}</div>
+            <div>{t("dayHeaders.tue")}</div>
+            <div>{t("dayHeaders.wed")}</div>
+            <div>{t("dayHeaders.thu")}</div>
+            <div>{t("dayHeaders.fri")}</div>
+            <div>{t("dayHeaders.sat")}</div>
+            <div>{t("dayHeaders.sun")}</div>
           </div>
 
           {/* Calendar grid */}
@@ -135,15 +135,15 @@ export function MonthCalendarCard({ calendarDays, month, year }: MonthCalendarCa
           <div className="mt-4 flex flex-wrap gap-3 text-xs">
             <div className="flex items-center gap-1">
               <div className="h-3 w-3 rounded border bg-background" />
-              <span className="text-muted-foreground">Radni dan</span>
+              <span className="text-muted-foreground">{t("legend.workday")}</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="h-3 w-3 rounded border bg-muted" />
-              <span className="text-muted-foreground">Vikend</span>
+              <span className="text-muted-foreground">{t("legend.weekend")}</span>
             </div>
             <div className="flex items-center gap-1">
               <div className="h-3 w-3 rounded border bg-red-100 dark:bg-red-950" />
-              <span className="text-muted-foreground">Praznik</span>
+              <span className="text-muted-foreground">{t("legend.holiday")}</span>
             </div>
           </div>
         </div>

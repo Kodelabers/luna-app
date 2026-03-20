@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useTransition } from "react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 import { format, parseISO } from "date-fns";
 import { hr, enUS } from "date-fns/locale";
@@ -38,22 +38,15 @@ type EmployeeProfileProps = {
   children: React.ReactNode;
 };
 
-const applicationStatusLabels: Record<ApplicationStatus, string> = {
-  DRAFT: "Nacrt",
-  SUBMITTED: "Poslan",
-  APPROVED_FIRST_LEVEL: "Odobreno (1. razina)",
-  APPROVED: "Odobreno",
-  REJECTED: "Odbijeno",
-  CANCELLED: "Otkazano",
-};
-
 export function EmployeeProfile({
   employeeId,
   organisationAlias,
   children,
 }: EmployeeProfileProps) {
+  const t = useTranslations("employeeProfile");
   const locale = useLocale();
   const dateLocale = locale === "hr" ? hr : enUS;
+  const getStatusLabel = (status: ApplicationStatus) => t(`status${status}` as Parameters<typeof t>[0]);
   const [open, setOpen] = useState(false);
   const [isPending, startTransition] = useTransition();
   const [data, setData] = useState<EmployeeProfileData | null>(null);
@@ -93,7 +86,7 @@ export function EmployeeProfile({
         {isPending ? (
           <>
             <VisuallyHidden.Root>
-              <DialogTitle>Učitavanje profila zaposlenika</DialogTitle>
+              <DialogTitle>{t("loading")}</DialogTitle>
             </VisuallyHidden.Root>
             <div className="flex items-center justify-center py-12">
               <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
@@ -102,7 +95,7 @@ export function EmployeeProfile({
         ) : error ? (
           <>
             <VisuallyHidden.Root>
-              <DialogTitle>Greška</DialogTitle>
+              <DialogTitle>{t("error")}</DialogTitle>
             </VisuallyHidden.Root>
             <div className="py-12 text-center">
               <p className="text-destructive">{error}</p>
@@ -153,7 +146,7 @@ export function EmployeeProfile({
                       <div className="flex items-center gap-2 pt-1">
                         <User className="h-4 w-4 shrink-0" />
                         <span className="text-xs">
-                          Povezan s korisnikom:{" "}
+                          {t("linkedToUser")}{" "}
                           <span className="font-medium text-foreground">
                             {data.employee.user.firstName} {data.employee.user.lastName}
                           </span>
@@ -207,7 +200,7 @@ export function EmployeeProfile({
               <TabsList className="w-full">
                 <TabsTrigger value="applications" className="flex-1 gap-1.5">
                   <FileText className="h-4 w-4" />
-                  <span className="hidden sm:inline">Zahtjevi</span>
+                  <span className="hidden sm:inline">{t("applicationsTab")}</span>
                   {data.openApplications.length > 0 && (
                     <Badge variant="secondary" className="ml-1 h-5 px-1.5 text-xs">
                       {data.openApplications.length}
@@ -216,7 +209,7 @@ export function EmployeeProfile({
                 </TabsTrigger>
                 <TabsTrigger value="balance" className="flex-1 gap-1.5">
                   <CalendarDays className="h-4 w-4" />
-                  <span className="hidden sm:inline">Saldo dana</span>
+                  <span className="hidden sm:inline">{t("daysBalanceTab")}</span>
                 </TabsTrigger>
               </TabsList>
 
@@ -226,7 +219,7 @@ export function EmployeeProfile({
                   <div className="text-center py-8">
                     <FileText className="h-10 w-10 mx-auto text-muted-foreground/50 mb-2" />
                     <p className="text-sm text-muted-foreground">
-                      Nema otvorenih zahtjeva
+                      {t("noOpenRequests")}
                     </p>
                   </div>
                 ) : (
@@ -278,7 +271,7 @@ export function EmployeeProfile({
                             }
                             className="text-xs"
                           >
-                            {applicationStatusLabels[app.status]}
+                            {getStatusLabel(app.status)}
                           </Badge>
                           <Link
                             href={`/${organisationAlias}/applications/${app.id}`}
@@ -300,7 +293,7 @@ export function EmployeeProfile({
                   <div className="text-center py-8">
                     <CalendarDays className="h-10 w-10 mx-auto text-muted-foreground/50 mb-2" />
                     <p className="text-sm text-muted-foreground">
-                      Nema razloga nedostupnosti s planiranjem
+                      {t("noBalanceReasons")}
                     </p>
                   </div>
                 ) : (
@@ -308,11 +301,11 @@ export function EmployeeProfile({
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Razlog</TableHead>
-                          <TableHead className="text-right w-20">Ukupno</TableHead>
-                          <TableHead className="text-right w-20">Isk.</TableHead>
-                          <TableHead className="text-right w-20">Čeka</TableHead>
-                          <TableHead className="text-right w-20">Prest.</TableHead>
+                          <TableHead>{t("reasonHeader")}</TableHead>
+                          <TableHead className="text-right w-20">{t("totalShort")}</TableHead>
+                          <TableHead className="text-right w-20">{t("usedShort")}</TableHead>
+                          <TableHead className="text-right w-20">{t("pendingShort")}</TableHead>
+                          <TableHead className="text-right w-20">{t("remainingShort")}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>

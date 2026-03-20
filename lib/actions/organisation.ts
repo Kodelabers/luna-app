@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getTranslations } from "next-intl/server";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/integrations/clerk";
 import {
@@ -37,17 +38,20 @@ export async function joinOrganisation(employeeId: string): Promise<FormState> {
     });
 
     if (!employee) {
-      throw new NotFoundError("Zaposlenik nije pronađen");
+      const tErr = await getTranslations("errors");
+      throw new NotFoundError(tErr("employeeNotFound"));
     }
+
+    const tErr = await getTranslations("errors");
 
     // Security: Verify email matches
     if (employee.email.toLowerCase() !== user.email.toLowerCase()) {
-      throw new ForbiddenError("Email adresa ne odgovara");
+      throw new ForbiddenError(tErr("emailMismatch"));
     }
 
     // Verify employee is not already linked to a user
     if (employee.userId !== null) {
-      throw new ConflictError("Zaposlenik je već povezan s korisnikom");
+      throw new ConflictError(tErr("employeeAlreadyLinked"));
     }
 
     // Check if OrganisationUser already exists for this user+org
@@ -60,7 +64,7 @@ export async function joinOrganisation(employeeId: string): Promise<FormState> {
     });
 
     if (existingOrgUser) {
-      throw new ConflictError("Već ste član ove organizacije");
+      throw new ConflictError(tErr("alreadyMember"));
     }
 
     // Create OrganisationUser, link Employee, and update User name in a transaction
@@ -93,9 +97,10 @@ export async function joinOrganisation(employeeId: string): Promise<FormState> {
     // Revalidate the home page to reflect the new membership
     revalidatePath("/");
 
-    return successState(`Uspješno ste se pridružili organizaciji ${employee.organisation.name}`);
+    const tLanding = await getTranslations("landing");
+    return successState(tLanding("joinedOrganisation", { name: employee.organisation.name }));
   } catch (error) {
-    return mapErrorToFormState(error);
+    return await mapErrorToFormState(error);
   }
 }
 

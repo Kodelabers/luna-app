@@ -25,6 +25,8 @@ export default async function DepartmentPage({ params, searchParams }: Props) {
   const { organisationAlias, departmentId } = await params;
   const { from, to } = await searchParams;
   const t = await getTranslations("planning");
+  const tDept = await getTranslations("departments");
+  const tMgr = await getTranslations("managers");
   const ctx = await resolveTenantContext(organisationAlias);
 
   const deptId = departmentId;
@@ -94,23 +96,23 @@ export default async function DepartmentPage({ params, searchParams }: Props) {
         {/* Department info */}
         <Card>
           <CardHeader>
-            <CardTitle>Informacije o odjelu</CardTitle>
+            <CardTitle>{tDept("departmentInfo")}</CardTitle>
           </CardHeader>
           <CardContent>
             <dl className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <dt className="text-muted-foreground">Alias:</dt>
+                <dt className="text-muted-foreground">{tDept("alias")}:</dt>
                 <dd>
                   <Badge variant="outline">{department.alias}</Badge>
                 </dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-muted-foreground">Broj zaposlenika:</dt>
+                <dt className="text-muted-foreground">{tDept("employeesCount")}:</dt>
                 <dd className="font-medium">{department.employees.length}</dd>
               </div>
               {department.colorCode && (
                 <div className="flex justify-between items-center">
-                  <dt className="text-muted-foreground">Boja:</dt>
+                  <dt className="text-muted-foreground">{tDept("color")}:</dt>
                   <dd className="flex items-center gap-2">
                     <div
                       className="h-4 w-4 rounded"
@@ -127,13 +129,13 @@ export default async function DepartmentPage({ params, searchParams }: Props) {
         {/* Managers */}
         <Card>
           <CardHeader>
-            <CardTitle>Manageri odjela</CardTitle>
-            <CardDescription>Osobe odgovorne za odobrenja</CardDescription>
+            <CardTitle>{tDept("departmentManagers")}</CardTitle>
+            <CardDescription>{tDept("managersDescription")}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             {department.managers.length === 0 ? (
               <p className="text-sm text-muted-foreground">
-                Nema dodijeljenih managera.
+                {tMgr("noManagers")}
               </p>
             ) : (
               <ul className="space-y-2">
@@ -142,7 +144,7 @@ export default async function DepartmentPage({ params, searchParams }: Props) {
                     <span>
                       {manager.employee.firstName} {manager.employee.lastName}
                     </span>
-                    <Badge variant="secondary">Manager</Badge>
+                    <Badge variant="secondary">{tMgr("manager")}</Badge>
                   </li>
                 ))}
               </ul>
@@ -151,7 +153,7 @@ export default async function DepartmentPage({ params, searchParams }: Props) {
               <Button asChild variant="outline" size="sm" className="w-full">
                 <Link href={`/${organisationAlias}/department/${deptId}/employees`}>
                   <Users className="mr-2 h-4 w-4" />
-                  Pogledaj sve zaposlenike ({department.employees.length})
+                  {tDept("viewAllEmployees", { count: department.employees.length })}
                 </Link>
               </Button>
             </div>

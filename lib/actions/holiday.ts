@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getTranslations } from "next-intl/server";
 import { db } from "@/lib/db";
 import { resolveTenantContext, requireAdmin } from "@/lib/tenant/resolveTenantContext";
 import { createHolidaySchema } from "@/lib/validation/schemas";
@@ -21,8 +22,9 @@ export async function createHoliday(
   formData: FormData
 ): Promise<FormState> {
   try {
+    const t = await getTranslations("holidays");
     const ctx = await resolveTenantContext(organisationAlias);
-    requireAdmin(ctx);
+    await requireAdmin(ctx);
 
     // Parse and validate form data
     const rawData: Record<string, unknown> = Object.fromEntries(formData.entries());
@@ -64,7 +66,7 @@ export async function createHoliday(
     });
 
     if (existing) {
-      throw new ConflictError("Praznik s ovim nazivom i datumom već postoji");
+      throw new ConflictError(t("messages.duplicateExists"));
     }
 
     // Create holiday
@@ -78,9 +80,9 @@ export async function createHoliday(
     });
 
     revalidatePath(`/${organisationAlias}/administration/holidays`);
-    return successState("Praznik je uspješno kreiran");
+    return successState(t("messages.created"));
   } catch (error) {
-    return mapErrorToFormState(error);
+    return await mapErrorToFormState(error);
   }
 }
 
@@ -94,8 +96,9 @@ export async function updateHoliday(
   formData: FormData
 ): Promise<FormState> {
   try {
+    const t = await getTranslations("holidays");
     const ctx = await resolveTenantContext(organisationAlias);
-    requireAdmin(ctx);
+    await requireAdmin(ctx);
 
     // Check holiday exists and belongs to organisation
     const holiday = await db.holiday.findFirst({
@@ -107,7 +110,7 @@ export async function updateHoliday(
     });
 
     if (!holiday) {
-      throw new NotFoundError("Praznik nije pronađen");
+      throw new NotFoundError(t("messages.notFound"));
     }
 
     // Parse and validate form data
@@ -151,7 +154,7 @@ export async function updateHoliday(
     });
 
     if (existing) {
-      throw new ConflictError("Praznik s ovim nazivom i datumom već postoji");
+      throw new ConflictError(t("messages.duplicateExists"));
     }
 
     // Update holiday
@@ -165,9 +168,9 @@ export async function updateHoliday(
     });
 
     revalidatePath(`/${organisationAlias}/administration/holidays`);
-    return successState("Praznik je uspješno ažuriran");
+    return successState(t("messages.updated"));
   } catch (error) {
-    return mapErrorToFormState(error);
+    return await mapErrorToFormState(error);
   }
 }
 
@@ -179,8 +182,9 @@ export async function deleteHoliday(
   holidayId: string
 ): Promise<FormState> {
   try {
+    const t = await getTranslations("holidays");
     const ctx = await resolveTenantContext(organisationAlias);
-    requireAdmin(ctx);
+    await requireAdmin(ctx);
 
     // Check holiday exists and belongs to organisation
     const holiday = await db.holiday.findFirst({
@@ -192,7 +196,7 @@ export async function deleteHoliday(
     });
 
     if (!holiday) {
-      throw new NotFoundError("Praznik nije pronađen");
+      throw new NotFoundError(t("messages.notFound"));
     }
 
     // Soft delete
@@ -202,9 +206,9 @@ export async function deleteHoliday(
     });
 
     revalidatePath(`/${organisationAlias}/administration/holidays`);
-    return successState("Praznik je uspješno obrisan");
+    return successState(t("messages.deleted"));
   } catch (error) {
-    return mapErrorToFormState(error);
+    return await mapErrorToFormState(error);
   }
 }
 

@@ -22,6 +22,7 @@ type DmApprovalCardProps = {
 
 export function DmApprovalCard({ queues, organisationAlias }: DmApprovalCardProps) {
   const t = useTranslations("dashboard");
+  const tApp = useTranslations("applications");
   const locale = useLocale();
   const dateLocale = locale === "hr" ? hr : enUS;
 
@@ -176,7 +177,7 @@ export function DmApprovalCard({ queues, organisationAlias }: DmApprovalCardProp
                             </div>
                           )}
                         </div>
-                        <Badge variant="default">APPROVED_FIRST_LEVEL</Badge>
+                        <Badge variant="default">{tApp("statusAPPROVED_FIRST_LEVEL")}</Badge>
                       </div>
                     );
                   })}

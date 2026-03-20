@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getTranslations } from "next-intl/server";
 import { db } from "@/lib/db";
 import { resolveTenantContext, requireAdmin } from "@/lib/tenant/resolveTenantContext";
 import {
@@ -23,12 +24,13 @@ export async function createUnavailabilityReason(
   formData: FormData
 ): Promise<FormState> {
   try {
+    const t = await getTranslations("unavailabilityReasons");
     const ctx = await resolveTenantContext(organisationAlias);
-    requireAdmin(ctx);
+    await requireAdmin(ctx);
 
     // Parse and validate form data
     const rawData: Record<string, unknown> = Object.fromEntries(formData.entries());
-    
+
     // Explicitly parse boolean values from FormData strings
     // FormData returns strings, so "true"/"false" need to be converted to booleans
     if (rawData.needApproval !== undefined) {
@@ -51,7 +53,7 @@ export async function createUnavailabilityReason(
     } else {
       rawData.sickLeave = false;
     }
-    
+
     const result = createUnavailabilityReasonSchema.safeParse(rawData);
 
     if (!result.success) {
@@ -81,7 +83,7 @@ export async function createUnavailabilityReason(
     });
 
     if (existing) {
-      throw new ConflictError("Razlog s ovim nazivom već postoji");
+      throw new ConflictError(t("messages.nameExists"));
     }
 
     // Create unavailability reason
@@ -98,9 +100,9 @@ export async function createUnavailabilityReason(
     });
 
     revalidatePath(`/${organisationAlias}/administration/unavailability-reasons`);
-    return successState("Razlog nedostupnosti je uspješno kreiran");
+    return successState(t("messages.created"));
   } catch (error) {
-    return mapErrorToFormState(error);
+    return await mapErrorToFormState(error);
   }
 }
 
@@ -114,8 +116,9 @@ export async function updateUnavailabilityReason(
   formData: FormData
 ): Promise<FormState> {
   try {
+    const t = await getTranslations("unavailabilityReasons");
     const ctx = await resolveTenantContext(organisationAlias);
-    requireAdmin(ctx);
+    await requireAdmin(ctx);
 
     // Check reason exists and belongs to organisation
     const reason = await db.unavailabilityReason.findFirst({
@@ -127,12 +130,12 @@ export async function updateUnavailabilityReason(
     });
 
     if (!reason) {
-      throw new NotFoundError("Razlog nedostupnosti nije pronađen");
+      throw new NotFoundError(t("messages.notFound"));
     }
 
     // Parse and validate form data
     const rawData: Record<string, unknown> = Object.fromEntries(formData.entries());
-    
+
     // Explicitly parse boolean values from FormData strings
     // FormData returns strings, so "true"/"false" need to be converted to booleans
     if (rawData.needApproval !== undefined) {
@@ -155,7 +158,7 @@ export async function updateUnavailabilityReason(
     } else {
       rawData.sickLeave = false;
     }
-    
+
     const result = createUnavailabilityReasonSchema.safeParse(rawData);
 
     if (!result.success) {
@@ -186,7 +189,7 @@ export async function updateUnavailabilityReason(
     });
 
     if (existing) {
-      throw new ConflictError("Razlog s ovim nazivom već postoji");
+      throw new ConflictError(t("messages.nameExists"));
     }
 
     // Update unavailability reason
@@ -203,9 +206,9 @@ export async function updateUnavailabilityReason(
     });
 
     revalidatePath(`/${organisationAlias}/administration/unavailability-reasons`);
-    return successState("Razlog nedostupnosti je uspješno ažuriran");
+    return successState(t("messages.updated"));
   } catch (error) {
-    return mapErrorToFormState(error);
+    return await mapErrorToFormState(error);
   }
 }
 
@@ -217,8 +220,9 @@ export async function deleteUnavailabilityReason(
   reasonId: string
 ): Promise<FormState> {
   try {
+    const t = await getTranslations("unavailabilityReasons");
     const ctx = await resolveTenantContext(organisationAlias);
-    requireAdmin(ctx);
+    await requireAdmin(ctx);
 
     // Check reason exists and belongs to organisation
     const reason = await db.unavailabilityReason.findFirst({
@@ -230,7 +234,7 @@ export async function deleteUnavailabilityReason(
     });
 
     if (!reason) {
-      throw new NotFoundError("Razlog nedostupnosti nije pronađen");
+      throw new NotFoundError(t("messages.notFound"));
     }
 
     // Soft delete
@@ -240,9 +244,9 @@ export async function deleteUnavailabilityReason(
     });
 
     revalidatePath(`/${organisationAlias}/administration/unavailability-reasons`);
-    return successState("Razlog nedostupnosti je uspješno obrisan");
+    return successState(t("messages.deleted"));
   } catch (error) {
-    return mapErrorToFormState(error);
+    return await mapErrorToFormState(error);
   }
 }
 

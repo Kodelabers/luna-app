@@ -6,6 +6,7 @@ import { PageHeader } from "@/components/page-header";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
+import { getTranslations } from "next-intl/server";
 import SickLeavesTableClient from "./_components/sick-leaves-table-client";
 import OpenSickLeaveDialog from "./_components/open-sick-leave-dialog";
 
@@ -163,16 +164,17 @@ async function SickLeavesData({
 export default async function DepartmentSickLeavesPage({ params, searchParams }: PageProps) {
   const { organisationAlias, departmentId } = await params;
   const { status, search } = await searchParams;
+  const t = await getTranslations("sickLeave");
 
   return (
     <div className="container mx-auto py-6 space-y-6">
       <Card>
         <CardHeader>
           <PageHeader
-            title="Bolovanja"
-            description="Upravljanje bolovanja zaposlenika odjela"
+            title={t("title")}
+            description={t("description")}
             action={
-              <Suspense fallback={<Button disabled>Otvori bolovanje</Button>}>
+              <Suspense fallback={<Button disabled>{t("openNew")}</Button>}>
                 <OpenSickLeaveDialogWrapper
                   organisationAlias={organisationAlias}
                   departmentId={departmentId}

@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getTranslations } from "next-intl/server";
 import { db } from "@/lib/db";
 import { resolveTenantContext, requireAdmin } from "@/lib/tenant/resolveTenantContext";
 import { createManagerSchema } from "@/lib/validation/schemas";
@@ -26,8 +27,11 @@ export async function createManager(
     // #region agent log
     fetch('http://127.0.0.1:7242/ingest/b2b7332b-7e97-456c-84b1-92faf4f81900',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.ts:createManager:entry',message:'createManager called',data:{organisationAlias,employeeId,departmentId,departmentIdType:typeof departmentId},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'A,C'})}).catch(()=>{});
     // #endregion
+    const tErr = await getTranslations("errors");
+    const tMsg = await getTranslations("messages");
+    const tMgr = await getTranslations("managers");
     const ctx = await resolveTenantContext(organisationAlias);
-    requireAdmin(ctx);
+    await requireAdmin(ctx);
 
     // Validate input
     const result = createManagerSchema.safeParse({ employeeId, departmentId });
@@ -56,7 +60,7 @@ export async function createManager(
     });
 
     if (!employee) {
-      throw new NotFoundError("Zaposlenik nije pronađen");
+      throw new NotFoundError(tErr("employeeNotFound"));
     }
 
     // If departmentId provided, verify it belongs to organisation
@@ -70,7 +74,7 @@ export async function createManager(
       });
 
       if (!department) {
-        throw new NotFoundError("Odjel nije pronađen");
+        throw new NotFoundError(tMsg("departmentNotFound"));
       }
 
       // Check if employee is already manager of this department
@@ -83,7 +87,7 @@ export async function createManager(
       });
 
       if (existingDeptManager) {
-        throw new ConflictError("Zaposlenik je već manager ovog odjela");
+        throw new ConflictError(tMgr("alreadyManagerOfDepartment"));
       }
     } else {
       // Check if employee is already a general manager
@@ -96,7 +100,7 @@ export async function createManager(
       });
 
       if (existingGeneralManager) {
-        throw new ConflictError("Zaposlenik je već generalni manager");
+        throw new ConflictError(tMgr("alreadyGeneralManager"));
       }
     }
 
@@ -115,12 +119,12 @@ export async function createManager(
     // #endregion
 
     revalidatePath(`/${organisationAlias}/administration/managers`);
-    return successState("Manager je uspješno dodan");
+    return successState(tMgr("managerAdded"));
   } catch (error) {
     // #region agent log
     fetch('http://127.0.0.1:7242/ingest/b2b7332b-7e97-456c-84b1-92faf4f81900',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'manager.ts:createManager:error',message:'Error caught',data:{errorName:(error as Error)?.name,errorMessage:(error as Error)?.message},timestamp:Date.now(),sessionId:'debug-session',hypothesisId:'E'})}).catch(()=>{});
     // #endregion
-    return mapErrorToFormState(error);
+    return await mapErrorToFormState(error);
   }
 }
 
@@ -133,7 +137,7 @@ export async function deleteManager(
 ): Promise<FormState> {
   try {
     const ctx = await resolveTenantContext(organisationAlias);
-    requireAdmin(ctx);
+    await requireAdmin(ctx);
 
     // Check manager exists and employee belongs to organisation
     const manager = await db.manager.findFirst({
@@ -147,7 +151,8 @@ export async function deleteManager(
     });
 
     if (!manager) {
-      throw new NotFoundError("Manager nije pronađen");
+      const tMgr = await getTranslations("managers");
+      throw new NotFoundError(tMgr("notFound"));
     }
 
     // Soft delete
@@ -157,9 +162,10 @@ export async function deleteManager(
     });
 
     revalidatePath(`/${organisationAlias}/administration/managers`);
-    return successState("Manager je uspješno uklonjen");
+    const tMgr = await getTranslations("managers");
+    return successState(tMgr("managerRemoved"));
   } catch (error) {
-    return mapErrorToFormState(error);
+    return await mapErrorToFormState(error);
   }
 }
 
@@ -175,7 +181,7 @@ export async function searchEmployeesForManager(
 ): Promise<{ id: string; firstName: string; lastName: string; email: string }[]> {
   try {
     const ctx = await resolveTenantContext(organisationAlias);
-    requireAdmin(ctx);
+    await requireAdmin(ctx);
 
     if (!query || query.length < 2) {
       return [];
@@ -249,7 +255,7 @@ export async function getEmployeesForManager(
 ): Promise<PaginatedEmployeesResult> {
   try {
     const ctx = await resolveTenantContext(organisationAlias);
-    requireAdmin(ctx);
+    await requireAdmin(ctx);
 
     // Get IDs of employees who are already managers of this department/general
     const existingManagers = await db.manager.findMany({

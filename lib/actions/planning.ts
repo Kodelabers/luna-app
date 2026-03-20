@@ -1,5 +1,6 @@
 "use server";
 
+import { getTranslations } from "next-intl/server";
 import { resolveTenantContext } from "@/lib/tenant/resolveTenantContext";
 import { getPlanningDataSchema } from "@/lib/validation/schemas";
 import { mapErrorToFormState } from "@/lib/errors";
@@ -17,6 +18,8 @@ export async function getPlanningDataAction(
   departmentIds?: string[]
 ): Promise<{ success: true; data: PlanningData } | { success: false; formError: string; fieldErrors?: Record<string, string[]> }> {
   try {
+    const t = await getTranslations("planning");
+
     // 1. Resolve tenant context
     const ctx = await resolveTenantContext(organisationAlias);
 
@@ -39,7 +42,7 @@ export async function getPlanningDataAction(
       }
       return {
         success: false,
-        formError: "Neispravni podaci za dohvat planiranja",
+        formError: t("errors.invalidData"),
         fieldErrors,
       };
     }
@@ -53,10 +56,11 @@ export async function getPlanningDataAction(
       data,
     };
   } catch (error) {
-    const formState = mapErrorToFormState(error);
+    const t = await getTranslations("planning");
+    const formState = await mapErrorToFormState(error);
     return {
       success: false,
-      formError: formState.formError ?? "Došlo je do greške pri dohvaćanju podataka",
+      formError: formState.formError ?? t("errors.fetchError"),
       fieldErrors: formState.fieldErrors,
     };
   }

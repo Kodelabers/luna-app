@@ -3,7 +3,7 @@
 import { useActionState, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { format } from "date-fns";
-import { hr } from "date-fns/locale";
+import { hr, enUS } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
 import {
   Dialog,
@@ -25,6 +25,7 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
+import { useTranslations, useLocale } from "next-intl";
 import { closeSickLeaveAction, checkRemainingDaysAction } from "@/lib/actions/sick-leave";
 import { cn } from "@/lib/utils";
 
@@ -58,6 +59,10 @@ export default function CloseSickLeaveDialog({
   organisationAlias,
 }: Props) {
   const router = useRouter();
+  const t = useTranslations("sickLeave");
+  const tCommon = useTranslations("common");
+  const locale = useLocale();
+  const dateLocale = locale === "hr" ? hr : enUS;
   const [endDate, setEndDate] = useState<Date | undefined>();
   const [cancelRemainingDays, setCancelRemainingDays] = useState<"none" | "cancel">("none");
   const [hasRemainingDays, setHasRemainingDays] = useState(false);
@@ -69,7 +74,7 @@ export default function CloseSickLeaveDialog({
 
   useEffect(() => {
     if (state.success) {
-      toast.success(state.message || "Bolovanje je uspješno zatvoreno");
+      toast.success(state.message || t("messages.closed"));
       onOpenChange(false);
       router.refresh();
     } else if (state.formError) {
@@ -125,22 +130,22 @@ export default function CloseSickLeaveDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Zatvori bolovanje</DialogTitle>
-          <DialogDescription>Definirajte datum završetka bolovanja</DialogDescription>
+          <DialogTitle>{t("closeDialog.title")}</DialogTitle>
+          <DialogDescription>{t("closeDialog.description")}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <p className="text-sm text-muted-foreground">
-              <strong>Zaposlenik:</strong> {sickLeave.employee.firstName}{" "}
+              <strong>{t("employee")}:</strong> {sickLeave.employee.firstName}{" "}
               {sickLeave.employee.lastName}
             </p>
             <p className="text-sm text-muted-foreground">
-              <strong>Vrsta:</strong> {sickLeave.unavailabilityReason.name}
+              <strong>{t("reason")}:</strong> {sickLeave.unavailabilityReason.name}
             </p>
             <p className="text-sm text-muted-foreground">
-              <strong>Datum početka:</strong>{" "}
-              {format(sickLeave.startDate, "dd.MM.yyyy", { locale: hr })}
+              <strong>{t("startDate")}:</strong>{" "}
+              {format(sickLeave.startDate, "dd.MM.yyyy", { locale: dateLocale })}
             </p>
           </div>
 
@@ -158,7 +163,7 @@ export default function CloseSickLeaveDialog({
             />
 
             <div className="space-y-2">
-              <Label>Datum završetka *</Label>
+              <Label>{t("endDate")} *</Label>
               <input
                 type="hidden"
                 name="endDateLocalISO"
@@ -176,9 +181,9 @@ export default function CloseSickLeaveDialog({
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {endDate ? (
-                      format(endDate, "dd.MM.yyyy", { locale: hr })
+                      format(endDate, "dd.MM.yyyy", { locale: dateLocale })
                     ) : (
-                      <span>Odaberite datum</span>
+                      <span>{t("selectDate")}</span>
                     )}
                   </Button>
                 </PopoverTrigger>
@@ -188,7 +193,7 @@ export default function CloseSickLeaveDialog({
                     selected={endDate}
                     onSelect={setEndDate}
                     disabled={(date) => date < minEndDate}
-                    locale={hr}
+                    locale={dateLocale}
                     initialFocus
                   />
                 </PopoverContent>
@@ -203,13 +208,11 @@ export default function CloseSickLeaveDialog({
             {hasRemainingDays && (
               <div className="space-y-4">
                 <Alert>
-                  <AlertDescription>
-                    Na dan zatvaranja bolovanja postoji odobreno odsustvo. Odaberite kako želite postupiti s preostalim danima tog odsustva.
-                  </AlertDescription>
+                  <AlertDescription>{t("remainingDaysAlert")}</AlertDescription>
                 </Alert>
 
                 <div className="space-y-3">
-                  <Label>Opcija za preostale dane</Label>
+                  <Label>{t("remainingDaysOption")}</Label>
                   <RadioGroup
                     value={cancelRemainingDays}
                     onValueChange={(value) => setCancelRemainingDays(value as "none" | "cancel")}
@@ -218,10 +221,10 @@ export default function CloseSickLeaveDialog({
                       <RadioGroupItem value="none" id="none" />
                       <div className="space-y-1 leading-none">
                         <Label htmlFor="none" className="font-normal cursor-pointer">
-                          Ostavi preostale dane netaknute
+                          {t("keepRemainingDays")}
                         </Label>
                         <p className="text-sm text-muted-foreground">
-                          Vraćaju se samo dani koji su se preklopili s bolovanjem. Preostali dani odsustva nakon datuma zatvaranja ostaju u rasporedu.
+                          {t("keepRemainingDaysDesc")}
                         </p>
                       </div>
                     </div>
@@ -229,10 +232,10 @@ export default function CloseSickLeaveDialog({
                       <RadioGroupItem value="cancel" id="cancel" />
                       <div className="space-y-1 leading-none">
                         <Label htmlFor="cancel" className="font-normal cursor-pointer">
-                          Poništi sve preostale dane
+                          {t("cancelRemainingDays")}
                         </Label>
                         <p className="text-sm text-muted-foreground">
-                          Svi preostali dani odsustva nakon datuma zatvaranja bolovanja bit će poništeni i vraćeni u stanje dana.
+                          {t("cancelRemainingDaysDesc")}
                         </p>
                       </div>
                     </div>
@@ -242,15 +245,15 @@ export default function CloseSickLeaveDialog({
             )}
 
             {checkingRemainingDays && (
-              <p className="text-sm text-muted-foreground">Provjeravam preostale dane...</p>
+              <p className="text-sm text-muted-foreground">{t("checkingDays")}</p>
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="note">Napomena</Label>
+              <Label htmlFor="note">{t("note")}</Label>
               <Textarea
                 id="note"
                 name="note"
-                placeholder="Dodatne napomene (opcionalno)"
+                placeholder={t("notePlaceholder")}
                 rows={3}
               />
               {state.fieldErrors?.note && (
@@ -260,10 +263,10 @@ export default function CloseSickLeaveDialog({
 
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                Odustani
+                {tCommon("cancel")}
               </Button>
               <Button type="submit" disabled={isPending}>
-                {isPending ? "Spremanje..." : "Zatvori bolovanje"}
+                {isPending ? t("saving") : t("closeDialog.title")}
               </Button>
             </DialogFooter>
           </form>

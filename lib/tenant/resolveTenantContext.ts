@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/integrations/clerk";
 import { NotFoundError, ForbiddenError } from "@/lib/errors";
+import { getTranslations } from "next-intl/server";
 import type { Organisation, OrganisationUser, User, UserRole } from "@prisma/client";
 
 /**
@@ -38,6 +39,8 @@ export async function resolveTenantContext(
 ): Promise<TenantContext> {
   // 1. Get current user (ensures local User exists via Clerk upsert)
   const user = await getCurrentUser();
+  const t = await getTranslations("errors");
+  const tCommon = await getTranslations("common");
 
   // 2. Find organisation by alias
   const organisation = await db.organisation.findUnique({
@@ -48,7 +51,7 @@ export async function resolveTenantContext(
   });
 
   if (!organisation) {
-    throw new NotFoundError("Organizacija nije pronađena");
+    throw new NotFoundError(t("organisationNotFound"));
   }
 
   // 3. Check membership
@@ -61,7 +64,7 @@ export async function resolveTenantContext(
   });
 
   if (!organisationUser) {
-    throw new ForbiddenError("Nemate pristup ovoj organizaciji");
+    throw new ForbiddenError(tCommon("noOrganisationAccess"));
   }
 
   return {
@@ -82,9 +85,10 @@ export function isAdmin(ctx: TenantContext): boolean {
 /**
  * Require ADMIN role - throws ForbiddenError if not admin
  */
-export function requireAdmin(ctx: TenantContext): void {
+export async function requireAdmin(ctx: TenantContext): Promise<void> {
   if (!isAdmin(ctx)) {
-    throw new ForbiddenError("Potrebna je administratorska uloga");
+    const t = await getTranslations("errors");
+    throw new ForbiddenError(t("adminRequired"));
   }
 }
 

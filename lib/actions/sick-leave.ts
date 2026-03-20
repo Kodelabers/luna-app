@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getTranslations } from "next-intl/server";
 import { resolveTenantContext, requireManagerAccess } from "@/lib/tenant/resolveTenantContext";
 import {
   openSickLeaveSchema,
@@ -31,6 +32,7 @@ export async function openSickLeaveAction(
   formData: FormData
 ): Promise<FormState> {
   try {
+    const t = await getTranslations("sickLeave");
     const ctx = await resolveTenantContext(organisationAlias);
 
     // Parse and validate form data
@@ -66,7 +68,7 @@ export async function openSickLeaveAction(
     if (!employee) {
       return {
         success: false,
-        formError: "Zaposlenik nije pronađen",
+        formError: t("errors.employeeNotFound"),
       };
     }
 
@@ -82,9 +84,9 @@ export async function openSickLeaveAction(
     revalidatePath(`/${organisationAlias}/planning`);
     revalidatePath(`/${organisationAlias}`);
 
-    return successState("Bolovanje je uspješno otvoreno");
+    return successState(t("messages.opened"));
   } catch (error) {
-    return mapErrorToFormState(error);
+    return await mapErrorToFormState(error);
   }
 }
 
@@ -97,6 +99,7 @@ export async function closeSickLeaveAction(
   formData: FormData
 ): Promise<FormState> {
   try {
+    const t = await getTranslations("sickLeave");
     const ctx = await resolveTenantContext(organisationAlias);
 
     // Parse and validate form data
@@ -132,7 +135,7 @@ export async function closeSickLeaveAction(
     if (!sickLeave) {
       return {
         success: false,
-        formError: "Bolovanje nije pronađeno",
+        formError: t("errors.notFound"),
       };
     }
 
@@ -148,9 +151,9 @@ export async function closeSickLeaveAction(
     revalidatePath(`/${organisationAlias}/planning`);
     revalidatePath(`/${organisationAlias}`);
 
-    return successState("Bolovanje je uspješno zatvoreno");
+    return successState(t("messages.closed"));
   } catch (error) {
-    return mapErrorToFormState(error);
+    return await mapErrorToFormState(error);
   }
 }
 
@@ -163,6 +166,7 @@ export async function cancelSickLeaveAction(
   formData: FormData
 ): Promise<FormState> {
   try {
+    const t = await getTranslations("sickLeave");
     const ctx = await resolveTenantContext(organisationAlias);
 
     // Parse and validate form data
@@ -198,7 +202,7 @@ export async function cancelSickLeaveAction(
     if (!sickLeave) {
       return {
         success: false,
-        formError: "Bolovanje nije pronađeno",
+        formError: t("errors.notFound"),
       };
     }
 
@@ -214,9 +218,9 @@ export async function cancelSickLeaveAction(
     revalidatePath(`/${organisationAlias}/planning`);
     revalidatePath(`/${organisationAlias}`);
 
-    return successState("Bolovanje je uspješno poništeno");
+    return successState(t("messages.cancelled"));
   } catch (error) {
-    return mapErrorToFormState(error);
+    return await mapErrorToFormState(error);
   }
 }
 

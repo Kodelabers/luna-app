@@ -75,9 +75,7 @@ export function ApplicationApprovalDialog({
               {isReject ? t("reject") : t("approve")}
             </DialogTitle>
             <DialogDescription>
-              {isReject
-                ? "Molimo unesite razlog odbijanja zahtjeva."
-                : "Potvrdite odobrenje zahtjeva."}
+              {isReject ? t("rejectDescription") : t("approveDescription")}
             </DialogDescription>
           </DialogHeader>
 
@@ -92,16 +90,12 @@ export function ApplicationApprovalDialog({
 
             <div className="space-y-2">
               <Label htmlFor="comment">
-                Komentar {isReject && <span className="text-destructive">*</span>}
+                {t("comment")} {isReject && <span className="text-destructive">*</span>}
               </Label>
               <Textarea
                 id="comment"
                 name="comment"
-                placeholder={
-                  isReject
-                    ? "Razlog odbijanja..."
-                    : "Dodatni komentar (opcionalno)..."
-                }
+                placeholder={isReject ? t("rejectPlaceholder") : t("commentOptionalPlaceholder")}
                 rows={4}
                 disabled={isPending}
               />

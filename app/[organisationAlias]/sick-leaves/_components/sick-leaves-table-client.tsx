@@ -21,7 +21,8 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { SearchIcon } from "lucide-react";
 import { format } from "date-fns";
-import { hr } from "date-fns/locale";
+import { hr, enUS } from "date-fns/locale";
+import { useTranslations, useLocale } from "next-intl";
 import { SickLeaveActions } from "./sick-leave-actions";
 
 type SickLeave = {
@@ -64,6 +65,9 @@ export default function SickLeavesTableClient({
   organisationAlias,
 }: Props) {
   const router = useRouter();
+  const t = useTranslations("sickLeave");
+  const locale = useLocale();
+  const dateLocale = locale === "hr" ? hr : enUS;
   const searchParams = useSearchParams();
   const [searchInput, setSearchInput] = useState(searchParams.get("search") || "");
 
@@ -97,23 +101,23 @@ export default function SickLeavesTableClient({
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "OPENED":
-        return <Badge variant="default">Otvoreno</Badge>;
+        return <Badge variant="default">{t("statusOPENED")}</Badge>;
       case "CLOSED":
-        return <Badge variant="secondary">Zatvoreno</Badge>;
+        return <Badge variant="secondary">{t("statusCLOSED")}</Badge>;
       case "CANCELLED":
-        return <Badge variant="outline">Poništeno</Badge>;
+        return <Badge variant="outline">{t("statusCANCELLED")}</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
   };
 
   const formatPeriod = (startDate: Date, endDate: Date | null) => {
-    const start = format(startDate, "dd.MM.yyyy", { locale: hr });
+    const start = format(startDate, "dd.MM.yyyy", { locale: dateLocale });
     if (endDate) {
-      const end = format(endDate, "dd.MM.yyyy", { locale: hr });
+      const end = format(endDate, "dd.MM.yyyy", { locale: dateLocale });
       return `${start} - ${end}`;
     }
-    return `${start} - danas`;
+    return `${start} - ${t("today")}`;
   };
 
   return (
@@ -123,7 +127,7 @@ export default function SickLeavesTableClient({
         <div className="relative flex-1 min-w-[200px]">
           <SearchIcon className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Pretraži zaposlenike..."
+            placeholder={t("searchPlaceholder")}
             value={searchInput}
             onChange={(e) => handleSearchChange(e.target.value)}
             className="pl-8"
@@ -134,10 +138,10 @@ export default function SickLeavesTableClient({
           onValueChange={handleDepartmentChange}
         >
           <SelectTrigger className="w-full sm:w-[200px]">
-            <SelectValue placeholder="Odjel" />
+            <SelectValue placeholder={t("department")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Svi odjeli</SelectItem>
+            <SelectItem value="all">{t("allDepartments")}</SelectItem>
             {departments.map((dept) => (
               <SelectItem key={dept.id} value={dept.id}>
                 {dept.name}
@@ -150,13 +154,13 @@ export default function SickLeavesTableClient({
           onValueChange={handleStatusChange}
         >
           <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder="Status" />
+            <SelectValue placeholder={t("status")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Svi statusi</SelectItem>
-            <SelectItem value="OPENED">Otvoreno</SelectItem>
-            <SelectItem value="CLOSED">Zatvoreno</SelectItem>
-            <SelectItem value="CANCELLED">Poništeno</SelectItem>
+            <SelectItem value="all">{t("allStatuses")}</SelectItem>
+            <SelectItem value="OPENED">{t("statusOPENED")}</SelectItem>
+            <SelectItem value="CLOSED">{t("statusCLOSED")}</SelectItem>
+            <SelectItem value="CANCELLED">{t("statusCANCELLED")}</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -164,18 +168,18 @@ export default function SickLeavesTableClient({
       {/* Table */}
       {sickLeaves.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">
-          Nema bolovanja za prikaz
+          {t("noSickLeaves")}
         </div>
       ) : (
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Zaposlenik</TableHead>
-              <TableHead>Odjel</TableHead>
-              <TableHead>Vrsta</TableHead>
-              <TableHead>Period</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="text-right">Akcije</TableHead>
+              <TableHead>{t("employee")}</TableHead>
+              <TableHead>{t("department")}</TableHead>
+              <TableHead>{t("reason")}</TableHead>
+              <TableHead>{t("period")}</TableHead>
+              <TableHead>{t("status")}</TableHead>
+              <TableHead className="text-right">{t("actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

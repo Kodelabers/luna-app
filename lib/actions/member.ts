@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { getTranslations } from "next-intl/server";
 import { db } from "@/lib/db";
 import { resolveTenantContext, requireAdmin } from "@/lib/tenant/resolveTenantContext";
 import { updateMemberRolesSchema, inviteMemberSchema, linkEmployeeSchema, createEmployeeForMemberSchema } from "@/lib/validation/schemas";
@@ -24,7 +25,7 @@ export async function updateMemberRoles(
 ): Promise<FormState> {
   try {
     const ctx = await resolveTenantContext(organisationAlias);
-    requireAdmin(ctx);
+    await requireAdmin(ctx);
 
     // Parse and validate form data
     const rawData = Object.fromEntries(formData.entries());
@@ -60,7 +61,8 @@ export async function updateMemberRoles(
     });
 
     if (!member) {
-      throw new NotFoundError("Korisnik nije pronađen");
+      const tErr = await getTranslations("errors");
+      throw new NotFoundError(tErr("userNotFound"));
     }
 
     // If removing admin role, check that at least one admin remains
@@ -74,7 +76,8 @@ export async function updateMemberRoles(
       });
 
       if (adminCount <= 1) {
-        throw new ForbiddenError("Ne možete ukloniti zadnjeg administratora");
+        const tMem = await getTranslations("members");
+        throw new ForbiddenError(tMem("cannotRemoveLastAdmin"));
       }
     }
 
@@ -87,9 +90,10 @@ export async function updateMemberRoles(
     });
 
     revalidatePath(`/${organisationAlias}/administration/members`);
-    return successState("Uloge korisnika su uspješno ažurirane");
+    const tMem = await getTranslations("members");
+    return successState(tMem("messages.memberUpdated"));
   } catch (error) {
-    return mapErrorToFormState(error);
+    return await mapErrorToFormState(error);
   }
 }
 
@@ -102,7 +106,7 @@ export async function removeMember(
 ): Promise<FormState> {
   try {
     const ctx = await resolveTenantContext(organisationAlias);
-    requireAdmin(ctx);
+    await requireAdmin(ctx);
 
     // Find the member
     const member = await db.organisationUser.findFirst({
@@ -114,12 +118,15 @@ export async function removeMember(
     });
 
     if (!member) {
-      throw new NotFoundError("Korisnik nije pronađen");
+      const tErr = await getTranslations("errors");
+      throw new NotFoundError(tErr("userNotFound"));
     }
+
+    const tMem = await getTranslations("members");
 
     // Cannot remove yourself
     if (member.userId === ctx.user.id) {
-      throw new ForbiddenError("Ne možete ukloniti sami sebe");
+      throw new ForbiddenError(tMem("cannotRemoveSelf"));
     }
 
     // If member is admin, check that at least one admin remains
@@ -133,7 +140,7 @@ export async function removeMember(
       });
 
       if (adminCount <= 1) {
-        throw new ForbiddenError("Ne možete ukloniti zadnjeg administratora");
+        throw new ForbiddenError(tMem("cannotRemoveLastAdmin"));
       }
     }
 
@@ -154,9 +161,9 @@ export async function removeMember(
 
     revalidatePath(`/${organisationAlias}/administration/members`);
     revalidatePath(`/${organisationAlias}/administration/employees`);
-    return successState("Korisnik je uspješno uklonjen");
+    return successState(tMem("messages.memberRemoved"));
   } catch (error) {
-    return mapErrorToFormState(error);
+    return await mapErrorToFormState(error);
   }
 }
 
@@ -171,7 +178,7 @@ export async function inviteMember(
 ): Promise<FormState> {
   try {
     const ctx = await resolveTenantContext(organisationAlias);
-    requireAdmin(ctx);
+    await requireAdmin(ctx);
 
     // Parse and validate form data
     const rawData = Object.fromEntries(formData.entries());
@@ -211,7 +218,8 @@ export async function inviteMember(
       });
 
       if (existingMember) {
-        throw new ConflictError("Korisnik s ovim emailom je već član organizacije");
+        const tMem = await getTranslations("members");
+        throw new ConflictError(tMem("userAlreadyMember"));
       }
 
       // Check for inactive membership and reactivate
@@ -236,7 +244,8 @@ export async function inviteMember(
         });
 
         revalidatePath(`/${organisationAlias}/administration/members`);
-        return successState("Korisnik je uspješno pozvan u organizaciju");
+        const tMem = await getTranslations("members");
+        return successState(tMem("messages.inviteSent"));
       }
     }
 
@@ -291,14 +300,16 @@ export async function inviteMember(
 
         revalidatePath(`/${organisationAlias}/administration/employees`);
         revalidatePath(`/${organisationAlias}/administration/members`);
-        return successState("Korisnik i zaposlenik su uspješno kreirani");
+        const tMem = await getTranslations("members");
+        return successState(tMem("messages.memberAndEmployeeCreated"));
       }
     }
 
     revalidatePath(`/${organisationAlias}/administration/members`);
-    return successState("Korisnik je uspješno pozvan u organizaciju");
+    const tMem = await getTranslations("members");
+    return successState(tMem("messages.inviteSent"));
   } catch (error) {
-    return mapErrorToFormState(error);
+    return await mapErrorToFormState(error);
   }
 }
 
@@ -311,7 +322,7 @@ export async function searchUnlinkedEmployees(
 ): Promise<{ id: string; firstName: string; lastName: string; email: string; departmentName: string }[]> {
   try {
     const ctx = await resolveTenantContext(organisationAlias);
-    requireAdmin(ctx);
+    await requireAdmin(ctx);
 
     if (!query || query.length < 2) {
       return [];
@@ -366,18 +377,22 @@ export async function linkEmployeeToMember(
 ): Promise<FormState> {
   try {
     const ctx = await resolveTenantContext(organisationAlias);
-    requireAdmin(ctx);
+    await requireAdmin(ctx);
 
     const employeeId = formData.get("employeeId") as string;
 
     // Validate
     const result = linkEmployeeSchema.safeParse({ memberId, employeeId });
     if (!result.success) {
+      const tErr = await getTranslations("errors");
       return {
         success: false,
-        formError: "Neispravni podaci",
+        formError: tErr("invalidData"),
       };
     }
+
+    const tErr = await getTranslations("errors");
+    const tMem = await getTranslations("members");
 
     // Find the member
     const member = await db.organisationUser.findFirst({
@@ -392,7 +407,7 @@ export async function linkEmployeeToMember(
     });
 
     if (!member) {
-      throw new NotFoundError("Korisnik nije pronađen");
+      throw new NotFoundError(tErr("userNotFound"));
     }
 
     // Find the employee
@@ -406,7 +421,7 @@ export async function linkEmployeeToMember(
     });
 
     if (!employee) {
-      throw new NotFoundError("Zaposlenik nije pronađen ili je već povezan");
+      throw new NotFoundError(tMem("messages.employeeNotFoundOrLinked"));
     }
 
     // Link employee to user
@@ -417,9 +432,9 @@ export async function linkEmployeeToMember(
 
     revalidatePath(`/${organisationAlias}/administration/members`);
     revalidatePath(`/${organisationAlias}/administration/employees`);
-    return successState("Zaposlenik je uspješno povezan");
+    return successState(tMem("messages.employeeLinked"));
   } catch (error) {
-    return mapErrorToFormState(error);
+    return await mapErrorToFormState(error);
   }
 }
 
@@ -434,7 +449,7 @@ export async function createEmployeeForMember(
 ): Promise<FormState> {
   try {
     const ctx = await resolveTenantContext(organisationAlias);
-    requireAdmin(ctx);
+    await requireAdmin(ctx);
 
     const departmentId = formData.get("departmentId") as string;
     const title = formData.get("title") as string;
@@ -474,8 +489,12 @@ export async function createEmployeeForMember(
     });
 
     if (!member) {
-      throw new NotFoundError("Korisnik nije pronađen");
+      const tErr = await getTranslations("errors");
+      throw new NotFoundError(tErr("userNotFound"));
     }
+
+    const tMem = await getTranslations("members");
+    const tMsg = await getTranslations("messages");
 
     // Check if user already has an employee in this organisation
     const existingEmployee = await db.employee.findFirst({
@@ -487,7 +506,7 @@ export async function createEmployeeForMember(
     });
 
     if (existingEmployee) {
-      throw new ConflictError("Korisnik već ima povezanog zaposlenika");
+      throw new ConflictError(tMem("messages.userAlreadyHasEmployee"));
     }
 
     // Verify department exists
@@ -500,7 +519,7 @@ export async function createEmployeeForMember(
     });
 
     if (!department) {
-      throw new NotFoundError("Odjel nije pronađen");
+      throw new NotFoundError(tMsg("departmentNotFound"));
     }
 
     // Create employee linked to user
@@ -518,8 +537,8 @@ export async function createEmployeeForMember(
 
     revalidatePath(`/${organisationAlias}/administration/members`);
     revalidatePath(`/${organisationAlias}/administration/employees`);
-    return successState("Zaposlenik je uspješno kreiran i povezan");
+    return successState(tMem("messages.employeeCreated"));
   } catch (error) {
-    return mapErrorToFormState(error);
+    return await mapErrorToFormState(error);
   }
 }

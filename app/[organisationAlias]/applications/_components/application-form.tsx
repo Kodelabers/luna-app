@@ -455,7 +455,7 @@ export function ApplicationForm({
                                         backgroundColor: color,
                                       }}
                                     />
-                                    <span>{sampleDay?.unavailabilityReasonName || "Odobreno"}</span>
+                                    <span>{sampleDay?.unavailabilityReasonName || t("statusAPPROVED")}</span>
                                   </div>
                                 );
                               })}
@@ -485,7 +485,7 @@ export function ApplicationForm({
                                         borderColor: color,
                                       }}
                                     />
-                                    <span>{reason?.name || "U procesu"}</span>
+                                    <span>{reason?.name || t("inProcess")}</span>
                                   </div>
                                 );
                               })}
