@@ -10,8 +10,9 @@ import { gmDecideApplicationAction } from "@/lib/actions/application";
 import { format } from "date-fns";
 import { hr, enUS } from "date-fns/locale";
 import { useLocale } from "next-intl";
-import { Calendar, CheckCircle, XCircle, MoreVertical } from "lucide-react";
+import { Calendar, CheckCircle, XCircle, MoreVertical, Pencil } from "lucide-react";
 import { FormState } from "@/lib/errors";
+import Link from "next/link";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -105,11 +106,17 @@ export function GmApprovalCard({ applications, organisationAlias }: GmApprovalCa
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
+                        <DropdownMenuItem asChild>
+                          <Link href={`/${organisationAlias}/applications/${app.id}`}>
+                            <Pencil className="h-4 w-4" />
+                            {t("correct")}
+                          </Link>
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleApprove(app)}>
                           <CheckCircle className="h-4 w-4" />
                           {t("approve")}
                         </DropdownMenuItem>
-                        <DropdownMenuItem 
+                        <DropdownMenuItem
                           variant="destructive"
                           onClick={() => handleReject(app)}
                         >

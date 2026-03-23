@@ -129,6 +129,7 @@
     "from": "From",
     "to": "To",
     "createdAt": "Created",
+    "correct": "Correct",
     "genericError": "An error occurred",
     "previousMonth": "Previous month",
     "nextMonth": "Next month",
