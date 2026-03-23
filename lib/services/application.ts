@@ -1289,6 +1289,10 @@ export async function listDepartmentApplications(
 
   if (filters?.status) {
     where.status = filters.status;
+  } else {
+    // Exclude DRAFT applications — department managers should not see
+    // applications that employees haven't submitted yet
+    where.status = { not: "DRAFT" as ApplicationStatus };
   }
 
   if (filters?.reasonId) {
