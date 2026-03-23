@@ -103,6 +103,7 @@ export function DepartmentApplicationsClient({
         reasonFilter={reasonFilter}
         onReasonChange={setReasonFilter}
         reasons={reasons}
+        hideDraft
       />
 
       <ApplicationTable

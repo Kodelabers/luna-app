@@ -20,6 +20,7 @@ type ApplicationFiltersProps = {
   reasonFilter: string | "ALL";
   onReasonChange: (value: string | "ALL") => void;
   reasons: Array<{ id: string; name: string }>;
+  hideDraft?: boolean;
 };
 
 export function ApplicationFilters({
@@ -30,6 +31,7 @@ export function ApplicationFilters({
   reasonFilter,
   onReasonChange,
   reasons,
+  hideDraft = false,
 }: ApplicationFiltersProps) {
   const t = useTranslations("applications");
   const tCommon = useTranslations("common");
@@ -56,7 +58,7 @@ export function ApplicationFilters({
         </SelectTrigger>
         <SelectContent>
           <SelectItem value="ALL">{t("allStatuses")}</SelectItem>
-          <SelectItem value="DRAFT">{t("statusDRAFT")}</SelectItem>
+          {!hideDraft && <SelectItem value="DRAFT">{t("statusDRAFT")}</SelectItem>}
           <SelectItem value="SUBMITTED">{t("statusSUBMITTED")}</SelectItem>
           <SelectItem value="APPROVED_FIRST_LEVEL">
             {t("statusAPPROVED_FIRST_LEVEL")}
