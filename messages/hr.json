@@ -129,6 +129,7 @@
     "from": "Od",
     "to": "Do",
     "createdAt": "Kreirano",
+    "correct": "Korigiraj",
     "genericError": "Došlo je do greške",
     "previousMonth": "Prethodni mjesec",
     "nextMonth": "Sljedeći mjesec",
