@@ -52,7 +52,11 @@
     "alreadyMember": "Već ste član ove organizacije",
     "unexpectedError": "Došlo je do neočekivane greške. Pokušajte ponovno.",
     "organisationNotFound": "Organizacija nije pronađena",
-    "adminRequired": "Potrebna je administratorska uloga"
+    "adminRequired": "Potrebna je administratorska uloga",
+    "somethingWentWrong": "Nešto je pošlo po krivu",
+    "tryAgain": "Pokušaj ponovo",
+    "backToDashboard": "Povratak na početnu",
+    "errorReference": "Referenca greške"
   },
   "auth": {
     "signOut": "Odjava",

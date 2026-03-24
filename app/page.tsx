@@ -6,147 +6,156 @@ import { ensureLocalUser } from "@/lib/integrations/clerk";
 import { currentUser } from "@clerk/nextjs/server";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+	Card,
+	CardContent,
+	CardDescription,
+	CardHeader,
+	CardTitle,
+} from "@/components/ui/card";
 import { PendingInvitations } from "./_components/pending-invitations";
 import { AutoRedirect } from "./_components/auto-redirect";
 import { getTranslations } from "next-intl/server";
 
 export default async function HomePage() {
-  const { userId } = await auth();
-  const tLanding = await getTranslations("landing");
-  const tAuth = await getTranslations("auth");
+	const { userId } = await auth();
+	const tLanding = await getTranslations("landing");
+	const tAuth = await getTranslations("auth");
 
-  // If not signed in, show landing page
-  if (!userId) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-6 p-4">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold tracking-tight">Luna HR</h1>
-          <p className="mt-2 text-lg text-muted-foreground">
-            {tLanding("tagline")}
-          </p>
-        </div>
-        <div className="flex gap-4">
-          <Button asChild>
-            <Link href="/sign-in">{tAuth("signIn")}</Link>
-          </Button>
-          <Button variant="outline" asChild>
-            <Link href="/sign-up">{tLanding("signUp")}</Link>
-          </Button>
-        </div>
-      </div>
-    );
-  }
+	// If not signed in, show landing page
+	if (!userId) {
+		return (
+			<div className="flex min-h-screen flex-col items-center justify-center gap-6 p-4">
+				<div className="text-center">
+					<h1 className="text-4xl font-bold tracking-tight">Luna HR</h1>
+					<p className="mt-2 text-lg text-muted-foreground">
+						{tLanding("tagline")}
+					</p>
+				</div>
+				<div className="flex gap-4">
+					<Button asChild>
+						<Link href="/sign-in">{tAuth("signIn")}</Link>
+					</Button>
+					<Button variant="outline" asChild>
+						<Link href="/sign-up">{tLanding("signUp")}</Link>
+					</Button>
+				</div>
+			</div>
+		);
+	}
 
-  // User is signed in - ensure local user exists
-  const clerkUser = await currentUser();
-  if (!clerkUser) {
-    redirect("/sign-in");
-  }
+	// User is signed in - ensure local user exists
+	const clerkUser = await currentUser();
+	if (!clerkUser) {
+		redirect("/sign-in");
+	}
 
-  const user = await ensureLocalUser(clerkUser);
+	const user = await ensureLocalUser(clerkUser);
 
-  // Get organisations user belongs to
-  const organisationUsers = await db.organisationUser.findMany({
-    where: {
-      userId: user.id,
-      active: true,
-    },
-    include: {
-      organisation: true,
-    },
-    orderBy: {
-      joinedAt: 'asc', // Use oldest membership for consistency
-    },
-  });
+	// Get organisations user belongs to
+	const organisationUsers = await db.organisationUser.findMany({
+		where: {
+			userId: user.id,
+			active: true,
+		},
+		include: {
+			organisation: true,
+		},
+		orderBy: {
+			joinedAt: "asc", // Use oldest membership for consistency
+		},
+	});
 
-  // If user belongs to only one organisation, redirect there
-  if (organisationUsers.length === 1) {
-    return <AutoRedirect to={`/${organisationUsers[0].organisation.alias}`} />;
-  }
+	// If user belongs to only one organisation, redirect there
+	if (organisationUsers.length === 1) {
+		return <AutoRedirect to={`/${organisationUsers[0].organisation.alias}`} />;
+	}
 
-  // If user belongs to multiple organisations, show picker
-  if (organisationUsers.length > 1) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center gap-6 p-4">
-        <div className="text-center">
-          <h1 className="text-2xl font-bold">{tLanding("selectOrganisation")}</h1>
-          <p className="mt-1 text-muted-foreground">
-            {tLanding("multipleOrganisations")}
-          </p>
-        </div>
-        <div className="grid gap-4 sm:grid-cols-1 max-w-2xl w-full">
-          {organisationUsers.map((ou) => (
-            <Card key={ou.id} className="cursor-pointer hover:bg-accent/50 transition-colors">
-              <Link href={`/${ou.organisation.alias}`}>
-                <CardHeader>
-                  <CardTitle>{ou.organisation.name}</CardTitle>
-                  <CardDescription>/{ou.organisation.alias}</CardDescription>
-                </CardHeader>
-              </Link>
-            </Card>
-          ))}
-        </div>
-        <SignOutButton>
-          <Button variant="ghost" size="sm">
-            {tAuth("signOut")}
-          </Button>
-        </SignOutButton>
-      </div>
-    );
-  }
+	// If user belongs to multiple organisations, show picker
+	if (organisationUsers.length > 1) {
+		return (
+			<div className="flex min-h-screen flex-col items-center justify-center gap-6 p-4">
+				<div className="text-center">
+					<h1 className="text-2xl font-bold">
+						{tLanding("selectOrganisation")}
+					</h1>
+					<p className="mt-1 text-muted-foreground">
+						{tLanding("multipleOrganisations")}
+					</p>
+				</div>
+				<div className="grid gap-4 sm:grid-cols-1 max-w-2xl w-full">
+					{organisationUsers.map((ou) => (
+						<Card
+							key={ou.id}
+							className="cursor-pointer hover:bg-accent/50 transition-colors"
+						>
+							<Link href={`/${ou.organisation.alias}`}>
+								<CardHeader>
+									<CardTitle>{ou.organisation.name}</CardTitle>
+									<CardDescription>/{ou.organisation.alias}</CardDescription>
+								</CardHeader>
+							</Link>
+						</Card>
+					))}
+				</div>
+				<SignOutButton>
+					<Button variant="ghost" size="sm">
+						{tAuth("signOut")}
+					</Button>
+				</SignOutButton>
+			</div>
+		);
+	}
 
-  // User doesn't belong to any organisation - check for pending invitations
-  const pendingEmployees = await db.employee.findMany({
-    where: {
-      email: user.email,
-      userId: null, // Not yet linked to a user
-      active: true,
-      organisation: {
-        active: true,
-      },
-    },
-    include: {
-      organisation: {
-        select: {
-          name: true,
-          alias: true,
-        },
-      },
-      department: {
-        select: {
-          name: true,
-        },
-      },
-    },
-  });
+	// User doesn't belong to any organisation - check for pending invitations
+	const pendingEmployees = await db.employee.findMany({
+		where: {
+			email: user.email,
+			userId: null, // Not yet linked to a user
+			active: true,
+			organisation: {
+				active: true,
+			},
+		},
+		include: {
+			organisation: {
+				select: {
+					name: true,
+					alias: true,
+				},
+			},
+			department: {
+				select: {
+					name: true,
+				},
+			},
+		},
+	});
 
-  // If there are pending invitations, show them
-  if (pendingEmployees.length > 0) {
-    return <PendingInvitations invitations={pendingEmployees} />;
-  }
+	// If there are pending invitations, show them
+	if (pendingEmployees.length > 0) {
+		return <PendingInvitations invitations={pendingEmployees} />;
+	}
 
-  // No organisations and no pending invitations
-  return (
-    <div className="flex min-h-screen flex-col items-center justify-center gap-6 p-4">
-      <Card className="max-w-md">
-        <CardHeader>
-          <CardTitle>{tLanding("welcome")}</CardTitle>
-          <CardDescription>
-            {tLanding("noOrganisation")}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <p className="text-sm text-muted-foreground">
-            {tLanding("contactAdmin")}
-          </p>
-        </CardContent>
-      </Card>
-      <SignOutButton>
-        <Button variant="ghost" size="sm">
-          {tAuth("signOut")}
-        </Button>
-      </SignOutButton>
-    </div>
-  );
+	// No organisations and no pending invitations
+	return (
+		<div className="flex min-h-screen flex-col items-center justify-center gap-6 p-4">
+			<Card className="max-w-md">
+				<CardHeader>
+					<CardTitle>{tLanding("welcome")}</CardTitle>
+					<CardDescription>{tLanding("noOrganisation")}</CardDescription>
+				</CardHeader>
+				<CardContent>
+					<p className="text-sm text-muted-foreground">
+						{tLanding("contactAdmin")}
+					</p>
+				</CardContent>
+			</Card>
+			<SignOutButton>
+				<Button variant="ghost" size="sm">
+					{tAuth("signOut")}
+				</Button>
+			</SignOutButton>
+		</div>
+	);
 }

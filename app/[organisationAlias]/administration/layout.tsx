@@ -34,6 +34,7 @@ export default async function AdministrationLayout({ children, params }: Props) 
         </div>
       );
     }
+    console.error("[AdminLayout] Unexpected error:", error);
     throw error;
   }
 }
