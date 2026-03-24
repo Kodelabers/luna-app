@@ -276,7 +276,7 @@ export function cancelSickLeaveSchema(t: TFunc) {
 export function updateMemberRolesSchema(t: TFunc) {
   return z.object({
     memberId: z.string().min(1, t("memberIdRequired")),
-    isAdmin: z.coerce.boolean(),
+    isAdmin: z.string().transform((val) => val === "true"),
   });
 }
 
