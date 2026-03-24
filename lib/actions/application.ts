@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { resolveTenantContext } from "@/lib/tenant/resolveTenantContext";
 import {
@@ -308,11 +309,11 @@ export async function deleteDraftApplicationAction(
     await deleteDraftApplication(ctx, data.applicationId);
 
     revalidatePath(`/${organisationAlias}/applications`);
-
-    return successState(t("messages.deleted"));
   } catch (error) {
     return await mapErrorToFormState(error);
   }
+
+  redirect(`/${organisationAlias}/applications`);
 }
 
 /**
