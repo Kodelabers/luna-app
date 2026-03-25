@@ -12,6 +12,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb";
 import React from "react";
+import { useBreadcrumbSegments } from "@/components/breadcrumb-context";
 
 type Props = {
   organisationAlias: string;
@@ -22,6 +23,11 @@ export function DynamicBreadcrumb({ organisationAlias, organisationName }: Props
   const pathname = usePathname();
   const tNav = useTranslations("nav");
   const tAdmin = useTranslations("admin");
+  const dynamicSegments = useBreadcrumbSegments();
+
+  const tCommon = useTranslations("common");
+  const tDaysBalance = useTranslations("daysBalance");
+  const tApplications = useTranslations("applications");
 
   // Map URL segments to translation keys
   const segmentLabels: Record<string, string> = {
@@ -30,8 +36,18 @@ export function DynamicBreadcrumb({ organisationAlias, organisationName }: Props
     employees: tNav("employees"),
     members: tNav("members"),
     holidays: tNav("holidays"),
+    managers: tNav("managers"),
     "unavailability-reasons": tAdmin("absenceReasons"),
     department: tNav("departments"),
+    "sick-leaves": tNav("sickLeaves"),
+    applications: tNav("applications"),
+    planning: tNav("planning"),
+    overview: tNav("overview"),
+    profile: tNav("profile"),
+    "days-balance": tDaysBalance("title"),
+    days: tDaysBalance("title"),
+    new: tApplications("newApplication"),
+    edit: tCommon("edit"),
   };
 
   // Parse the pathname and build breadcrumb items
@@ -50,8 +66,17 @@ export function DynamicBreadcrumb({ organisationAlias, organisationName }: Props
       currentPath += `/${segment}`;
       const isLast = index === segments.length - 1;
 
-      // Skip UUID-like segments (department IDs, etc.) - they'll be handled separately
-      if (segment.match(/^[0-9a-f-]{36}$/i)) {
+      // Check if this segment has a dynamic label (e.g., department name)
+      if (dynamicSegments[segment]) {
+        items.push({
+          label: dynamicSegments[segment],
+          href: isLast ? undefined : currentPath,
+        });
+        return;
+      }
+
+      // Skip segments that look like IDs but have no dynamic label
+      if (segment.match(/^[0-9a-f-]{36}$/i) || segment.match(/^c[a-z0-9]{24,}$/i)) {
         return;
       }
 
