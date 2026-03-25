@@ -738,7 +738,7 @@
   },
   "sickLeave": {
     "title": "Bolovanja",
-    "description": "Upravljanje bolovanje zaposlenika",
+    "description": "Upravljanje bolovanjima zaposlenika",
     "active": "Aktivna bolovanja",
     "activeDescription": "Bolovanja trenutno u tijeku (status OPENED)",
     "opened": "Otvoreno",
@@ -770,7 +770,7 @@
     "selectReason": "Odaberite vrstu bolovanja",
     "notePlaceholder": "Dodatne napomene (opcionalno)",
     "confirmCancel": "Jeste li sigurni da želite poništiti bolovanje?",
-    "cancelDescription": "Poništavanje će obrisati sve DaySchedule zapise, ali neće revertirati korekcije ledgera.",
+    "cancelDescription": "Poništavanje će obrisati sve zapise dnevnog rasporeda, ali neće vratiti ispravke u evidenciji.",
     "allStatuses": "Svi statusi",
     "allDepartments": "Svi odjeli",
     "filterByStatus": "Filtriraj po statusu",
