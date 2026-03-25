@@ -29,6 +29,9 @@ export function DynamicBreadcrumb({ organisationAlias, organisationName }: Props
   const tDaysBalance = useTranslations("daysBalance");
   const tApplications = useTranslations("applications");
 
+  // Segments that don't have their own page (parent-only routes)
+  const nonLinkableSegments = new Set(["department", "days", "days-balance"]);
+
   // Map URL segments to translation keys
   const segmentLabels: Record<string, string> = {
     administration: tNav("administration"),
@@ -83,7 +86,7 @@ export function DynamicBreadcrumb({ organisationAlias, organisationName }: Props
       const label = segmentLabels[segment] || segment;
       items.push({
         label,
-        href: isLast ? undefined : currentPath,
+        href: isLast || nonLinkableSegments.has(segment) ? undefined : currentPath,
       });
     });
 
