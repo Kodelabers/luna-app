@@ -86,7 +86,7 @@
   },
   "dashboard": {
     "welcome": "Dobrodošli, {name}!",
-    "dashboardFor": "Dashboard za {organisation}",
+    "dashboardFor": "Nadzorna ploča za {organisation}",
     "myProfile": "Moj profil",
     "yourDataInSystem": "Vaši podaci u sustavu",
     "fullName": "Ime i prezime:",
@@ -896,4 +896,3 @@
     "reasonTypeRequired": "Vrsta odsutnosti je obavezna"
   }
 }
-
