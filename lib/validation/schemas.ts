@@ -285,8 +285,8 @@ export function inviteMemberSchema(t: TFunc) {
     firstName: z.string().min(1, t("firstNameRequired")).max(100),
     lastName: z.string().min(1, t("lastNameRequired")).max(100),
     email: z.string().email(t("invalidEmail")),
-    isAdmin: z.coerce.boolean().default(false),
-    createEmployee: z.coerce.boolean().default(false),
+    isAdmin: z.string().transform((val) => val === "true"),
+    createEmployee: z.string().transform((val) => val === "true"),
     departmentId: z.string().optional(),
     title: z.string().max(100).optional(),
   });
