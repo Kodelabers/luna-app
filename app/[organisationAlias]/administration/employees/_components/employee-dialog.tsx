@@ -4,7 +4,6 @@ import { useActionState, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { z } from "zod";
 import { useTranslations } from "next-intl";
 
 import {
@@ -249,8 +248,8 @@ export function EmployeeDialog({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t("department")}</FormLabel>
+                  <input type="hidden" name="departmentId" value={field.value || ""} />
                   <Select
-                    name="departmentId"
                     value={field.value?.toString() || ""}
                     onValueChange={(value) => field.onChange(value)}
                   >
