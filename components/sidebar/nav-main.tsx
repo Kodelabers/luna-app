@@ -110,14 +110,14 @@ export function NavMain({
                             <SidebarMenuSubItem>
                               <CollapsibleTrigger asChild>
                                 <SidebarMenuSubButton isActive={isSubItemActive}>
-                                  <div className="flex items-center gap-2 flex-1">
+                                  <div className="flex items-center gap-2 flex-1 min-w-0">
                                     {subItem.colorCode && (
                                       <div
                                         className="h-3 w-3 rounded-sm shrink-0"
                                         style={{ backgroundColor: subItem.colorCode }}
                                       />
                                     )}
-                                    <span>{subItem.title}</span>
+                                    <span className="truncate">{subItem.title}</span>
                                   </div>
                                   <ChevronRight className="ml-auto h-3 w-3 transition-transform duration-200 group-data-[state=open]/nested:rotate-90" />
                                 </SidebarMenuSubButton>
