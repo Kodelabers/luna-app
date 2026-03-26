@@ -408,6 +408,7 @@
     "pendingApproval": "Pending approval",
     "inProcess": "In progress",
     "employee": "Employee",
+    "selectEmployee": "Select employee",
     "creatingOnBehalf": "Creating request on behalf of selected employee",
     "ledgerBalance": "Days balance by absence type",
     "allocated": "Allocated",

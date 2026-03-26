@@ -68,7 +68,7 @@ export default async function DepartmentApplicationsPage({ params }: Props) {
             title={`${t("title")} - ${department.name}`}
             description={t("description")}
             action={
-              <Link href={`/${organisationAlias}/applications/new`}>
+              <Link href={`/${organisationAlias}/applications/new?departmentId=${departmentId}`}>
                 <Button>
                   <Plus className="mr-2 h-4 w-4" />
                   {t("newApplication")}

@@ -7,10 +7,13 @@ import { redirect } from "next/navigation";
 
 type PageProps = {
   params: Promise<{ organisationAlias: string }>;
+  searchParams: Promise<{ departmentId?: string }>;
 };
 
 export default async function NewApplicationPage(props: PageProps) {
   const params = await props.params;
+  const searchParams = await props.searchParams;
+  const departmentIdFromQuery = searchParams.departmentId ?? null;
   const t = await getTranslations("applications");
 
   // Resolve tenant context
@@ -49,45 +52,31 @@ export default async function NewApplicationPage(props: PageProps) {
   // Fetch employees for manager selection
   let selectableEmployees: Array<{ id: string; firstName: string; lastName: string; email: string; departmentId: string | null }> = [];
   
-  if (isGeneralManager) {
-    // GM can create applications for any employee
-    selectableEmployees = await db.employee.findMany({
-      where: {
-        organisationId: ctx.organisationId,
-        active: true,
-      },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        departmentId: true,
-      },
-      orderBy: [
-        { firstName: "asc" },
-        { lastName: "asc" },
-      ],
-    });
-  } else if (isDepartmentManager && managerRecord.departmentId) {
-    // DM can create applications for employees in their department
-    selectableEmployees = await db.employee.findMany({
-      where: {
-        organisationId: ctx.organisationId,
-        departmentId: managerRecord.departmentId,
-        active: true,
-      },
-      select: {
-        id: true,
-        firstName: true,
-        lastName: true,
-        email: true,
-        departmentId: true,
-      },
-      orderBy: [
-        { firstName: "asc" },
-        { lastName: "asc" },
-      ],
-    });
+  if (isGeneralManager || isDepartmentManager) {
+    // If coming from a department page, use that department; otherwise use the manager's own department
+    const targetDepartmentId = departmentIdFromQuery
+      ?? (isGeneralManager ? employee.departmentId : managerRecord!.departmentId);
+
+    if (targetDepartmentId) {
+      selectableEmployees = await db.employee.findMany({
+        where: {
+          organisationId: ctx.organisationId,
+          departmentId: targetDepartmentId,
+          active: true,
+        },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+          departmentId: true,
+        },
+        orderBy: [
+          { firstName: "asc" },
+          { lastName: "asc" },
+        ],
+      });
+    }
   }
 
   // Fetch unavailability reasons
