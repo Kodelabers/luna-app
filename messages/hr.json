@@ -408,6 +408,7 @@
     "pendingApproval": "U procesu odobravanja",
     "inProcess": "U procesu",
     "employee": "Zaposlenik",
+    "selectEmployee": "Odaberite zaposlenika",
     "creatingOnBehalf": "Kreirate zahtjev u ime odabranog zaposlenika",
     "ledgerBalance": "Stanje dana po vrstama odsutnosti",
     "allocated": "Dodijeljeno",

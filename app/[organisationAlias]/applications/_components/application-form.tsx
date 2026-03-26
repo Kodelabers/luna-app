@@ -119,7 +119,9 @@ export function ApplicationForm({
   const locale = useLocale();
   const dateLocale = locale === "hr" ? hr : enUS;
 
-  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>(currentEmployeeId);
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>(
+    isManager && selectableEmployees.length > 0 ? "" : currentEmployeeId
+  );
   const [selectedReasonId, setSelectedReasonId] = useState<string | undefined>(
     initialData?.unavailabilityReasonId
   );
@@ -153,6 +155,8 @@ export function ApplicationForm({
 
   // Fetch employee data when selected employee changes
   useEffect(() => {
+    if (!selectedEmployeeId) return;
+
     const fetchEmployeeData = async () => {
       setIsLoadingEmployeeData(true);
       // Reset form state when employee changes (only if not initial load)
@@ -320,7 +324,7 @@ export function ApplicationForm({
                 onValueChange={(value) => setSelectedEmployeeId(value)}
               >
                 <SelectTrigger>
-                  <SelectValue />
+                  <SelectValue placeholder={t("selectEmployee")} />
                 </SelectTrigger>
                 <SelectContent>
                   {selectableEmployees.map((emp) => (
