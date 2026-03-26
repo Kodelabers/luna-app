@@ -13,7 +13,7 @@ import {
   NotFoundError,
 } from "@/lib/errors";
 import { getDaysBalanceForEmployee, type EmployeeDaysBalance } from "@/lib/services/days-balance";
-import { toZonedTime } from "date-fns-tz";
+import { toZonedTime, fromZonedTime } from "date-fns-tz";
 import { ApplicationStatus } from "@prisma/client";
 
 /**
@@ -382,6 +382,12 @@ export type EmployeeProfileData = {
     startDateLocalISO: string;
     endDateLocalISO: string;
   }>;
+  sickLeaveBalances: Array<{
+    unavailabilityReasonId: string;
+    unavailabilityReasonName: string;
+    unavailabilityReasonColorCode: string | null;
+    days: number;
+  }>;
 };
 
 /**
@@ -433,6 +439,8 @@ export async function getEmployeeProfileAction(
     // Get current year in client timezone
     const now = new Date();
     const currentYear = toZonedTime(now, clientTimeZone).getFullYear();
+    const yearStart = fromZonedTime(new Date(currentYear, 0, 1, 0, 0, 0, 0), clientTimeZone);
+    const yearEnd = fromZonedTime(new Date(currentYear, 11, 31, 23, 59, 59, 999), clientTimeZone);
 
     // Get days balance for employee
     const daysBalance = await getDaysBalanceForEmployee(
@@ -480,6 +488,54 @@ export async function getEmployeeProfileAction(
       };
     });
 
+    // Get all active sick leave reasons for the organisation
+    const sickLeaveReasons = await db.unavailabilityReason.findMany({
+      where: {
+        organisationId: ctx.organisationId,
+        sickLeave: true,
+        active: true,
+      },
+      select: { id: true, name: true, colorCode: true },
+      orderBy: { name: "asc" },
+    });
+
+    // Get sick leave days for current year (CLOSED sick leaves only)
+    const closedSickLeaves = await db.sickLeave.findMany({
+      where: {
+        organisationId: ctx.organisationId,
+        employeeId,
+        status: "CLOSED",
+        active: true,
+        startDate: { lte: yearEnd },
+        endDate: { gte: yearStart },
+      },
+      select: {
+        unavailabilityReasonId: true,
+        _count: {
+          select: {
+            daySchedules: {
+              where: { active: true, date: { gte: yearStart, lte: yearEnd } },
+            },
+          },
+        },
+      },
+    });
+
+    const sickLeaveCountMap = new Map<string, number>();
+    for (const sl of closedSickLeaves) {
+      const current = sickLeaveCountMap.get(sl.unavailabilityReasonId) ?? 0;
+      sickLeaveCountMap.set(sl.unavailabilityReasonId, current + sl._count.daySchedules);
+    }
+
+    const sickLeaveBalances = sickLeaveReasons
+      .map((reason) => ({
+        unavailabilityReasonId: reason.id,
+        unavailabilityReasonName: reason.name,
+        unavailabilityReasonColorCode: reason.colorCode,
+        days: sickLeaveCountMap.get(reason.id) ?? 0,
+      }))
+      .filter((sl) => sl.days > 0);
+
     return {
       success: true,
       data: {
@@ -494,6 +550,7 @@ export async function getEmployeeProfileAction(
         },
         daysBalance,
         openApplications,
+        sickLeaveBalances,
       },
     };
   } catch (error) {

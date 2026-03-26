@@ -159,11 +159,11 @@ export function EmployeeProfile({
             </DialogHeader>
 
             {/* Days Balance Summary - nice display */}
-            {data.daysBalance.length > 0 && (
+            {(data.daysBalance.some((b) => b.breakdown.totalAvailable > 0) || data.sickLeaveBalances.length > 0) && (
               <>
                 <Separator />
                 <div className="flex flex-wrap gap-3">
-                  {data.daysBalance.map((balance) => (
+                  {data.daysBalance.filter((b) => b.breakdown.totalAvailable > 0).map((balance) => (
                     <div
                       key={balance.unavailabilityReasonId}
                       className="flex items-center gap-2 rounded-lg border px-3 py-2"
@@ -185,6 +185,29 @@ export function EmployeeProfile({
                           <span className="text-xs font-normal text-muted-foreground ml-1">
                             / {balance.breakdown.totalAvailable}
                           </span>
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                  {data.sickLeaveBalances.map((sl) => (
+                    <div
+                      key={sl.unavailabilityReasonId}
+                      className="flex items-center gap-2 rounded-lg border px-3 py-2"
+                    >
+                      {sl.unavailabilityReasonColorCode && (
+                        <div
+                          className="h-3 w-3 rounded-xs shrink-0"
+                          style={{
+                            backgroundColor: sl.unavailabilityReasonColorCode,
+                          }}
+                        />
+                      )}
+                      <div className="flex flex-col">
+                        <span className="text-xs text-muted-foreground">
+                          {sl.unavailabilityReasonName}
+                        </span>
+                        <span className="text-lg font-semibold tabular-nums">
+                          {sl.days}
                         </span>
                       </div>
                     </div>
@@ -289,7 +312,7 @@ export function EmployeeProfile({
 
               {/* Days Balance Tab */}
               <TabsContent value="balance" className="mt-4">
-                {data.daysBalance.length === 0 ? (
+                {data.daysBalance.length === 0 && data.sickLeaveBalances.length === 0 ? (
                   <div className="text-center py-8">
                     <CalendarDays className="h-10 w-10 mx-auto text-muted-foreground/50 mb-2" />
                     <p className="text-sm text-muted-foreground">
@@ -349,6 +372,31 @@ export function EmployeeProfile({
                             <TableCell className="text-right tabular-nums font-semibold text-primary">
                               {balance.breakdown.remaining}
                             </TableCell>
+                          </TableRow>
+                        ))}
+                        {data.sickLeaveBalances.map((sl) => (
+                          <TableRow key={sl.unavailabilityReasonId}>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                {sl.unavailabilityReasonColorCode && (
+                                  <div
+                                    className="h-3 w-3 rounded-xs shrink-0"
+                                    style={{
+                                      backgroundColor: sl.unavailabilityReasonColorCode,
+                                    }}
+                                  />
+                                )}
+                                <span className="font-medium text-sm">
+                                  {sl.unavailabilityReasonName}
+                                </span>
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right text-muted-foreground">—</TableCell>
+                            <TableCell className="text-right tabular-nums">
+                              {sl.days}
+                            </TableCell>
+                            <TableCell className="text-right tabular-nums">0</TableCell>
+                            <TableCell className="text-right text-muted-foreground">—</TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
