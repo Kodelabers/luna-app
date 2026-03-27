@@ -45,8 +45,10 @@ export default async function PlanningPage({ params, searchParams }: Props) {
   const fromLocalISO = from || format(defaultFrom, "yyyy-MM-dd");
   const toLocalISO = to || format(defaultTo, "yyyy-MM-dd");
   
+  const noDepartmentsExplicitly = department === "none";
+
   // Parse comma-separated department IDs
-  const departmentIds: string[] = department
+  const departmentIds: string[] = (!noDepartmentsExplicitly && department)
     ? department
         .split(",")
         .map((id) => id.trim())
@@ -76,13 +78,15 @@ export default async function PlanningPage({ params, searchParams }: Props) {
   const clientTimeZone = "Europe/Zagreb";
 
   // 6. Fetch planning data
-  const result = await getPlanningDataAction(
-    organisationAlias,
-    fromLocalISO,
-    toLocalISO,
-    clientTimeZone,
-    validDepartmentIds.length > 0 ? validDepartmentIds : undefined
-  );
+  const result = noDepartmentsExplicitly
+    ? { success: true as const, data: { employees: [], days: [], cells: [] } }
+    : await getPlanningDataAction(
+        organisationAlias,
+        fromLocalISO,
+        toLocalISO,
+        clientTimeZone,
+        validDepartmentIds.length > 0 ? validDepartmentIds : undefined
+      );
 
   if (!result.success) {
     return (
@@ -127,6 +131,7 @@ export default async function PlanningPage({ params, searchParams }: Props) {
             isGeneralManager={managerStatus.isGeneralManager}
             clientTimeZone={clientTimeZone}
             organisationAlias={organisationAlias}
+            noDepartmentsSelected={noDepartmentsExplicitly}
           />
         </CardContent>
       </Card>

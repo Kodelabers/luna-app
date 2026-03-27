@@ -82,13 +82,13 @@ export default async function DashboardPage({ params, searchParams }: Props) {
       {/* Role badges */}
       <div className="flex gap-2">
         {ctx.organisationUser.roles.includes("ADMIN") && (
-          <Badge variant="default">{tRoles("administrator")}</Badge>
+          <Badge variant="secondary">{tRoles("administrator")}</Badge>
         )}
         {managerStatus.isGeneralManager && (
           <Badge variant="secondary">{tRoles("generalManager")}</Badge>
         )}
         {managerStatus.isDepartmentManager && (
-          <Badge variant="outline">{tRoles("departmentManager")}</Badge>
+          <Badge variant="secondary">{tRoles("departmentManager")}</Badge>
         )}
       </div>
 
