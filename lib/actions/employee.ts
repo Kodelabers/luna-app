@@ -291,6 +291,7 @@ export async function searchUsers(
     }
 
     // Search users by firstName, lastName
+    const queryParts = query.trim().split(/\s+/);
     const users = await db.user.findMany({
       where: {
         active: true,
@@ -298,6 +299,22 @@ export async function searchUsers(
           { firstName: { contains: query, mode: "insensitive" } },
           { lastName: { contains: query, mode: "insensitive" } },
           { email: { contains: query, mode: "insensitive" } },
+          ...(queryParts.length >= 2
+            ? [
+                {
+                  AND: [
+                    { firstName: { contains: queryParts.slice(0, -1).join(" "), mode: "insensitive" as const } },
+                    { lastName: { contains: queryParts[queryParts.length - 1], mode: "insensitive" as const } },
+                  ],
+                },
+                {
+                  AND: [
+                    { firstName: { contains: queryParts[0], mode: "insensitive" as const } },
+                    { lastName: { contains: queryParts.slice(1).join(" "), mode: "insensitive" as const } },
+                  ],
+                },
+              ]
+            : []),
         ],
       },
       select: {
