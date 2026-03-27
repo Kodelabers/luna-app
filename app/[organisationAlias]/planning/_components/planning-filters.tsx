@@ -28,6 +28,7 @@ type PlanningFiltersProps = {
   isGeneralManager: boolean;
   clientTimeZone: string;
   organisationAlias: string;
+  noDepartmentsSelected: boolean;
 };
 
 export function PlanningFilters({
@@ -38,6 +39,7 @@ export function PlanningFilters({
   isGeneralManager,
   clientTimeZone,
   organisationAlias,
+  noDepartmentsSelected,
 }: PlanningFiltersProps) {
   const t = useTranslations("planning");
   const locale = useLocale();
@@ -56,9 +58,11 @@ export function PlanningFilters({
     return undefined;
   });
 
-  // Initialize selected departments - if empty or all departments selected, show all
+  // Initialize selected departments
   const [selectedDepartmentIds, setSelectedDepartmentIds] = useState<string[]>(
-    departmentIds.length === 0 || departmentIds.length === departments.length
+    noDepartmentsSelected
+      ? []
+      : departmentIds.length === 0 || departmentIds.length === departments.length
       ? departments.map((d) => d.id)
       : departmentIds
   );
@@ -69,14 +73,17 @@ export function PlanningFilters({
       const newFrom = format(dateRange.from, "yyyy-MM-dd");
       const newTo = format(dateRange.to, "yyyy-MM-dd");
       
-      // If all departments are selected, don't include department param (show all)
+      const noneSelected = selectedDepartmentIds.length === 0;
       const allSelected = selectedDepartmentIds.length === departments.length;
       const deptIds = allSelected ? [] : selectedDepartmentIds;
 
       // Check if filters actually changed
-      const deptIdsChanged = 
-        deptIds.length !== departmentIds.length ||
-        deptIds.some((id) => !departmentIds.includes(id));
+      const deptIdsChanged =
+        noneSelected !== noDepartmentsSelected ||
+        (!noneSelected && (
+          deptIds.length !== departmentIds.length ||
+          deptIds.some((id) => !departmentIds.includes(id))
+        ));
 
       if (
         newFrom !== fromLocalISO ||
@@ -86,7 +93,9 @@ export function PlanningFilters({
         const params = new URLSearchParams(searchParams.toString());
         params.set("from", newFrom);
         params.set("to", newTo);
-        if (deptIds.length > 0) {
+        if (noneSelected) {
+          params.set("department", "none");
+        } else if (deptIds.length > 0) {
           params.set("department", deptIds.join(","));
         } else {
           params.delete("department");
