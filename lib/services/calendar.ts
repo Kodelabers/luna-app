@@ -98,13 +98,17 @@ export async function getEmployeeMonthCalendar(
     const holidayLocalDate = toZonedTime(holiday.date, clientTimeZone);
     
     if (holiday.repeatYearly) {
-      // Check if this yearly holiday falls in the requested month
       const holidayMonth = holidayLocalDate.getMonth() + 1;
       const holidayDay = holidayLocalDate.getDate();
-      
-      if (holidayMonth === month) {
-        const dateKey = `${year}-${String(holidayMonth).padStart(2, "0")}-${String(holidayDay).padStart(2, "0")}`;
-        holidayMap.set(dateKey, holiday.name);
+
+      // Check every month in the range (supports numberOfMonths > 1)
+      for (let i = 0; i < numberOfMonths; i++) {
+        const rangeMonth = ((month - 1 + i) % 12) + 1;
+        const rangeYear = year + Math.floor((month - 1 + i) / 12);
+        if (holidayMonth === rangeMonth) {
+          const dateKey = `${rangeYear}-${String(rangeMonth).padStart(2, "0")}-${String(holidayDay).padStart(2, "0")}`;
+          holidayMap.set(dateKey, holiday.name);
+        }
       }
     } else {
       // One-time holiday

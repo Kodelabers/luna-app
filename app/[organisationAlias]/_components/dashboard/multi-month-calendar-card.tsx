@@ -192,7 +192,7 @@ export function MultiMonthCalendarCard({
   // Group pending days by application and color, excluding already approved days
   const pendingAppsByColor = new Map<string, { color: string; dates: Date[]; dateISOs: string[]; ranges: Map<string, 'start' | 'middle' | 'end' | 'single'> }>();
   
-  pendingApplications.forEach((app) => {
+  pendingApplications.filter((app) => app.status !== "REJECTED").forEach((app) => {
     const color = app.unavailabilityReasonColor || "#fbbf24"; // default to warning color
     const key = `pending_${app.id}`;
     
@@ -442,7 +442,7 @@ export function MultiMonthCalendarCard({
             {Array.from(
               new Map(
                 pendingApplications
-                  .filter((app) => app.unavailabilityReasonColor)
+                  .filter((app) => app.unavailabilityReasonColor && app.status !== "REJECTED")
                   .map((app) => [
                     app.unavailabilityReasonId,
                     {
