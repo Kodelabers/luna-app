@@ -25,11 +25,12 @@ type Props = {
 export default async function EmployeesPage({ params, searchParams }: Props) {
 	const { organisationAlias } = await params;
 	const {
-		search,
+		search: rawSearch,
 		sort = "asc",
 		page: pageParam,
 		department,
 	} = await searchParams;
+	const search = rawSearch?.trim() || undefined;
 	const ctx = await resolveTenantContext(organisationAlias);
 	const t = await getTranslations("employees");
 
@@ -37,6 +38,7 @@ export default async function EmployeesPage({ params, searchParams }: Props) {
 	const departmentId = department ? department : undefined;
 
 	// Build where clause for reuse
+	const searchParts = search ? search.split(/\s+/) : [];
 	const whereClause = {
 		organisationId: ctx.organisationId,
 		active: true,
@@ -46,6 +48,22 @@ export default async function EmployeesPage({ params, searchParams }: Props) {
 				{ firstName: { contains: search, mode: "insensitive" as const } },
 				{ lastName: { contains: search, mode: "insensitive" as const } },
 				{ email: { contains: search, mode: "insensitive" as const } },
+				...(searchParts.length >= 2
+					? [
+							{
+								AND: [
+									{ firstName: { contains: searchParts.slice(0, -1).join(" "), mode: "insensitive" as const } },
+									{ lastName: { contains: searchParts[searchParts.length - 1], mode: "insensitive" as const } },
+								],
+							},
+							{
+								AND: [
+									{ firstName: { contains: searchParts[0], mode: "insensitive" as const } },
+									{ lastName: { contains: searchParts.slice(1).join(" "), mode: "insensitive" as const } },
+								],
+							},
+						]
+					: []),
 			],
 		}),
 	};

@@ -339,6 +339,25 @@ export async function searchUnlinkedEmployees(
           { firstName: { contains: query, mode: "insensitive" } },
           { lastName: { contains: query, mode: "insensitive" } },
           { email: { contains: query, mode: "insensitive" } },
+          ...(() => {
+            const queryParts = query.trim().split(/\s+/);
+            return queryParts.length >= 2
+              ? [
+                  {
+                    AND: [
+                      { firstName: { contains: queryParts.slice(0, -1).join(" "), mode: "insensitive" as const } },
+                      { lastName: { contains: queryParts[queryParts.length - 1], mode: "insensitive" as const } },
+                    ],
+                  },
+                  {
+                    AND: [
+                      { firstName: { contains: queryParts[0], mode: "insensitive" as const } },
+                      { lastName: { contains: queryParts.slice(1).join(" "), mode: "insensitive" as const } },
+                    ],
+                  },
+                ]
+              : [];
+          })(),
         ],
       },
       include: {
